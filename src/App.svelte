@@ -36,9 +36,15 @@
 	@media (min-width: 672px) {
 		:global(.bx--modal-container) {
 			border-radius: 10px;
+			:global(.bx--modal-close) {border-top-right-radius: 10px;}
+			:global(.bx--modal-footer) {
+				padding: var(--cds-spacing-05);
+				background: var(--cds-skeleton-01);
+				gap: 5px;
+				height: auto;
+
+				:global(.bx--btn) {border-radius: 7px;}
+			}
 		}
-		:global(.bx--modal-close) {border-top-right-radius: 10px;}
-		:global(.bx--modal-footer .bx--btn:first-child) {border-bottom-left-radius: 10px;}
-		:global(.bx--modal-footer .bx--btn:last-child) {border-bottom-right-radius: 10px;}
 	}
 </style>
