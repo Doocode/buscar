@@ -10,7 +10,7 @@
     export let appname = "Lorem ipsum";
 
     // Attributs internes
-    let contrastMode = "g10"; // g100
+    let contrastMode = "g10"; // g10 / g100
     let pageName = "Accueil";
     let pageIcon = "screen";
     let menuWidth = 300;
@@ -301,7 +301,7 @@
     }
 
 
-    @media (max-width: 640px) {
+    @media (max-width: 672px) {
 		header {
 			padding: 5px;
 

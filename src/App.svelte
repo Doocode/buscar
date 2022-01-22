@@ -33,7 +33,7 @@
 </main>
 
 <style lang="scss">
-	@media (min-width: 640px) {
+	@media (min-width: 672px) {
 		:global(.bx--modal-container) {
 			border-radius: 10px;
 		}

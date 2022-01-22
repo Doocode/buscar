@@ -203,14 +203,15 @@
 <style lang="scss">
     main {padding: 10px;}
 
+    // Barre de recherche
     :global(.bx--form--fluid .bx--text-input-wrapper) {border-radius: 10px;}
-
     :global(.query-form) {
-        max-width: 400px;
+        max-width: 670px;
         display: flex;
         margin: 10px auto;
         border-radius: 10px;
         box-shadow: 0 0 0 1px rgba(0,0,0,.1), 0 3px 15px rgba(0,0,0,.2);
+        transition: all .2s;
 
         :global(.bx--text-input) {
             margin: 0;
@@ -250,7 +251,11 @@
         :global(.icofont) {font-size: 16px;}
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 672px) {
+        :global(.query-form) {max-width: 400px;}
+
+        .navbar-profile {padding: 8px;}
+
         .bottomToolbar {
             padding: 10px;
             :global(.icofont) {font-size: 22px;}
