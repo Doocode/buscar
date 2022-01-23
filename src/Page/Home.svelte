@@ -10,6 +10,7 @@
     let modalResetSelection = false;
     let openInSamePage = true;
     let multiSelectWebsearch = false;
+    let maxDisplayBubble = 3;
 
     // Saisie de la requête
     let queryInput = "";
@@ -17,13 +18,13 @@
     // Moteurs de recherche
     // - Liste des moteurs/[sites web] de recherche
     const listWebsearch = [
-        { id: "0", text: "Google", icon: "", query: "http://www.google.fr/search?q=%query%" },
-        { id: "1", text: "Bing", icon: "", query: "http://www.bing.com/search?q=%query%" },
-        { id: "2", text: "Qwant", icon: "", query: "http://www.qwant.com/?q=%query%" },
-        { id: "3", text: "DuckDuckGo", icon: "", query: "http://www.duckduckgo.com/?q=%query%" },
-        { id: "4", text: "Ecosia", icon: "", query: "http://www.ecosia.com/search?q=%query%" },
-        { id: "5", text: "Lilo", icon: "", query: "http://search.lilo.org/?q=%query%" },
-        { id: "6", text: "Yandex", icon: "", query: "http://www.yandex.com/search/?text=%query%" },
+        { id: "0", text: "Google", icon: "/assets/web-search/google.png", query: "http://www.google.fr/search?q=%query%" },
+        { id: "1", text: "Bing", icon: "/assets/web-search/bing.png", query: "http://www.bing.com/search?q=%query%" },
+        { id: "2", text: "Qwant", icon: "/assets/web-search/qwant.png", query: "http://www.qwant.com/?q=%query%" },
+        { id: "3", text: "DuckDuckGo", icon: "/assets/web-search/duckduckgo.png", query: "http://www.duckduckgo.com/?q=%query%" },
+        { id: "4", text: "Ecosia", icon: "/assets/web-search/ecosia.png", query: "http://www.ecosia.com/search?q=%query%" },
+        { id: "5", text: "Lilo", icon: "/assets/web-search/lilo.png", query: "http://search.lilo.org/?q=%query%" },
+        { id: "6", text: "Yandex", icon: "/assets/web-search/yandex.png", query: "http://www.yandex.com/search/?text=%query%" },
     ];
     let queryInputLabel = "Rechercher"; // Label de la barre de recherche
     let selectedWebsearchIDs = []; // Liste des sites web de recherche sélectionnés
@@ -242,17 +243,33 @@
         {/each}
     </nav>
 
-    <FluidForm class="query-form">
-        <TextInput size="xl" 
-            labelText="{ queryInputLabel }" 
-            placeholder="Qui est Molière ?" 
-            on:keyup={(e) => {if (e.keyCode==13) launchQuery()}}
-            bind:value={ queryInput } />
+    <div class:noWebsearch={ selectedWebsearchIDs.length == 0 }>
+        <FluidForm class="query-form">
+            {#if selectedWebsearchIDs.length > 0}
+                <div class="bubbles" on:click={() => (modalSelectWebsearch = true)}>
+                    {#each listWebsearch.filter(item => selectedWebsearchIDs.indexOf(parseInt(item.id)) > -1).slice(0,maxDisplayBubble) as wsearch}
+                        <img class="bubble icon" src="{ wsearch.icon }" title="La recherche se fera sur { wsearch.text }" alt="Logo de { wsearch.text }" />
+                    {/each}
 
-        <Button on:click={launchQuery}>
-            <Icofont icon="search" size="20" />
-        </Button>
-    </FluidForm>
+                    {#if selectedWebsearchIDs.length > maxDisplayBubble}
+                        <span class="bubble count" title="Il y a { selectedWebsearchIDs.length - maxDisplayBubble } sites web en plus">
+                            +{ selectedWebsearchIDs.length - maxDisplayBubble }
+                        </span>
+                    {/if}
+                </div>
+            {/if}
+
+            <TextInput size="xl" 
+                labelText="{ queryInputLabel }" 
+                placeholder="Qui est Molière ?" 
+                on:keyup={(e) => {if (e.keyCode==13) launchQuery()}}
+                bind:value={ queryInput } />
+
+            <Button on:click={launchQuery}>
+                <Icofont icon="search" size="20" />
+            </Button>
+        </FluidForm>
+    </div>
 
     <div class="bottomToolbar">
         <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectWebsearch = true)}>
@@ -319,9 +336,15 @@
                 <div class="wsearch-items" role="group" aria-label="Liste des sites web">
                     {#each listWebsearch as ws_item}
                         {#if multiSelectWebsearch}
-                            <SelectableTile bind:selected={ws_item.selected}>{ws_item.text}</SelectableTile>
+                            <SelectableTile bind:selected={ws_item.selected}>
+                                <img src="{ws_item.icon}" alt="Logo de { ws_item.text }" />
+                                <p>{ws_item.text}</p>
+                            </SelectableTile>
                         {:else}
-                            <RadioTile value="{ws_item.id}" bind:checked={ws_item.selected}>{ws_item.text}</RadioTile>
+                            <RadioTile value="{ws_item.id}" bind:checked={ws_item.selected}>
+                                <img src="{ws_item.icon}" alt="Logo de { ws_item.text }" />
+                                <p>{ws_item.text}</p>
+                            </RadioTile>
                         {/if}
                     {/each}
                 </div>
@@ -385,9 +408,54 @@
         box-shadow: 0 0 0 1px rgba(127,127,127,.3);
         transition: all .5s;
 
+        // Le texte avant l'input
+        :global(.bx--label) {
+            width: calc(100% - 2rem);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        // Les icones des sites web de recherche
+        .bubbles {
+            --bubble-size: 40px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left: 10px;
+            padding-right: 5px;
+            cursor: pointer;
+            background: var(--cds-field-01);
+            border-radius: 10px 0 0 10px;
+            border-bottom: 1px solid var(--cds-ui-04);
+
+            .bubble {
+                width: var(--bubble-size);
+                height: var(--bubble-size);
+                border-radius: var(--bubble-size);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-shadow: 0 0 0 2px transparent, 0 0 0 1px rgba(127,127,127,.5);
+                transition: all .2s;
+
+                + .bubble {margin-left: -7px;}
+
+                &.count {
+                    background: var(--cds-ui-background);
+                }
+            }
+
+            &:hover .bubble {
+                box-shadow: 0 0 0 2px var(--cds-interactive-01), 0 0 0 1px rgba(127,127,127,.5);
+            }
+        }
+
+        // L'input de la requête
         :global(.bx--text-input) {
             margin: 0;
-            border-radius: 10px 0 0 10px;
+            border-radius: 0;
         }
 
         :global(.bx--btn) {
@@ -402,6 +470,7 @@
         }
     }
     :global(.bx--form--fluid .bx--text-input-wrapper) {background: transparent;}
+    .noWebsearch :global(.query-form .bx--text-input) {border-radius: 10px 0 0 10px;}
 
     // Profils de recherche (liens en haut de l'écran)
     .nav-searchProfile {
@@ -445,10 +514,23 @@
 
     // Popup des sites web de recherche
     .wsearch-items {
+        --icon-size: 50px;
+
         display: flex;
         flex-flow: wrap;
         max-height: 300px;
         overflow: auto;
+
+        :global(.bx--tile--selectable) {
+            width: 140px;
+        }
+
+        img {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            border-radius: var(--icon-size);
+            box-shadow: 0 0 0 1px rgba(127,127,127,.5);
+        }
     }
 
     @media (min-width: 672px) {
