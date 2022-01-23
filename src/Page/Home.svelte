@@ -2,10 +2,11 @@
     // Imports
     import { Button, TextInput, Dropdown, Toggle, Modal, FluidForm, Grid, Row, Column, Link, SelectableTile, RadioTile, TileGroup } from "carbon-components-svelte";
     import Icofont from "../UI/Icofont.svelte";
+    import async from "async";
 
     // Flags
     let modalSelectWebsearch = false;
-    let modalSelectProfile = false;
+    let modalSelectSearchProfile = false;
     let modalResetSelection = false;
     let openInSamePage = true;
     let multiSelectWebsearch = false;
@@ -25,28 +26,27 @@
         { id: "6", text: "Yandex", icon: "", query: "http://www.yandex.com/search/?text=%query%" },
     ];
     let queryInputLabel = "Rechercher"; // Label de la barre de recherche
-    let countSelectedWebsearch = 0; // Nombre de sites web sélectionnés
-    loadPreferences();
+    let selectedWebsearchIDs = []; // Liste des sites web de recherche sélectionnés
     $: {
         // Initialisation
-        countSelectedWebsearch = 0;
+        selectedWebsearchIDs = [];
         let listSelectedName = [];
 
         // Parcourir les sites web sélectionnés
-        listWebsearch.forEach((wsearch, index, list) => {
+        listWebsearch.forEach((wsearch, index) => {
             // Si l'item est sélectionné
             if (wsearch.selected) {
-                // Comptabiliser l'item
-                countSelectedWebsearch++;
-
                 // Mémoriser le nom de l'item
                 listSelectedName.push(wsearch.text);
+
+                // Mémoriser l'id de l'item
+                selectedWebsearchIDs.push(parseInt(wsearch.id));
             }
 
             // Si liste a été complètement parcourue
             if (index+1 == listWebsearch.length) {
                 // MAJ le texte pour le label de la barre de recherche
-                switch (countSelectedWebsearch) {
+                switch (selectedWebsearchIDs.length) {
                     case 0: // Aucun site web sélectionné
                         queryInputLabel = "Rechercher";
                         break;
@@ -54,17 +54,17 @@
                         queryInputLabel = "Rechercher sur ";
 
                         // Parcourir les noms de sites web choisis
-                        listSelectedName.forEach((name, ii, list) => {
+                        listSelectedName.forEach((name, ii) => {
                             if (ii == 0) // 1er item
                                 queryInputLabel += name;
-                            else if (ii+1 < countSelectedWebsearch) // Items au milieu
+                            else if (ii+1 < selectedWebsearchIDs.length) // Items au milieu
                                 queryInputLabel += ", " + name;
                             else // Dernier item
                                 queryInputLabel += " et " + name;
                         });
                         break;
                     default: // Plusieurs sites web sélectionnés
-                        queryInputLabel = "Rechercher sur " + countSelectedWebsearch + " sites web";
+                        queryInputLabel = "Rechercher sur " + selectedWebsearchIDs.length + " sites web";
                         break;
                 }
             }
@@ -74,59 +74,101 @@
 
     // Profils de recherche
     // - Index pour Valider/Annuler
-    let selectedProfileIndex = 0;
-    let lastSelectedProfileIndex = 0;
+    let selectedSearchProfileIndex = 0;
+    let lastSelectedSearchProfileIndex = 0;
     // - Liste des profils de recherche
-    const listProfiles = [
-        { id: "0", text: "Personnalisé", icon: "circles", websearch: [] },
-        { id: "1", text: "Général", icon: "web", websearch: [1] },
-        { id: "2", text: "Images", icon: "image", websearch: [] },
-        { id: "3", text: "Vidéos", icon: "play", websearch: [] },
-        { id: "4", text: "Musiques", icon: "music", websearch: [] },
-        { id: "5", text: "Mail", icon: "mail", websearch: [] },
-        /*{ id: "2", text: "Gafam", icon: "flag", websearch: [0,1] },
-        { id: "3", text: "Français", icon: "flag", websearch: [2,4,5] },
-        { id: "4", text: "Ethique", icon: "flag", websearch: [2,3,4,5] },*/
+    const listSearchProfile = [
+        { id: 0, text: "Personnalisé", icon: "circles", websearch: [] },
+        { id: 1, text: "Général", icon: "web", websearch: [0] },
+        { id: 2, text: "Images", icon: "image", websearch: [1,2] },
+        { id: 3, text: "Vidéos", icon: "play", websearch: [] },
+        { id: 4, text: "Musiques", icon: "music", websearch: [] },
+        { id: 5, text: "Mail", icon: "mail", websearch: [] },
     ];
-    // - Propriétés pour les Dropdowns
-    const formatSelectedProfile = (i) => (listProfiles[i] ? listProfiles[i].text : "N/A"); // Texte pour les Dropdowns
-    $: selectedProfileText = formatSelectedProfile(selectedProfileIndex);
-    /*$: { // Selection des moteurs en fonction du profil de recherhce
-        if (selectedProfileIndex != 0) {
-            // Sélectionner les moteurs de recherche du profil
-            let websearchProfile = listProfiles[selectedProfileIndex].websearch;
-        }
-    }*/
 
     // Méthodes
     function confirmChangeWebsearch() {
+        // Masquer la popup
         modalSelectWebsearch = false;
         
-        // Choisir le 1er profil de recherche (Mode personnalisé)
-        selectedProfileIndex = 0
-        lastSelectedProfileIndex = 0
+        // Mémoriser l'ancien profil de recherche
+        if (lastSelectedSearchProfileIndex != selectedSearchProfileIndex)
+            lastSelectedSearchProfileIndex = selectedSearchProfileIndex;
+
+        // Initialisation pour rechercher un profil correspondant aux sites web de recherche sélectionnés
+        let profileMatch = false;
+        let profileFound = 0;
+
+        // Callback pour vérifier si un profil de recherche correspond à la sélection actuelle
+        let checkSearchProfile = function(sp, done) {
+            // Ne rien faire si un profil de recherche correspondant a été repéré
+            if (profileMatch)
+                return done();
+
+            // Au départ, on considère que ce profil de recherche ne correspond pas
+            profileMatch = false;
+
+            // Avorter si le profil de recherche ne contient pas le même nombre d'items que la sélection actuelle
+            if (selectedWebsearchIDs.length != sp.websearch.length)
+                return done();
+
+            // À ce stade, il faut vérifier si les items du profils et de la sélection actuelle correspondent
+            let listWSearch = sp.websearch;
+            if (selectedWebsearchIDs.sort().join(',') === listWSearch.sort().join(',')) {
+                profileMatch = true;
+                profileFound = sp.id;
+            }
+            done();
+        };
+
+        // Parcourir les profils de recherche
+        async.eachSeries(listSearchProfile, checkSearchProfile, () => {
+            // Les profils de recherches ont été parcourus
+            selectedSearchProfileIndex = profileFound; // MAJ le profil de recherche choisi
+            lastSelectedSearchProfileIndex = selectedSearchProfileIndex; // Effacer l'historique
+        });
     }
-    function cancelChangeProfile() {
-        selectedProfileIndex = lastSelectedProfileIndex;
-        modalSelectProfile = false;
+    function cancelChangeSearchProfile() {
+        selectedSearchProfileIndex = lastSelectedSearchProfileIndex;
+        modalSelectSearchProfile = false;
     }
-    function confirmChangeProfile() {
-        lastSelectedProfileIndex = selectedProfileIndex;
-        modalSelectProfile = false;
+    function confirmChangeSearchProfile() {
+        // MAJ l'historique
+        selectSearchProfileById(selectedSearchProfileIndex)
+
+        // Masquer la popup
+        modalSelectSearchProfile = false;
+    }
+    function selectSearchProfileById(idProfile) {
+        // MAJ le profil de recherche choisi
+        selectedSearchProfileIndex = idProfile;
+
+        // Effacer l'historique
+        lastSelectedSearchProfileIndex = selectedSearchProfileIndex;
+
+        // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
+        if (listSearchProfile[selectedSearchProfileIndex].websearch.length > 1)
+            multiSelectWebsearch = true;
+
+        // Charger les sites web de recherche du profil :
+        // Parcours de la liste des sites web de recherche local
+        listWebsearch.map((wsearch, index) => {
+            // Vérifier si le site web de recherche fait partie du profil de recherche
+            if (listSearchProfile[selectedSearchProfileIndex].websearch.indexOf(index) > -1)
+                listWebsearch[index].selected = true; // Sélectionner le site web de recherche
+            else
+                listWebsearch[index].selected = false;
+        });
     }
     function resetSelection() {
         // Choisir le 1er item
         loadPreferences(); // TODO: Choisir uniquement le profil par défaut
 
-        // Choisir le 1er profil de recherche (Mode personnalisé)
-        selectedProfileIndex = 0
-        lastSelectedProfileIndex = 0
-
         modalResetSelection = false // Fermer la popup
     }
     function launchQuery() {
         // Avorter si aucun site web de recherche sélectionné
-        if (countSelectedWebsearch == 0) {
+        if (selectedWebsearchIDs.length == 0) {
             return alert("Vous devez choisir au moins un site web de recherche");
         }
 
@@ -135,19 +177,19 @@
         let remainingQuery = null;
 
         // Parcours des sites web sélectionnés
-        listWebsearch.forEach((wsearch, index, list) => {
+        listWebsearch.forEach((wsearch, index) => {
             // Si l'item est sélectionné
             if (wsearch.selected) {
                 // Générer l'url de la requête
                 let path = wsearch.query.replace("%query%", queryInput);
 
                 // Puis lancer la requête
-                if (openInSamePage && countSelectedWebsearch == 1) {
+                if (openInSamePage && selectedWebsearchIDs.length == 1) {
                     /* Dans la page actuelle si :
                         1. Le paramètre est activé
                         2. Et qu'il y qu'un seul site web sélectionné
                     */
-                    
+
                     window.open(path, "_self");
                     countPageOpened++; // Comptabiliser le lien (ne sert à rien dans ce cas précis)
                 } else { // Ou dans une nouvelle page/fenêtre/onglet
@@ -173,27 +215,30 @@
         });
     }
     function loadPreferences() {
-        // Initialiser la liste des sites web de recherche
-        listWebsearch.forEach((wsearch, index, list) => {
-            let selected = false;
-
-            // Sélectionner le 1er élément par défaut
-            if (wsearch.id == 0)
-                selected = true;
-            
-            // Créer le flag 'selected'
-            listWebsearch[index].selected = selected;
-        });
+        // Charger le profil de recherche par défaut (charge le moteur de recherche du profil)
+        selectSearchProfileById(1);
     }
+
+    // Charger les paramètres par défaut
+    loadPreferences();
 </script>
 
 <main>
-    <nav class="navbar-profile">
-        {#each listProfiles as profile}
-            <Link href="/#/">
-                <Icofont icon="{profile.icon}" size="16" />
-                <span class="label">{profile.text}</span>
-            </Link>
+    <nav class="nav-searchProfile">
+        {#each listSearchProfile as sp}
+            {#if parseInt(selectedSearchProfileIndex) === parseInt(sp.id)}
+                <Link href="/#/" class="current" on:click={() => {selectSearchProfileById(sp.id)}}>
+                    <Icofont icon="{sp.icon}" size="16" />
+                    <span class="label">{sp.text}</span>
+                </Link>
+            {:else}
+                {#if sp.id != 0}
+                    <Link href="/#/" on:click={() => {selectSearchProfileById(sp.id)}}>
+                        <Icofont icon="{sp.icon}" size="16" />
+                        <span class="label">{sp.text}</span>
+                    </Link>
+                {/if}
+            {/if}
         {/each}
     </nav>
 
@@ -214,7 +259,7 @@
             <Icofont icon="circles" />
             <span class="text">Moteurs de recherche</span>
         </Button>
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectProfile = true)}>
+        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectSearchProfile = true)}>
             <Icofont icon="search" />
             <span class="text">Profils de recherche</span>
         </Button>
@@ -235,8 +280,8 @@
         on:click:button--primary={confirmChangeWebsearch}
         hasForm="true"
         on:open
-        on:close
-        on:submit
+        on:close={confirmChangeWebsearch}
+        on:submit={confirmChangeWebsearch}
     >
         <Grid style="padding: 0">
             <Row>
@@ -285,21 +330,21 @@
     </Modal>
 
     <Modal
-        bind:open={modalSelectProfile}
+        bind:open={modalSelectSearchProfile}
         modalHeading="Choisir un profil de recherche"
         primaryButtonText="Continuer"
         secondaryButtonText="Annuler"
-        on:click:button--secondary={cancelChangeProfile}
-        on:click:button--primary={confirmChangeProfile}
+        on:click:button--secondary={cancelChangeSearchProfile}
+        on:click:button--primary={confirmChangeSearchProfile}
         hasForm="true"
         on:open
-        on:close
-        on:submit
+        on:close={cancelChangeSearchProfile}
+        on:submit={confirmChangeSearchProfile}
     >
         <Dropdown
             titleText="Profils de recherche"
-            bind:selectedIndex={selectedProfileIndex}
-            items={listProfiles}
+            bind:selectedIndex={selectedSearchProfileIndex}
+            items={listSearchProfile}
         />
         <br/><br/><br/><br/><br/><br/>
         <br/><br/><br/><br/><br/><br/>
@@ -315,25 +360,30 @@
         on:click:button--primary={resetSelection}
         on:click:button--secondary={() => (modalResetSelection = false)}
         on:open
-        on:close
-        on:submit
+        on:close={() => (modalResetSelection = false)}
+        on:submit={resetSelection}
     >
         <p>Voulez-vous vraiment rétablir le profil de recherche par défaut ?</p>
     </Modal>
 </main>
 
 <style lang="scss">
-    main {padding: 10px;}
+    main {
+        margin-top: -92px;
+        padding: 10px;
+        transition: all .3s;
+    }
 
     // Barre de recherche
     :global(.bx--form--fluid .bx--text-input-wrapper) {border-radius: 10px;}
     :global(.query-form) {
         max-width: 670px;
         display: flex;
-        margin: 10px auto;
+        margin: 25px auto;
         border-radius: 10px;
         box-shadow: 0 0 0 1px rgba(0,0,0,.1), 0 3px 15px rgba(0,0,0,.2);
-        transition: all .2s;
+        box-shadow: 0 0 0 1px rgba(127,127,127,.3);
+        transition: all .5s;
 
         :global(.bx--text-input) {
             margin: 0;
@@ -354,17 +404,23 @@
     :global(.bx--form--fluid .bx--text-input-wrapper) {background: transparent;}
 
     // Profils de recherche (liens en haut de l'écran)
-    .navbar-profile {
-        padding: 27px;
+    .nav-searchProfile {
+        padding: 27px 91px;
         display: flex;
         flex-flow: wrap;
         gap: 20px 30px;
+        justify-content: center;
         transition: all .5s;
 
         :global(.bx--link) {
             display: flex;
             align-items: center;
             gap: 5px;
+            text-underline-offset: 4px;
+        }
+        :global(.bx--link.current) {
+            color: var(--cds-text-01);
+            text-decoration: underline;
         }
     }
 
@@ -395,10 +451,20 @@
         overflow: auto;
     }
 
+    @media (min-width: 672px) {
+        :global(.query-form) {
+            margin: 100px auto;
+        }
+    }
+
     @media (max-width: 672px) {
+        main {margin: 0;}
         :global(.query-form) {max-width: 400px;}
 
-        .navbar-profile {padding: 8px;}
+        .nav-searchProfile {
+            padding: 8px;
+            justify-content: flex-start;
+        }
 
         .bottomToolbar {
             padding: 10px;

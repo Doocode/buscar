@@ -7,7 +7,7 @@ const app = new App({
 	target: document.body,
 	props: {
 		appname: 'Buscar',
-		appversion: '0.1.0',
+		appversion: '0.1.0 Dev',
 	}
 });
 

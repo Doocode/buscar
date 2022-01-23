@@ -19,6 +19,7 @@
     let backButton_visible = true;
     let leftMenu_visible = false;
     let rightMenu_visible = false;
+    let transparentBg = false;
 
     // Réactivité
 	$: document.documentElement.setAttribute("theme", contrastMode);
@@ -30,6 +31,7 @@
         // Titre par défaut
         pageName = "Page non trouvée";
         pageIcon = "disable";
+        transparentBg = false;
 
         // Parser l'url pour déterminer l'icône et le titre de la page
         if (sections.length > 1) {
@@ -37,6 +39,7 @@
                 case "":
                     pageName = "Accueil";
                     pageIcon = "home";
+                    transparentBg = true;
                     break;
                 case "carbon":
                     pageName = "Carbon pour Svelte";
@@ -61,9 +64,11 @@
     // Méthodes
     function toggleLeftMenu() {
         leftMenu_visible = !leftMenu_visible;
+        rightMenu_visible = false;
     }
     function toggleRightMenu() {
         rightMenu_visible = !rightMenu_visible;
+        leftMenu_visible = false;
     }
     function goBack() {
         pop();
@@ -81,7 +86,7 @@
 	}
 </script>
 
-<header>
+<header class:transparent="{transparentBg}">
     <div class="left">
         {#if canGoBack}
             <span in:fade out:whoosh>
@@ -213,6 +218,8 @@
 
         > .left, > .right {
             flex: 2;
+
+            :global(button:not(.bx--btn--tertiary)) {color: var(--cds-text-01);}
         }
 
         > .left {justify-content: flex-start; gap: 5px;}
@@ -224,6 +231,15 @@
 
             h1 {font-size: 20px;}
             :global(.icofont) {font-size: 22px;}
+        }
+
+        &.transparent {
+            background: transparent;
+            box-shadow: none;
+            pointer-events: none;
+
+            > .center {display: none;}
+            > .left, > .right {pointer-events: all;}
         }
     }
 

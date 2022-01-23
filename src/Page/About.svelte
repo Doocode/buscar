@@ -24,7 +24,7 @@
     </Grid>
     <br/><br/>
 
-    <h2>Technos utilisés</h2>
+    <h2>Libraries et frameworks utilisés</h2>
     <ul>
         <li>Svelte</li>
         <li>Sass</li>
@@ -35,6 +35,19 @@
 
 <style lang="scss">
     main {
-        padding: 10px;
+        padding: 90px;
+        transition: all .5s;
+    }
+
+    h2 {margin-bottom: 15px;}
+
+    ul {
+        list-style: disc;
+        padding-left: 30px;
+        line-height: 1.2em;
+    }
+
+    @media (max-width: 672px) {
+        main {padding: 15px;}
     }
 </style>
