@@ -1,30 +1,54 @@
 <script lang="ts">
+	// Exports
 	export let appname: string;
 	export let appversion: string;
+	export let license: string;
 
+	// Imports
+	// - Packages/modules
 	import Router, {location, link} from 'svelte-spa-router'
 	import {wrap} from 'svelte-spa-router/wrap'
+	import { onDestroy } from 'svelte'
 
+	// - Stores
+	import { contrastMode } from './Stores/settings'
+
+	// - Pages
 	import Header from './UI/Header.svelte'
-	import Home from './Page/Home.svelte'
+	import Search from './Page/Search.svelte'
 	import About from './Page/About.svelte'
 	import Svelte from './Page/Svelte.svelte'
 	import Carbon from './Page/Carbon.svelte'
 
-	/*let contrastMode = "g100"; // "white" | "g10" | "g80" | "g90" | "g100"
-	$: document.documentElement.setAttribute("theme", contrastMode);*/
+	// Propriétés
+	let currentContrastMode;
+
+	// Observations
+	const unsub_contrastMode = contrastMode.subscribe(value => {
+		currentContrastMode = value;
+	});
+
+	// Lifecycle
+	onDestroy(() => {
+		// Unsubscriptions
+		unsub_contrastMode();
+	});
+
+	// Application du contraste
+	$: document.documentElement.setAttribute("theme", currentContrastMode);
 </script>
 
 <main>
 	<Header bind:appname={appname} />
 
 	<Router routes={{
-		'/': Home,
+		'/': Search,
 		'/about': wrap({
 			component: About,
 			props: {
 				appname: appname, 
-				appversion: appversion
+				appversion: appversion,
+				license: license,
 			}
 		}),
 		'/svelte': Svelte,

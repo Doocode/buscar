@@ -1,22 +1,27 @@
 <script>
     // Imports
-    import { Button, TextInput, Dropdown, Toggle, Modal, FluidForm, Grid, Row, Column, Link, SelectableTile, RadioTile, TileGroup } from "carbon-components-svelte";
+    import { Button, TextInput, Dropdown, Toggle, Modal, 
+        FluidForm, Grid, Row, Column, Link, SelectableTile, 
+        RadioTile, TileGroup } from "carbon-components-svelte";
+	import { openSearchInCurrentPage, multiSelectionWebsearch, 
+        maxDisplayBubble } from '../Stores/settings'
     import Icofont from "../UI/Icofont.svelte";
     import async from "async";
+    import { onDestroy } from 'svelte';
 
     // Flags
     let modalSelectWebsearch = false;
     let modalSelectSearchProfile = false;
     let modalResetSelection = false;
-    let openInSamePage = true;
-    let multiSelectWebsearch = false;
-    let maxDisplayBubble = 3;
+    let openInSamePage;
+    let multiSelectWebsearch;
+    let limitMaxBubble;
 
     // Saisie de la requête
     let queryInput = "";
 
     // Moteurs de recherche
-    // - Liste des moteurs/[sites web] de recherche
+    // - Liste des moteurs de recherche
     const listWebsearch = [
         { id: "0", text: "Google", icon: "/assets/web-search/google.png", query: "http://www.google.fr/search?q=%query%" },
         { id: "1", text: "Bing", icon: "/assets/web-search/bing.png", query: "http://www.bing.com/search?q=%query%" },
@@ -27,7 +32,7 @@
         { id: "6", text: "Yandex", icon: "/assets/web-search/yandex.png", query: "http://www.yandex.com/search/?text=%query%" },
     ];
     let queryInputLabel = "Rechercher"; // Label de la barre de recherche
-    let selectedWebsearchIDs = []; // Liste des sites web de recherche sélectionnés
+    let selectedWebsearchIDs = []; // Liste des moteurs de recherche sélectionnés
     $: {
         // Initialisation
         selectedWebsearchIDs = [];
@@ -87,6 +92,25 @@
         { id: 5, text: "Mail", icon: "mail", websearch: [] },
     ];
 
+	// Observations
+	const unsub_maxDisplayBubble = maxDisplayBubble.subscribe(value => {
+		limitMaxBubble = value;
+	});
+	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
+		openInSamePage = value;
+	});
+	const unsub_multiSelectionWebsearch = multiSelectionWebsearch.subscribe(value => {
+		multiSelectWebsearch = value;
+	});
+
+    // Lifecycle
+    onDestroy(() => {
+        // Unsubscriptions
+        unsub_maxDisplayBubble();
+        unsub_openSearchInCurrentPage();
+        unsub_multiSelectionWebsearch();
+    });
+
     // Méthodes
     function confirmChangeWebsearch() {
         // Masquer la popup
@@ -96,7 +120,7 @@
         if (lastSelectedSearchProfileIndex != selectedSearchProfileIndex)
             lastSelectedSearchProfileIndex = selectedSearchProfileIndex;
 
-        // Initialisation pour rechercher un profil correspondant aux sites web de recherche sélectionnés
+        // Initialisation pour rechercher un profil correspondant aux moteurs de recherche sélectionnés
         let profileMatch = false;
         let profileFound = 0;
 
@@ -149,14 +173,14 @@
 
         // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
         if (listSearchProfile[selectedSearchProfileIndex].websearch.length > 1)
-            multiSelectWebsearch = true;
+            multiSelectWebsearch.set(true);
 
-        // Charger les sites web de recherche du profil :
-        // Parcours de la liste des sites web de recherche local
+        // Charger les moteurs de recherche du profil :
+        // Parcours de la liste des moteurs de recherche local
         listWebsearch.map((wsearch, index) => {
-            // Vérifier si le site web de recherche fait partie du profil de recherche
+            // Vérifier si le moteurs de recherche fait partie du profil de recherche
             if (listSearchProfile[selectedSearchProfileIndex].websearch.indexOf(index) > -1)
-                listWebsearch[index].selected = true; // Sélectionner le site web de recherche
+                listWebsearch[index].selected = true; // Sélectionner le moteurs de recherche
             else
                 listWebsearch[index].selected = false;
         });
@@ -168,9 +192,9 @@
         modalResetSelection = false // Fermer la popup
     }
     function launchQuery() {
-        // Avorter si aucun site web de recherche sélectionné
+        // Avorter si aucun moteurs de recherche sélectionné
         if (selectedWebsearchIDs.length == 0) {
-            return alert("Vous devez choisir au moins un site web de recherche");
+            return alert("Vous devez choisir au moins un moteurs de recherche");
         }
 
         // Initialisation
@@ -185,7 +209,7 @@
                 let path = wsearch.query.replace("%query%", queryInput);
 
                 // Puis lancer la requête
-                if (openInSamePage && selectedWebsearchIDs.length == 1) {
+                if (openSearchInSamePage && selectedWebsearchIDs.length == 1) {
                     /* Dans la page actuelle si :
                         1. Le paramètre est activé
                         2. Et qu'il y qu'un seul site web sélectionné
@@ -195,7 +219,7 @@
                     countPageOpened++; // Comptabiliser le lien (ne sert à rien dans ce cas précis)
                 } else { // Ou dans une nouvelle page/fenêtre/onglet
                     // S'il s'agit de la 1ère page et qu'il faut l'ouvrir dans la page actuelle
-                    if (countPageOpened == 0 && remainingQuery == null && openInSamePage) {
+                    if (countPageOpened == 0 && remainingQuery == null && openSearchInSamePage) {
                         /* Ne pas traiter tout de suite car la page va être changée 
                         et l'appli n'aura pas le temps de traiter les autres pages */
 
@@ -218,6 +242,8 @@
     function loadPreferences() {
         // Charger le profil de recherche par défaut (charge le moteur de recherche du profil)
         selectSearchProfileById(1);
+
+        window.websearch = listWebsearch
     }
 
     // Charger les paramètres par défaut
@@ -247,13 +273,13 @@
         <FluidForm class="query-form">
             {#if selectedWebsearchIDs.length > 0}
                 <div class="bubbles" on:click={() => (modalSelectWebsearch = true)}>
-                    {#each listWebsearch.filter(item => selectedWebsearchIDs.indexOf(parseInt(item.id)) > -1).slice(0,maxDisplayBubble) as wsearch}
+                    {#each listWebsearch.filter(item => selectedWebsearchIDs.indexOf(parseInt(item.id)) > -1).slice(0, limitMaxBubble) as wsearch}
                         <img class="bubble icon" src="{ wsearch.icon }" title="La recherche se fera sur { wsearch.text }" alt="Logo de { wsearch.text }" />
                     {/each}
 
-                    {#if selectedWebsearchIDs.length > maxDisplayBubble}
-                        <span class="bubble count" title="Il y a { selectedWebsearchIDs.length - maxDisplayBubble } sites web en plus">
-                            +{ selectedWebsearchIDs.length - maxDisplayBubble }
+                    {#if selectedWebsearchIDs.length > limitMaxBubble}
+                        <span class="bubble count" title="Il y a { selectedWebsearchIDs.length - limitMaxBubble } sites web en plus">
+                            +{ selectedWebsearchIDs.length - limitMaxBubble }
                         </span>
                     {/if}
                 </div>
@@ -302,8 +328,14 @@
     >
         <Grid style="padding: 0">
             <Row>
-                <Column><Toggle labelText="Lancer la recherche dans la page actuelle" labelA="Non" labelB="Oui" bind:toggled={openInSamePage} /></Column>
-                <Column><Toggle labelText="Autoriser la sélection multiple" labelA="Non" labelB="Activé" bind:toggled={multiSelectWebsearch} /></Column>
+                <Column>
+                    <Toggle labelText="Lancer la recherche dans la page actuelle" 
+                        labelA="Non" labelB="Oui" bind:toggled={$openSearchInCurrentPage} />
+                </Column>
+                <Column>
+                    <Toggle labelText="Autoriser la sélection multiple" 
+                        labelA="Non" labelB="Activé" bind:toggled={$multiSelectionWebsearch} />
+                </Column>
                 <!--Column>Rechercher</Column>
                 <Column>
                     <Dropdown
@@ -400,6 +432,8 @@
     // Barre de recherche
     :global(.bx--form--fluid .bx--text-input-wrapper) {border-radius: 10px;}
     :global(.query-form) {
+        --input-padding_left: .5rem; // L'espace entre les bulles et l'input/label
+
         max-width: 670px;
         display: flex;
         margin: 25px auto;
@@ -414,16 +448,17 @@
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
+            left: var(--input-padding_left);
         }
 
-        // Les icones des sites web de recherche
+        // Les icones des moteurs de recherche
         .bubbles {
             --bubble-size: 40px;
 
             display: flex;
             justify-content: center;
             align-items: center;
-            padding-left: 10px;
+            padding-left: 12px;
             padding-right: 5px;
             cursor: pointer;
             background: var(--cds-field-01);
@@ -456,6 +491,7 @@
         :global(.bx--text-input) {
             margin: 0;
             border-radius: 0;
+            padding-left: var(--input-padding_left);
         }
 
         :global(.bx--btn) {
@@ -470,7 +506,18 @@
         }
     }
     :global(.bx--form--fluid .bx--text-input-wrapper) {background: transparent;}
-    .noWebsearch :global(.query-form .bx--text-input) {border-radius: 10px 0 0 10px;}
+
+    .noWebsearch {
+        // S'il n'y a aucun moteur de recherche sélectionné
+
+        :global(.query-form) {
+            --input-padding_left: 1rem;
+        }
+
+        :global(.query-form .bx--text-input) {
+            border-radius: 10px 0 0 10px;
+        }
+    }
 
     // Profils de recherche (liens en haut de l'écran)
     .nav-searchProfile {
@@ -512,14 +559,12 @@
         :global(.icofont) {font-size: 16px;}
     }
 
-    // Popup des sites web de recherche
+    // Popup des moteurs de recherche
     .wsearch-items {
         --icon-size: 50px;
 
         display: flex;
         flex-flow: wrap;
-        max-height: 300px;
-        overflow: auto;
 
         :global(.bx--tile--selectable) {
             width: 140px;

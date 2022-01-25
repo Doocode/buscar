@@ -1,19 +1,22 @@
 <script>
     // Imports
-    import {push, pop, replace, location} from 'svelte-spa-router'
-    import {ButtonSet, Button, Link } from "carbon-components-svelte";
-    import {elasticOut, quintOut} from 'svelte/easing';
-    import {fade, fly} from 'svelte/transition'; // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
+    import { pop, location } from 'svelte-spa-router'
+    import { ButtonSet, Button, Link } from "carbon-components-svelte";
+    import { elasticOut, quintOut } from 'svelte/easing';
+    import { fade, fly } from 'svelte/transition'; // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
     import Icofont from './Icofont.svelte';
+    import { contrastMode, allowHeaderBackButton } from '../Stores/settings'
+    import { onDestroy } from 'svelte'
 
     // Attributs à définir
     export let appname = "Lorem ipsum";
 
     // Attributs internes
-    let contrastMode = "g10"; // g10 / g100
-    let pageName = "Accueil";
-    let pageIcon = "screen";
-    let menuWidth = 300;
+    let currentContrastMode; // Contraste de l'interface
+    let allowBackButton; // Autoriser l'affichage du bouton "Retour"
+    let pageName = "Accueil"; // Nom de la page
+    let pageIcon = "screen"; // Icone de la page
+    let menuWidth = 300; // Largeur du panneau de menu
 
     // Flags
     let backButton_visible = true;
@@ -22,7 +25,6 @@
     let transparentBg = false;
 
     // Réactivité
-	$: document.documentElement.setAttribute("theme", contrastMode);
     $: canGoBack = $location != "/";
     $: { // Affichage du titre et de l'icône
         // Diviser l'url pour obtenir les différentes sections
@@ -61,6 +63,21 @@
         }
     }
 
+    // Observations
+    const unsub_contrastMode = contrastMode.subscribe(value => {
+        currentContrastMode = value;
+    });
+    const unsub_backBtn = allowHeaderBackButton.subscribe(value => {
+        allowBackButton = value;
+    });
+
+    // Lifecycle
+    onDestroy(() => {
+        // Unsubscriptions
+        unsub_contrastMode();
+        unsub_backBtn();
+    });
+
     // Méthodes
     function toggleLeftMenu() {
         leftMenu_visible = !leftMenu_visible;
@@ -88,7 +105,7 @@
 
 <header class:transparent="{transparentBg}">
     <div class="left">
-        {#if canGoBack}
+        {#if canGoBack && allowBackButton}
             <span in:fade out:whoosh>
                 <Button kind="tertiary" class="btn-back" title="Retour vers la page précédente" on:click={goBack}>
                     <Icofont icon="arrow_left" size="20" />
@@ -141,7 +158,7 @@
                 <Icofont icon="home" />
                 <span class="label">Accueil</span>
             </Link>
-            <Link href="/#/bookmarks" size="lg">
+            <!--Link href="/#/bookmarks" size="lg">
                 <Icofont icon="squares" />
                 <span class="label">Favoris</span>
             </Link>
@@ -155,7 +172,7 @@
             <Link href="/#/settings" size="lg">
                 <Icofont icon="config" />
                 <span class="label">Paramètres</span>
-            </Link>
+            </Link-->
 
             <span class="blank-space"></span>
 
@@ -181,10 +198,10 @@
     <ButtonSet stacked style="width: 100%">
         {#each ['white', 'g10', 'g80', 'g90', 'g100'] as value}
             <Button
-                disabled={contrastMode === value}
+                disabled={currentContrastMode === value}
                 kind="secondary"
                 on:click={() => {
-                    contrastMode = value;
+                    contrastMode.set(value);
                 }}
             >
                 Mode "{value}"
