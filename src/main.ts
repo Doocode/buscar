@@ -8,6 +8,7 @@ const app = new App({
 	props: {
 		appname: 'Buscar',
 		appversion: '0.1.0 Dev',
+		license: 'LGPL v.3',
 	}
 });
 
