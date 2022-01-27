@@ -43,14 +43,6 @@
                     pageIcon = "home";
                     transparentBg = true;
                     break;
-                case "carbon":
-                    pageName = "Carbon pour Svelte";
-                    pageIcon = "project";
-                    break;
-                case "svelte":
-                    pageName = "Svelte";
-                    pageIcon = "pie_chart";
-                    break;
                 case "config":
                     pageName = "Paramètres";
                     pageIcon = "config";
@@ -167,24 +159,16 @@
                 <span class="label">Réseau</span>
             </Link>
 
-            <span class="blank-space"></span>
-
             <Link href="/#/settings" size="lg">
                 <Icofont icon="config" />
                 <span class="label">Paramètres</span>
-            </Link-->
+            </Link>
 
-            <span class="blank-space"></span>
+            <span class="blank-space"></span-->
 
             <Link href="/#/about" size="lg">
                 <Icofont icon="info" />
                 <span class="label">A propos</span>
-            </Link>
-            <Link href="/#/svelte" size="lg">
-                <span class="label">Svelte</span>
-            </Link>
-            <Link href="/#/carbon" size="lg">
-                <span class="label">Carbon</span>
             </Link>
         </div>
     </nav>

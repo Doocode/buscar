@@ -17,8 +17,6 @@
 	import Header from './UI/Header.svelte'
 	import Search from './Page/Search.svelte'
 	import About from './Page/About.svelte'
-	import Svelte from './Page/Svelte.svelte'
-	import Carbon from './Page/Carbon.svelte'
 
 	// Propriétés
 	let currentContrastMode;
@@ -51,8 +49,6 @@
 				license: license,
 			}
 		}),
-		'/svelte': Svelte,
-		'/carbon': Carbon,
 	}} />
 </main>
 

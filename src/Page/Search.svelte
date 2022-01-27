@@ -13,7 +13,7 @@
     let modalSelectWebsearch = false;
     let modalSelectSearchProfile = false;
     let modalResetSelection = false;
-    let openInSamePage;
+    let openSearchInSamePage;
     let multiSelectWebsearch;
     let limitMaxBubble;
 
@@ -97,7 +97,7 @@
 		limitMaxBubble = value;
 	});
 	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
-		openInSamePage = value;
+		openSearchInSamePage = value;
 	});
 	const unsub_multiSelectionWebsearch = multiSelectionWebsearch.subscribe(value => {
 		multiSelectWebsearch = value;
@@ -173,7 +173,7 @@
 
         // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
         if (listSearchProfile[selectedSearchProfileIndex].websearch.length > 1)
-            multiSelectWebsearch.set(true);
+            multiSelectionWebsearch.set(true);
 
         // Charger les moteurs de recherche du profil :
         // Parcours de la liste des moteurs de recherche local

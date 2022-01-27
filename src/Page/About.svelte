@@ -29,16 +29,22 @@
                     <strong>Licence</strong>
                     <p>{license}</p>
                 </Column>
+                <Column>
+                    <strong>Organisation</strong>
+                    <p><OutboundLink href="https://www.doocode.xyz/?ref={ ref_link }">Doocode.xyz</OutboundLink></p>
+                </Column>
             </Row>
         </Grid>
     </div>
 
+    <br/><br/>
+    <p>{appname} Doocode.xyz est une application web permettant de lancer une recherche vers plusieurs moteurs de recherche (ou sites web) en simultanée. L'intérêt est de pouvoir lancer, par exemple une recherche d'un article sur plusieurs commerces en ligne, ou retrouver un fichier sur différents serveurs de stockage.</p>
     <br/>
-    <p>{appname} Doocode.xyz est le successeur de Doosearch.</p>
+    <p>{appname} est une réécriture de <OutboundLink href="https://search.doocode.xyz/?ref={ ref_link }">Doosearch</OutboundLink> et en sera le successeur une fois le projet arrivé à terme.</p>
     <br/><br/>
 
     <h2>Technologies utilisés</h2>
-    <p>L'application web {appname} est développé avec l'outil de développement Svelte. L'ensemble des composants graphique utilisés dans {appname} sont issus du Carbon Design System (développé par IBM).</p>
+    <p>L'application web {appname} est développé avec l'outil de développement Svelte. Le code source du projet est principalement écrit en TypeScript. L'ensemble des composants graphique utilisés dans {appname} sont issus du Carbon Design System (développé par IBM).</p>
 
     <br/>
     <ul>
@@ -66,10 +72,16 @@
             <OutboundLink href="https://caolan.github.io/async/v3/?ref={ ref_link }">Async</OutboundLink>
             : Module utilitaire offrant des fonctionnalités asynchrones en JavaScript ;
         </li>
+        <!--
+            TODO:
+            - Sass pour Svelte : https://daveceddia.com/svelte-with-sass-in-vscode/
+            - TypeScript
+            - Licence LGPL v.3
+        -->
     </ul>
     <br/><br/>
 
-    <h2>Graphisme</h2>
+    <h2>Icônes</h2>
     <p>La plupart des icônes utilisés dans l'application {appname} ont été dessinés sur Inkscape par Doocode.</p>
 </main>
 
