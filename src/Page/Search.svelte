@@ -4,7 +4,8 @@
         FluidForm, Grid, Row, Column, Link, SelectableTile, 
         RadioTile, TileGroup } from "carbon-components-svelte";
 	import { openSearchInCurrentPage, multiSelectionWebsearch, 
-        maxDisplayBubble } from '../Stores/settings'
+        } from '../Stores/settings'
+    import SearchBox from "../UI/SearchBox.svelte";
     import Icofont from "../UI/Icofont.svelte";
     import async from "async";
     import { onDestroy } from 'svelte';
@@ -15,7 +16,6 @@
     let modalResetSelection = false;
     let openSearchInSamePage;
     let multiSelectWebsearch;
-    let limitMaxBubble;
 
     // Saisie de la requête
     let queryInput = "";
@@ -93,9 +93,6 @@
     ];
 
 	// Observations
-	const unsub_maxDisplayBubble = maxDisplayBubble.subscribe(value => {
-		limitMaxBubble = value;
-	});
 	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
 		openSearchInSamePage = value;
 	});
@@ -106,7 +103,6 @@
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
-        unsub_maxDisplayBubble();
         unsub_openSearchInCurrentPage();
         unsub_multiSelectionWebsearch();
     });
@@ -191,52 +187,33 @@
 
         modalResetSelection = false // Fermer la popup
     }
-    function launchQuery() {
-        // Avorter si aucun moteurs de recherche sélectionné
-        if (selectedWebsearchIDs.length == 0) {
-            return alert("Vous devez choisir au moins un moteurs de recherche");
-        }
+    function executeQuery(e) {
+        // Liste des pages à ouvrir
+        let pages = e.detail.urls;
 
-        // Initialisation
-        let countPageOpened = 0;
-        let remainingQuery = null;
+        // Erreur si la requête saisie n'est pas valide
+        if (e.detail.value.length == 0) 
+            return alert("Vous ne pouvez pas lancer une recherche vide");
 
-        // Parcours des sites web sélectionnés
-        listWebsearch.forEach((wsearch, index) => {
-            // Si l'item est sélectionné
-            if (wsearch.selected) {
-                // Générer l'url de la requête
-                let path = wsearch.query.replace("%query%", queryInput);
+        // Erreur s'il n'y a aucun moteur de recherche sélectionné
+        if (pages.length == 0)
+            return alert("Vous devez choisir au moins un moteur de recherche");
 
-                // Puis lancer la requête
-                if (openSearchInSamePage && selectedWebsearchIDs.length == 1) {
-                    /* Dans la page actuelle si :
-                        1. Le paramètre est activé
-                        2. Et qu'il y qu'un seul site web sélectionné
-                    */
+        // Ouverture des pages
+        async.eachSeries(pages, function openPage(url, done) {
+            // Ne pas prendre en charge la 1ère page dans cette fonction s'il faut l'ouvrir dans la page actuelle
+            if (pages[0] == url && openSearchInSamePage)
+                return done();
 
-                    window.open(path, "_self");
-                    countPageOpened++; // Comptabiliser le lien (ne sert à rien dans ce cas précis)
-                } else { // Ou dans une nouvelle page/fenêtre/onglet
-                    // S'il s'agit de la 1ère page et qu'il faut l'ouvrir dans la page actuelle
-                    if (countPageOpened == 0 && remainingQuery == null && openSearchInSamePage) {
-                        /* Ne pas traiter tout de suite car la page va être changée 
-                        et l'appli n'aura pas le temps de traiter les autres pages */
+            // Ouvrir l'adresse URL dans une nouvelle page
+            window.open(url);
 
-                        remainingQuery = path; // 1. Mémoriser l'url
-                        return; // 2. Puis passer au suivant
-                    }
-
-                    // Ouvrir le lien dans une noubelle page
-                    window.open(path);
-                    countPageOpened++; // Comptabiliser le lien
-                }
-            }
-
-            // A la fin du parcours de la liste des moteurs ET s'il reste une page à ouvrir
-            if (index+1 == listWebsearch.length && remainingQuery != null) {
-                window.open(remainingQuery, "_self"); // Ouvrir dans la page actuelle
-            }
+            // Passer au suivant
+            return done();
+        }, function finished() {
+            // Ouvrir la page restante dans la page actuelle si le paramètre est activé
+            if (openSearchInSamePage)
+                window.open(pages[0], "_self"); // "_self" => Ouvrir l'adresse URL dans la page actuelle
         });
     }
     function loadPreferences() {
@@ -269,33 +246,12 @@
         {/each}
     </nav>
 
-    <div class:noWebsearch={ selectedWebsearchIDs.length == 0 }>
-        <FluidForm class="query-form">
-            {#if selectedWebsearchIDs.length > 0}
-                <div class="bubbles" on:click={() => (modalSelectWebsearch = true)}>
-                    {#each listWebsearch.filter(item => selectedWebsearchIDs.indexOf(parseInt(item.id)) > -1).slice(0, limitMaxBubble) as wsearch}
-                        <img class="bubble icon" src="{ wsearch.icon }" title="La recherche se fera sur { wsearch.text }" alt="Logo de { wsearch.text }" />
-                    {/each}
-
-                    {#if selectedWebsearchIDs.length > limitMaxBubble}
-                        <span class="bubble count" title="Il y a { selectedWebsearchIDs.length - limitMaxBubble } sites web en plus">
-                            +{ selectedWebsearchIDs.length - limitMaxBubble }
-                        </span>
-                    {/if}
-                </div>
-            {/if}
-
-            <TextInput size="xl" 
-                labelText="{ queryInputLabel }" 
-                placeholder="Qui est Molière ?" 
-                on:keyup={(e) => {if (e.keyCode==13) launchQuery()}}
-                bind:value={ queryInput } />
-
-            <Button on:click={launchQuery}>
-                <Icofont icon="search" size="20" />
-            </Button>
-        </FluidForm>
-    </div>
+    <SearchBox
+        bind:value={ queryInput }
+        on:submit={ executeQuery }
+        on:askSearchEngines={() => (modalSelectWebsearch = true)}
+        searchEngines={listWebsearch.filter((ws) => ws.selected)}
+    />
 
     <div class="bottomToolbar">
         <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectWebsearch = true)}>
@@ -429,96 +385,6 @@
         transition: all .3s;
     }
 
-    // Barre de recherche
-    :global(.bx--form--fluid .bx--text-input-wrapper) {border-radius: 10px;}
-    :global(.query-form) {
-        --input-padding_left: .5rem; // L'espace entre les bulles et l'input/label
-
-        max-width: 670px;
-        display: flex;
-        margin: 25px auto;
-        border-radius: 10px;
-        box-shadow: 0 0 0 1px rgba(0,0,0,.1), 0 3px 15px rgba(0,0,0,.2);
-        box-shadow: 0 0 0 1px rgba(127,127,127,.3);
-        transition: all .5s;
-
-        // Le texte avant l'input
-        :global(.bx--label) {
-            width: calc(100% - 2rem);
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-            left: var(--input-padding_left);
-        }
-
-        // Les icones des moteurs de recherche
-        .bubbles {
-            --bubble-size: 40px;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding-left: 12px;
-            padding-right: 5px;
-            cursor: pointer;
-            background: var(--cds-field-01);
-            border-radius: 10px 0 0 10px;
-            border-bottom: 1px solid var(--cds-ui-04);
-
-            .bubble {
-                width: var(--bubble-size);
-                height: var(--bubble-size);
-                border-radius: var(--bubble-size);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                box-shadow: 0 0 0 2px transparent, 0 0 0 1px rgba(127,127,127,.5);
-                transition: all .2s;
-
-                + .bubble {margin-left: -7px;}
-
-                &.count {
-                    background: var(--cds-ui-background);
-                }
-            }
-
-            &:hover .bubble {
-                box-shadow: 0 0 0 2px var(--cds-interactive-01), 0 0 0 1px rgba(127,127,127,.5);
-            }
-        }
-
-        // L'input de la requête
-        :global(.bx--text-input) {
-            margin: 0;
-            border-radius: 0;
-            padding-left: var(--input-padding_left);
-        }
-
-        :global(.bx--btn) {
-            display: flex;
-            gap: 5px;
-            padding: 0;
-            width: 64px;
-            min-height: initial;
-            max-width: initial;
-            justify-content: center;
-            border-radius: 0 10px 10px 0;
-        }
-    }
-    :global(.bx--form--fluid .bx--text-input-wrapper) {background: transparent;}
-
-    .noWebsearch {
-        // S'il n'y a aucun moteur de recherche sélectionné
-
-        :global(.query-form) {
-            --input-padding_left: 1rem;
-        }
-
-        :global(.query-form .bx--text-input) {
-            border-radius: 10px 0 0 10px;
-        }
-    }
-
     // Profils de recherche (liens en haut de l'écran)
     .nav-searchProfile {
         padding: 27px 91px;
@@ -575,12 +441,6 @@
             height: var(--icon-size);
             border-radius: var(--icon-size);
             box-shadow: 0 0 0 1px rgba(127,127,127,.5);
-        }
-    }
-
-    @media (min-width: 672px) {
-        :global(.query-form) {
-            margin: 100px auto;
         }
     }
 
