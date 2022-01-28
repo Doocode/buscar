@@ -31,48 +31,17 @@
         { id: "5", text: "Lilo", icon: "/assets/web-search/lilo.png", query: "http://search.lilo.org/?q=%query%" },
         { id: "6", text: "Yandex", icon: "/assets/web-search/yandex.png", query: "http://www.yandex.com/search/?text=%query%" },
     ];
-    let queryInputLabel = "Rechercher"; // Label de la barre de recherche
     let selectedWebsearchIDs = []; // Liste des moteurs de recherche sélectionnés
     $: {
         // Initialisation
         selectedWebsearchIDs = [];
-        let listSelectedName = [];
 
         // Parcourir les sites web sélectionnés
         listWebsearch.forEach((wsearch, index) => {
             // Si l'item est sélectionné
             if (wsearch.selected) {
-                // Mémoriser le nom de l'item
-                listSelectedName.push(wsearch.text);
-
                 // Mémoriser l'id de l'item
                 selectedWebsearchIDs.push(parseInt(wsearch.id));
-            }
-
-            // Si liste a été complètement parcourue
-            if (index+1 == listWebsearch.length) {
-                // MAJ le texte pour le label de la barre de recherche
-                switch (selectedWebsearchIDs.length) {
-                    case 0: // Aucun site web sélectionné
-                        queryInputLabel = "Rechercher";
-                        break;
-                    case 1: case 2: case 3: // 1 à 3 sites web sélectionnés
-                        queryInputLabel = "Rechercher sur ";
-
-                        // Parcourir les noms de sites web choisis
-                        listSelectedName.forEach((name, ii) => {
-                            if (ii == 0) // 1er item
-                                queryInputLabel += name;
-                            else if (ii+1 < selectedWebsearchIDs.length) // Items au milieu
-                                queryInputLabel += ", " + name;
-                            else // Dernier item
-                                queryInputLabel += " et " + name;
-                        });
-                        break;
-                    default: // Plusieurs sites web sélectionnés
-                        queryInputLabel = "Rechercher sur " + selectedWebsearchIDs.length + " sites web";
-                        break;
-                }
             }
         });
     }

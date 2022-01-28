@@ -67,11 +67,11 @@
 <div class:without-bubbles={ searchEngines.length == 0 }>
     <FluidForm class="query-form">
         {#if searchEngines.length > 0}
-            <div class="bubbles" on:click={askSearchEngines}>
+            <div class="bubbles" title="Cliquez ici pour sélectionner les moteurs de recherche" on:click={askSearchEngines}>
                 {#each searchEngines.slice(0, limitMaxBubble) as wsearch}
                     <img class="bubble icon" src="{ wsearch.icon }"
-                        title="La recherche se fera sur { wsearch.name }"
-                        alt="Logo de { wsearch.name }" />
+                        title="La recherche se fera sur { wsearch.text }"
+                        alt="Logo de { wsearch.text }" />
                 {/each}
 
                 {#if searchEngines.length > limitMaxBubble}
@@ -193,7 +193,6 @@
         }
     }
 
-    
     // Affichage standard
     @media (min-width: 672px) {
         :global(.query-form) {
