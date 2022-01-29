@@ -47,12 +47,12 @@
                     pageName = "Bibliothèque";
                     pageIcon = "details";
                     break;
-                case "config":
-                    pageName = "Paramètres";
+                case "preferences":
+                    pageName = "Préférences";
                     pageIcon = "config";
                     break;
                 case "about":
-                    pageName = "A propos de";
+                    pageName = "A propos";
                     pageIcon = "info";
                     break;
             }
@@ -170,15 +170,16 @@
                 <span class="label">Bibliothèque</span>
             </Link-->
             <Link href="/#/library" size="lg">
+                <Icofont icon="search" />
                 <span class="label">Moteurs de recherche</span>
             </Link>
 
-            <!--span class="blank-space"></span>
+            <span class="blank-space"></span>
 
-            <Link href="/#/settings" size="lg">
+            <Link href="/#/preferences" size="lg">
                 <Icofont icon="config" />
-                <span class="label">Paramètres</span>
-            </Link-->
+                <span class="label">Préférences</span>
+            </Link>
 
             <span class="blank-space"></span>
 
