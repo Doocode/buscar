@@ -43,6 +43,10 @@
                     pageIcon = "home";
                     transparentBg = true;
                     break;
+                case "library":
+                    pageName = "Bibliothèque";
+                    pageIcon = "details";
+                    break;
                 case "config":
                     pageName = "Paramètres";
                     pageIcon = "config";
@@ -159,12 +163,24 @@
                 <span class="label">Réseau</span>
             </Link>
 
+            <span class="blank-space"></span>
+            
+            <Link href="/#/library" size="lg">
+                <Icofont icon="details" />
+                <span class="label">Bibliothèque</span>
+            </Link-->
+            <Link href="/#/library" size="lg">
+                <span class="label">Moteurs de recherche</span>
+            </Link>
+
+            <!--span class="blank-space"></span>
+
             <Link href="/#/settings" size="lg">
                 <Icofont icon="config" />
                 <span class="label">Paramètres</span>
-            </Link>
+            </Link-->
 
-            <span class="blank-space"></span-->
+            <span class="blank-space"></span>
 
             <Link href="/#/about" size="lg">
                 <Icofont icon="info" />

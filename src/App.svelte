@@ -16,6 +16,7 @@
 	// - Pages
 	import Header from './UI/Header.svelte'
 	import Search from './Page/Search.svelte'
+	import Library from './Page/Library.svelte'
 	import About from './Page/About.svelte'
 
 	// Propriétés
@@ -49,6 +50,7 @@
 				license: license,
 			}
 		}),
+		'/library': Library,
 	}} />
 </main>
 

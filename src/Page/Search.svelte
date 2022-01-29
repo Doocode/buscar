@@ -1,51 +1,42 @@
 <script>
     // Imports
-    import { Button, TextInput, Dropdown, Toggle, Modal, 
-        FluidForm, Grid, Row, Column, Link, SelectableTile, 
-        RadioTile, TileGroup } from "carbon-components-svelte";
-	import { openSearchInCurrentPage, multiSelectionWebsearch, 
+    import { Button, Dropdown, Toggle, Modal, Grid, Row, 
+        Column, Link, SelectableTile,  RadioTile, TileGroup } 
+        from "carbon-components-svelte";
+	import { openSearchInCurrentPage, multiSelectionSearchEngines, 
         } from '../Stores/settings'
+	import { listSearchEngines } from '../Stores/search'
     import SearchBox from "../UI/SearchBox.svelte";
     import Icofont from "../UI/Icofont.svelte";
     import async from "async";
     import { onDestroy } from 'svelte';
 
     // Flags
-    let modalSelectWebsearch = false;
+    let modalSelectSearchEngines = false;
     let modalSelectSearchProfile = false;
     let modalResetSelection = false;
     let openSearchInSamePage;
-    let multiSelectWebsearch;
+    let multiSelectSearchEngines;
 
     // Saisie de la requête
     let queryInput = "";
 
     // Moteurs de recherche
-    // - Liste des moteurs de recherche
-    const listWebsearch = [
-        { id: "0", text: "Google", icon: "/assets/web-search/google.png", query: "http://www.google.fr/search?q=%query%" },
-        { id: "1", text: "Bing", icon: "/assets/web-search/bing.png", query: "http://www.bing.com/search?q=%query%" },
-        { id: "2", text: "Qwant", icon: "/assets/web-search/qwant.png", query: "http://www.qwant.com/?q=%query%" },
-        { id: "3", text: "DuckDuckGo", icon: "/assets/web-search/duckduckgo.png", query: "http://www.duckduckgo.com/?q=%query%" },
-        { id: "4", text: "Ecosia", icon: "/assets/web-search/ecosia.png", query: "http://www.ecosia.com/search?q=%query%" },
-        { id: "5", text: "Lilo", icon: "/assets/web-search/lilo.png", query: "http://search.lilo.org/?q=%query%" },
-        { id: "6", text: "Yandex", icon: "/assets/web-search/yandex.png", query: "http://www.yandex.com/search/?text=%query%" },
-    ];
-    let selectedWebsearchIDs = []; // Liste des moteurs de recherche sélectionnés
+    let searchEngines = []; // Liste des moteurs de recherche
+    let selectedSearchEnginesIDs = []; // Liste des moteurs de recherche sélectionnés
     $: {
         // Initialisation
-        selectedWebsearchIDs = [];
+        selectedSearchEnginesIDs = [];
 
-        // Parcourir les sites web sélectionnés
-        listWebsearch.forEach((wsearch, index) => {
+        // Parcourir les moteurs de recherche
+        searchEngines.forEach((seItem, index) => {
             // Si l'item est sélectionné
-            if (wsearch.selected) {
+            if (seItem.selected) {
                 // Mémoriser l'id de l'item
-                selectedWebsearchIDs.push(parseInt(wsearch.id));
+                selectedSearchEnginesIDs.push(parseInt(seItem.id));
             }
         });
     }
-
 
     // Profils de recherche
     // - Index pour Valider/Annuler
@@ -53,33 +44,49 @@
     let lastSelectedSearchProfileIndex = 0;
     // - Liste des profils de recherche
     const listSearchProfile = [
-        { id: 0, text: "Personnalisé", icon: "circles", websearch: [] },
-        { id: 1, text: "Général", icon: "web", websearch: [0] },
-        { id: 2, text: "Images", icon: "image", websearch: [1,2] },
-        { id: 3, text: "Vidéos", icon: "play", websearch: [] },
-        { id: 4, text: "Musiques", icon: "music", websearch: [] },
-        { id: 5, text: "Mail", icon: "mail", websearch: [] },
+        { id: 0, text: "Personnalisé", icon: "circles", searchEnginesId: [] },
+        { id: 1, text: "Général", icon: "web", searchEnginesId: [1] },
+        { id: 2, text: "Images", icon: "image", searchEnginesId: [8,9,10] },
+        { id: 3, text: "Vidéos", icon: "play", searchEnginesId: [] },
+        { id: 4, text: "Musiques", icon: "music", searchEnginesId: [] },
+        { id: 5, text: "Mails", icon: "mail", searchEnginesId: [] },
     ];
 
 	// Observations
+    const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
+        // Regénération de la liste en local
+        let listSE = [];
+        async.eachSeries(value, function parseSE(seItem, done) {
+            // Ajouts des propriétés manquantes
+            seItem.selected = selectedSearchEnginesIDs.indexOf(seItem.id) > -1
+
+            // Ajout dans la liste
+            listSE.push(seItem)
+            return done()
+        }, function finished() {
+            // Mise à jour
+            searchEngines = listSE;
+        });
+    });
 	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
 		openSearchInSamePage = value;
 	});
-	const unsub_multiSelectionWebsearch = multiSelectionWebsearch.subscribe(value => {
-		multiSelectWebsearch = value;
+	const unsub_multiSelectionSearchEngines = multiSelectionSearchEngines.subscribe(value => {
+		multiSelectSearchEngines = value;
 	});
 
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
+        unsub_listSearchEngines();
         unsub_openSearchInCurrentPage();
-        unsub_multiSelectionWebsearch();
+        unsub_multiSelectionSearchEngines();
     });
 
     // Méthodes
-    function confirmChangeWebsearch() {
+    function confirmChangeSearchEngines() {
         // Masquer la popup
-        modalSelectWebsearch = false;
+        modalSelectSearchEngines = false;
         
         // Mémoriser l'ancien profil de recherche
         if (lastSelectedSearchProfileIndex != selectedSearchProfileIndex)
@@ -87,7 +94,7 @@
 
         // Initialisation pour rechercher un profil correspondant aux moteurs de recherche sélectionnés
         let profileMatch = false;
-        let profileFound = 0;
+        let idProfileFound = 0;
 
         // Callback pour vérifier si un profil de recherche correspond à la sélection actuelle
         let checkSearchProfile = function(sp, done) {
@@ -99,14 +106,14 @@
             profileMatch = false;
 
             // Avorter si le profil de recherche ne contient pas le même nombre d'items que la sélection actuelle
-            if (selectedWebsearchIDs.length != sp.websearch.length)
+            if (selectedSearchEnginesIDs.length != sp.searchEnginesId.length)
                 return done();
 
             // À ce stade, il faut vérifier si les items du profils et de la sélection actuelle correspondent
-            let listWSearch = sp.websearch;
-            if (selectedWebsearchIDs.sort().join(',') === listWSearch.sort().join(',')) {
+            let listSE = sp.searchEnginesId;
+            if (selectedSearchEnginesIDs.sort().join(',') === listSE.sort().join(',')) {
                 profileMatch = true;
-                profileFound = sp.id;
+                idProfileFound = sp.id;
             }
             done();
         };
@@ -114,8 +121,8 @@
         // Parcourir les profils de recherche
         async.eachSeries(listSearchProfile, checkSearchProfile, () => {
             // Les profils de recherches ont été parcourus
-            selectedSearchProfileIndex = profileFound; // MAJ le profil de recherche choisi
-            lastSelectedSearchProfileIndex = selectedSearchProfileIndex; // Effacer l'historique
+            selectedSearchProfileIndex = idProfileFound; // MAJ le profil de recherche choisi
+            lastSelectedSearchProfileIndex = idProfileFound; // Effacer l'historique
         });
     }
     function cancelChangeSearchProfile() {
@@ -137,17 +144,19 @@
         lastSelectedSearchProfileIndex = selectedSearchProfileIndex;
 
         // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
-        if (listSearchProfile[selectedSearchProfileIndex].websearch.length > 1)
-            multiSelectionWebsearch.set(true);
+        if (listSearchProfile[selectedSearchProfileIndex].searchEnginesId.length > 1)
+            multiSelectionSearchEngines.set(true);
 
         // Charger les moteurs de recherche du profil :
+        let listSE = listSearchProfile[selectedSearchProfileIndex].searchEnginesId; // Moteurs de recherche du profil de recherche
+        
         // Parcours de la liste des moteurs de recherche local
-        listWebsearch.map((wsearch, index) => {
+        searchEngines.map((seItem, index) => {
             // Vérifier si le moteurs de recherche fait partie du profil de recherche
-            if (listSearchProfile[selectedSearchProfileIndex].websearch.indexOf(index) > -1)
-                listWebsearch[index].selected = true; // Sélectionner le moteurs de recherche
+            if (listSE.indexOf(seItem.id) > -1)
+                searchEngines[index].selected = true; // Sélectionner le moteurs de recherche
             else
-                listWebsearch[index].selected = false;
+                searchEngines[index].selected = false;
         });
     }
     function resetSelection() {
@@ -188,8 +197,13 @@
     function loadPreferences() {
         // Charger le profil de recherche par défaut (charge le moteur de recherche du profil)
         selectSearchProfileById(1);
-
-        window.websearch = listWebsearch
+    }
+    function sortSearchEngines(a, b) {
+        if ( a.name < b.name )
+            return -1;
+        if ( a.name > b.name )
+            return 1;
+        return 0;
     }
 
     // Charger les paramètres par défaut
@@ -218,12 +232,12 @@
     <SearchBox
         bind:value={ queryInput }
         on:submit={ executeQuery }
-        on:askSearchEngines={() => (modalSelectWebsearch = true)}
-        searchEngines={listWebsearch.filter((ws) => ws.selected)}
+        on:askSearchEngines={() => (modalSelectSearchEngines = true)}
+        searchEngines={searchEngines.filter((seItem) => seItem.selected)}
     />
 
     <div class="bottomToolbar">
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectWebsearch = true)}>
+        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectSearchEngines = true)}>
             <Icofont icon="circles" />
             <span class="text">Moteurs de recherche</span>
         </Button>
@@ -242,14 +256,14 @@
 
 
     <Modal
-        bind:open={modalSelectWebsearch}
+        bind:open={modalSelectSearchEngines}
         modalHeading="Choisir un moteur de recherche"
         primaryButtonText="Continuer"
-        on:click:button--primary={confirmChangeWebsearch}
+        on:click:button--primary={confirmChangeSearchEngines}
         hasForm="true"
         on:open
-        on:close={confirmChangeWebsearch}
-        on:submit={confirmChangeWebsearch}
+        on:close={confirmChangeSearchEngines}
+        on:submit={confirmChangeSearchEngines}
     >
         <Grid style="padding: 0">
             <Row>
@@ -259,7 +273,7 @@
                 </Column>
                 <Column>
                     <Toggle labelText="Autoriser la sélection multiple" 
-                        labelA="Non" labelB="Activé" bind:toggled={$multiSelectionWebsearch} />
+                        labelA="Non" labelB="Activé" bind:toggled={$multiSelectionSearchEngines} />
                 </Column>
                 <!--Column>Rechercher</Column>
                 <Column>
@@ -288,19 +302,19 @@
 
         <br/><br/>
 
-        <div class="wsearch-list">
-            <TileGroup legend="Liste des sites web">
-                <div class="wsearch-items" role="group" aria-label="Liste des sites web">
-                    {#each listWebsearch as ws_item}
-                        {#if multiSelectWebsearch}
-                            <SelectableTile bind:selected={ws_item.selected}>
-                                <img src="{ws_item.icon}" alt="Logo de { ws_item.text }" />
-                                <p>{ws_item.text}</p>
+        <div class="se-list">
+            <TileGroup legend="Liste des moteurs de recherche">
+                <div class="se-items" role="group" aria-label="Liste des moteurs de recherche">
+                    {#each searchEngines.sort(sortSearchEngines) as seItem}
+                        {#if multiSelectSearchEngines}
+                            <SelectableTile bind:selected={seItem.selected}>
+                                <img src="{seItem.icon}" alt="Logo de { seItem.name }" />
+                                <p>{seItem.name}</p>
                             </SelectableTile>
                         {:else}
-                            <RadioTile value="{ws_item.id}" bind:checked={ws_item.selected}>
-                                <img src="{ws_item.icon}" alt="Logo de { ws_item.text }" />
-                                <p>{ws_item.text}</p>
+                            <RadioTile value="{seItem.id}" bind:checked={seItem.selected}>
+                                <img src="{seItem.icon}" alt="Logo de { seItem.name }" />
+                                <p>{seItem.name}</p>
                             </RadioTile>
                         {/if}
                     {/each}
@@ -395,7 +409,7 @@
     }
 
     // Popup des moteurs de recherche
-    .wsearch-items {
+    .se-items { // Liste des moteurs de recherche (search engines items)
         --icon-size: 50px;
 
         display: flex;

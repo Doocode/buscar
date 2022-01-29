@@ -70,8 +70,8 @@
             <div class="bubbles" title="Cliquez ici pour sélectionner les moteurs de recherche" on:click={askSearchEngines}>
                 {#each searchEngines.slice(0, limitMaxBubble) as wsearch}
                     <img class="bubble icon" src="{ wsearch.icon }"
-                        title="La recherche se fera sur { wsearch.text }"
-                        alt="Logo de { wsearch.text }" />
+                        title="La recherche se fera sur { wsearch.name }"
+                        alt="Logo de { wsearch.name }" />
                 {/each}
 
                 {#if searchEngines.length > limitMaxBubble}
