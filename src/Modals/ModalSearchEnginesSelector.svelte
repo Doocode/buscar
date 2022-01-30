@@ -281,6 +281,7 @@
                 {/each}
             </div>
         </TileGroup>
+        <br />
     </Modal>
 </main>
 

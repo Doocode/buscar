@@ -9,12 +9,7 @@
 
     // Initialisation
     let size;
-    let tableColumns = [
-        { key: "name", value: "Moteurs de recherche" },
-        { key: "type", value: "Type" },
-        { key: "query", value: "Adresse URL de la requête" },
-        { key: "overflow", empty: true },
-    ];
+    let tableColumns = [];
     let tableData = []
     let idSelectedItems = []
     let searchEngines
@@ -44,7 +39,7 @@
     // Réactivité
     $: {
         tableColumns = [
-            { key: "name", value: "Moteurs de recherche" },
+            { key: "name", value: "Moteur de recherche" },
         ];
         switch (size) {
             case "max":
@@ -365,6 +360,7 @@
                 helperText="Le logo sera placé dans un cadre circulaire"
                 bind:value={se_icon}
                 required />
+            <br /><br />
         </Modal>
 
         <Modal
@@ -384,6 +380,7 @@
                     </p>
                 </div>
             {/if}
+            <br /><br />
         </Modal>
 
         <Modal
@@ -413,6 +410,7 @@
                 helperText="Le logo sera placé dans un cadre circulaire"
                 bind:value={se_icon}
                 required />
+            <br /><br />
         </Modal>
 
         <Modal
@@ -439,6 +437,7 @@
                     </div>
                 {/each}
             </div>
+            <br /><br />
         </Modal>
     </div>
 </main>

@@ -13,7 +13,7 @@
     import { onDestroy } from 'svelte'
 
     // Flags
-    let modalSelectSearchEngines = true;
+    let modalSelectSearchEngines = false;
     let modalSelectSearchProfile = false;
     let modalResetSelection = false;
     let openSearchInSamePage;
@@ -309,6 +309,7 @@
         on:submit={resetSelection}
     >
         <p>Voulez-vous vraiment rétablir le profil de recherche par défaut ?</p>
+        <br /><br /><br />
     </Modal>
 </main>
 
