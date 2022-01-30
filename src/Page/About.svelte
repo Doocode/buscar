@@ -1,7 +1,6 @@
 <script>
     // Imports
     import { Grid, Row, Column, OutboundLink } from "carbon-components-svelte";
-    import Icofont from "../UI/Icofont.svelte";
 
     // Attributs
     export let appname = "Hello world!";
@@ -12,7 +11,7 @@
     let ref_link = appname.toLowerCase() + ".doocode.xyz";
 </script>
 
-<main>
+<main class="about">
     <h2>Général</h2>
     <div class="table">
         <Grid>
@@ -86,31 +85,34 @@
 </main>
 
 <style lang="scss">
-    main {
+    main.about {
         padding: 90px;
         max-width: 1100px;
         margin: auto;
         transition: all .5s;
-    }
 
-    h2 {margin-bottom: 15px;}
+        h2 {margin-bottom: 15px;}
 
-    .table {
-        max-width: 500px;
-        background: var(--cds-ui-02);
-        padding: 1.5rem 0;
-        border-radius: 10px;
-    }
+        .table {
+            max-width: 600px;
+            background: var(--cds-ui-02);
+            padding: 1.5rem 0;
+            border-radius: 10px;
+            border: 1px solid var(--cds-decorative-01);
 
-    ul {
-        list-style: disc;
-        padding-left: 30px;
-        line-height: 1.5em;
+            :global(.bx--row) {gap: 1.5rem;}
+        }
 
-        li {margin: .9rem 0;}
+        ul {
+            list-style: disc;
+            padding-left: 30px;
+            line-height: 1.5em;
+
+            li {margin: .9rem 0;}
+        }
     }
 
     @media (max-width: 672px) {
-        main {padding: 15px;}
+        main.about {padding: 15px;}
     }
 </style>

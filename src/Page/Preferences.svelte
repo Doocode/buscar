@@ -26,7 +26,7 @@
     });
 </script>
 
-<main>
+<main class="preferences">
     <h2>Affichage</h2>
     <Toggle labelText="Afficher le bouton 'Retour' en haut"
         bind:toggled={$allowHeaderBackButton}
@@ -60,50 +60,50 @@
 </main>
 
 <style lang="scss">
-    main {
+    main.preferences {
         transition: all .3s;
 
         h2, h3, h4, h5, h6 {margin-bottom: var(--cds-spacing-04);}
-    }
 
-    :global(.bx--link) {
-        display: inline-flex;
-        gap: .5rem;
-        align-items: center;
-    }
+        :global(.bx--link) {
+            display: inline-flex;
+            gap: .5rem;
+            align-items: center;
+        }
 
-    // Sélecteur d'ambiance
-    :global(.bx--tile-group div) {
-        max-width: 1100px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-    :global(.bx--tile--selectable .text) {
-        display: block;
-        margin-top: var(--cds-spacing-03);
+        // Sélecteur d'ambiance
+        :global(.bx--tile-group div) {
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        :global(.bx--tile--selectable .text) {
+            display: block;
+            margin-top: var(--cds-spacing-03);
+        }
     }
 
     @media (max-width: 672px) {
-        main {margin: var(--cds-spacing-05);}
+        main.preferences {margin: var(--cds-spacing-05);}
     }
 
     @media (min-width: 672px) {
-        main {
+        main.preferences {
             margin: var(--cds-spacing-09) auto;
             max-width: 1100px;
             padding: 0 var(--cds-spacing-05);
-        }
-        
-        // Sélecteur d'ambiance
-        :global(.bx--tile-group div) {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            
+            // Sélecteur d'ambiance
+            :global(.bx--tile-group div) {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+            }
         }
     }
 
     @media (min-width: 1056px) {
         // Sélecteur d'ambiance
-        :global(.bx--tile-group div) {
+        main.preferences :global(.bx--tile-group div) {
             grid-template-columns: 1fr 1fr 1fr 1fr;
         }
     }

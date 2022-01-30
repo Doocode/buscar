@@ -1,14 +1,14 @@
 <script>
-    // ============================
-    // demander augmentation après avoir fait des résultat significatifs, bien visible
-
     // Imports
-    import { Modal, DataTable, Button, TextInput, OverflowMenu, OverflowMenuItem, OutboundLink } from "carbon-components-svelte"
+    import { Modal, DataTable, Button, TextInput,
+        OverflowMenu, OverflowMenuItem, OutboundLink,
+        Breakpoint } from "carbon-components-svelte"
     import { SearchEngineType, listSearchEngines } from '../../Stores/search'
     import { onDestroy } from 'svelte'
     import Icofont from "../../UI/Icofont.svelte"
 
     // Initialisation
+    let size;
     let tableColumns = [
         { key: "name", value: "Site web de recherche" },
         { key: "type", value: "Type" },
@@ -40,6 +40,21 @@
         // Unsubscriptions
         unsub_listSearchEngines();
     });
+
+    // Réactivité
+    $: {
+        tableColumns = [
+            { key: "name", value: "Site web de recherche" },
+        ];
+        switch (size) {
+            case "max":
+            case "xlg":
+                tableColumns.push({ key: "query", value: "Adresse URL de la requête" });
+            case "lg":
+                tableColumns.push({ key: "type", value: "Type" });
+        }
+        tableColumns.push({ key: "overflow", empty: true });
+    }
 
     // Méthodes
     function findItemById(id) {
@@ -239,208 +254,234 @@
     }
 </script>
 
-<div class="toolbar">
+<main class="wsManager">
+    <Breakpoint bind:size />
 
-    <Button title="Ajouter un moteur de recherche" kind="primary" on:click={() => (modalAddItem = true)}>
-        <Icofont icon="plus" size="18" />
-        <span>Ajouter un moteur de recherche</span>
-    </Button>
+    <div class="toolbar">
 
-    <span class="spacer"></span>
+        <Button title="Ajouter un moteur de recherche" kind="primary" on:click={() => (modalAddItem = true)}>
+            <Icofont icon="plus" size="18" />
+            <span>Nouveau</span>
+        </Button>
 
-    <!--Button title="Affichage" kind="ghost">
-        <Icofont icon="squares" size="18" />
-        <span>Affichage</span>
-    </Button-->
-    <!-- ContextMenu -->
+        <span class="spacer"></span>
 
-</div>
+        <!--Button title="Affichage" kind="ghost">
+            <Icofont icon="squares" size="18" />
+            <span>Affichage</span>
+        </Button-->
+        <!-- ContextMenu -->
 
-<DataTable sortable headers={tableColumns} rows={tableData}>
+    </div>
 
-    <svelte:fragment slot="cell-header" let:header>
-        {header.value}
-    </svelte:fragment>
+    <DataTable sortable headers={tableColumns} rows={tableData}>
 
-    <svelte:fragment slot="cell" let:row let:cell>
-        {#if cell.key === "name"}
-            <div class="name">
-                <img src="{row.icon}" alt="Logo de {row.name}"/>
-                <span class="text">{row.name}</span>
-            </div>
-        {:else if cell.key === "type"}
-            <div class="type">
-                <Icofont icon={ parseType(row.type).icon } size="20" />
-                <span class="text">{ parseType(row.type).text }</span>
-            </div>
-        {:else if cell.key === "overflow"}
-            <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
-                <Icofont icon="search" size="18" />
-                <span class="text">Aperçu</span>
-            </Button>
-            <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
-                <Icofont icon="pencil" size="18" />
-            </Button>
-            <Button title="Dupliquer '{row.name}'" kind="ghost" on:click={() => {duplicateItem(row.id)}}>
-                <Icofont icon="duplicate" size="18" />
-            </Button>
-            <OverflowMenu flipped>
-                <OverflowMenuItem danger text="Supprimer" on:click={() => {confirmDeleteItem(row.id)}} />
-            </OverflowMenu>
-        {:else}
-            {cell.value}
-        {/if}
-    </svelte:fragment>
+        <svelte:fragment slot="cell-header" let:header>
+            {header.value}
+        </svelte:fragment>
 
-</DataTable>
-
-<div class="modals">
-    <Modal
-        bind:open={modalAddItem}
-        modalHeading="Créer un moteur de recherche"
-        primaryButtonText="Créer"
-        secondaryButtonText="Annuler"
-        on:click:button--secondary={closeModals}
-        on:close={closeModals}
-        on:submit={createItem}
-    >
-        <TextInput
-            labelText="Nom du moteur de recherche"
-            bind:value={se_name}
-            placeholder="Google" required />
-        <br/><br/>
-        <TextInput
-            labelText="Adresse url de la requête"
-            placeholder="https://www.domain.com/search?query=%query%"
-            helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
-            bind:value={se_query}
-            required />
-        <br/><br/>
-        <TextInput
-            labelText="Logo du moteur de recherche"
-            placeholder="https://www.domain.com/logo.png"
-            helperText="Le logo sera placé dans un cadre circulaire"
-            bind:value={se_icon}
-            required />
-    </Modal>
-
-    <Modal
-        bind:open={modalPreviewItem}
-        modalHeading="Aperçu du moteur de recherche"
-        primaryButtonText="Retour"
-        on:click:button--secondary={closeModals}
-        on:close={closeModals}
-        on:submit={closeModals}
-    >
-        {#if modalPreviewItem}
-            <div class="preview">
-                <img src="{se_icon}" alt="Logo de {se_name}" />
-                <p class="name">{se_name}</p>
-                <p class="query">
-                    <OutboundLink href="{se_query.replace("%query%", "test")}">{se_query}</OutboundLink>
-                </p>
-            </div>
-        {/if}
-    </Modal>
-
-    <Modal
-        bind:open={modalEditItem}
-        modalHeading="Modifier le moteur de recherche"
-        primaryButtonText="Enregister"
-        secondaryButtonText="Annuler"
-        on:click:button--secondary={closeModals}
-        on:close={closeModals}
-        on:submit={updateItem}
-    >
-        <TextInput
-            labelText="Nom du moteur de recherche"
-            bind:value={se_name}
-            placeholder="Google" required />
-        <br/><br/>
-        <TextInput
-            labelText="Adresse url de la requête"
-            placeholder="https://www.domain.com/search?query=%query%"
-            helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
-            bind:value={se_query}
-            required />
-        <br/><br/>
-        <TextInput
-            labelText="Logo du moteur de recherche"
-            placeholder="https://www.domain.com/logo.png"
-            helperText="Le logo sera placé dans un cadre circulaire"
-            bind:value={se_icon}
-            required />
-    </Modal>
-
-    <Modal
-        bind:open={modalDeleteItem} danger
-        modalHeading="Supprimer {idSelectedItems.length == 1 ? "un moteur" : "des moteurs" } de recherche"
-        primaryButtonText="Supprimer"
-        secondaryButtonText="Annuler"
-        on:click:button--secondary={closeModals}
-        on:close={closeModals}
-        on:submit={deleteSelectedItem}
-    >
-        <p>Voulez-vous vraiment supprimer {idSelectedItems.length == 1 ? "le moteur de recherche suivant" : "les moteurs de recherche suivants" } ?</p>
-        <br/>
-
-        <div class="list-se">
-            {#each idSelectedItems as idItem }
-                <div class="se-item">
-                    <img src="{searchEngines[findItemIndexById(idItem)].icon}" alt="Logo de {searchEngines[findItemIndexById(idItem)].name}"/>
-
-                    <div class="text">
-                        <p class="name">{searchEngines[findItemIndexById(idItem)].name}</p>
-                        <p class="query">{searchEngines[findItemIndexById(idItem)].query}</p>
-                    </div>
+        <svelte:fragment slot="cell" let:row let:cell>
+            {#if cell.key === "name"}
+                <div class="name">
+                    <img src="{row.icon}" alt="Logo de {row.name}"/>
+                    <span class="text">{row.name}</span>
                 </div>
-            {/each}
-        </div>
-    </Modal>
-</div>
+            {:else if cell.key === "type"}
+                <div class="type">
+                    <Icofont icon={ parseType(row.type).icon } size="20" />
+                    <span class="text">{ parseType(row.type).text }</span>
+                </div>
+            {:else if cell.key === "overflow"}
+                {#if size == "sm"}
+                    <!-- Ne pas afficher de boutons supplémentaire -->
+                {:else if size == "md"}
+                    <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
+                        <Icofont icon="search" size="18" />
+                    </Button>
+                    <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
+                        <Icofont icon="pencil" size="18" />
+                    </Button>
+                    <Button title="Dupliquer '{row.name}'" kind="ghost" on:click={() => {duplicateItem(row.id)}}>
+                        <Icofont icon="duplicate" size="18" />
+                    </Button>
+                {:else}
+                    <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
+                        <Icofont icon="search" size="18" />
+                        <span class="text">Aperçu</span>
+                    </Button>
+                    <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
+                        <Icofont icon="pencil" size="18" />
+                    </Button>
+                    <Button title="Dupliquer '{row.name}'" kind="ghost" on:click={() => {duplicateItem(row.id)}}>
+                        <Icofont icon="duplicate" size="18" />
+                    </Button>
+                {/if}
+                <OverflowMenu flipped>
+                    {#if size == "sm"}
+                        <OverflowMenuItem text="Aperçu" on:click={() => {displayDetails(row.id)}} />
+                        <OverflowMenuItem text="Modifier" on:click={() => {editItem(row.id)}} />
+                        <OverflowMenuItem text="Dupliquer" on:click={() => {duplicateItem(row.id)}} />
+                    {/if}
+                    <OverflowMenuItem danger text="Supprimer" on:click={() => {confirmDeleteItem(row.id)}} />
+                </OverflowMenu>
+            {:else}
+                {cell.value}
+            {/if}
+        </svelte:fragment>
+
+    </DataTable>
+
+    <div class="modals">
+        <Modal
+            bind:open={modalAddItem}
+            modalHeading="Créer un moteur de recherche"
+            primaryButtonText="Créer"
+            secondaryButtonText="Annuler"
+            on:click:button--secondary={closeModals}
+            on:close={closeModals}
+            on:submit={createItem}
+        >
+            <TextInput
+                labelText="Nom du moteur de recherche"
+                bind:value={se_name}
+                placeholder="Google" required />
+            <br/><br/>
+            <TextInput
+                labelText="Adresse url de la requête"
+                placeholder="https://www.domain.com/search?query=%query%"
+                helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
+                bind:value={se_query}
+                required />
+            <br/><br/>
+            <TextInput
+                labelText="Logo du moteur de recherche"
+                placeholder="https://www.domain.com/logo.png"
+                helperText="Le logo sera placé dans un cadre circulaire"
+                bind:value={se_icon}
+                required />
+        </Modal>
+
+        <Modal
+            bind:open={modalPreviewItem}
+            modalHeading="Aperçu du moteur de recherche"
+            primaryButtonText="Retour"
+            on:click:button--secondary={closeModals}
+            on:close={closeModals}
+            on:submit={closeModals}
+        >
+            {#if modalPreviewItem}
+                <div class="preview">
+                    <img src="{se_icon}" alt="Logo de {se_name}" />
+                    <p class="name">{se_name}</p>
+                    <p class="query">
+                        <OutboundLink href="{se_query.replace("%query%", "test")}">{se_query}</OutboundLink>
+                    </p>
+                </div>
+            {/if}
+        </Modal>
+
+        <Modal
+            bind:open={modalEditItem}
+            modalHeading="Modifier le moteur de recherche"
+            primaryButtonText="Enregister"
+            secondaryButtonText="Annuler"
+            on:click:button--secondary={closeModals}
+            on:close={closeModals}
+            on:submit={updateItem}
+        >
+            <TextInput
+                labelText="Nom du moteur de recherche"
+                bind:value={se_name}
+                placeholder="Google" required />
+            <br/><br/>
+            <TextInput
+                labelText="Adresse url de la requête"
+                placeholder="https://www.domain.com/search?query=%query%"
+                helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
+                bind:value={se_query}
+                required />
+            <br/><br/>
+            <TextInput
+                labelText="Logo du moteur de recherche"
+                placeholder="https://www.domain.com/logo.png"
+                helperText="Le logo sera placé dans un cadre circulaire"
+                bind:value={se_icon}
+                required />
+        </Modal>
+
+        <Modal
+            bind:open={modalDeleteItem} danger
+            modalHeading="Supprimer {idSelectedItems.length == 1 ? "un moteur" : "des moteurs" } de recherche"
+            primaryButtonText="Supprimer"
+            secondaryButtonText="Annuler"
+            on:click:button--secondary={closeModals}
+            on:close={closeModals}
+            on:submit={deleteSelectedItem}
+        >
+            <p>Voulez-vous vraiment supprimer {idSelectedItems.length == 1 ? "le moteur de recherche suivant" : "les moteurs de recherche suivants" } ?</p>
+            <br/>
+
+            <div class="list-se">
+                {#each idSelectedItems as idItem }
+                    <div class="se-item">
+                        <img src="{searchEngines[findItemIndexById(idItem)].icon}" alt="Logo de {searchEngines[findItemIndexById(idItem)].name}"/>
+
+                        <div class="text">
+                            <p class="name">{searchEngines[findItemIndexById(idItem)].name}</p>
+                            <p class="query">{searchEngines[findItemIndexById(idItem)].query}</p>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        </Modal>
+    </div>
+</main>
 
 <style lang="scss">
-    .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-
-        :global(.bx--btn) {
-            justify-content: center;
+    main.wsManager {
+        .toolbar {
+            display: flex;
             align-items: center;
-            gap: .5rem;
+            justify-content: flex-start;
+
+            :global(.bx--btn) {
+                justify-content: center;
+                align-items: center;
+                gap: .5rem;
+            }
+
+            .spacer {flex: 1}
         }
 
-        .spacer {flex: 1}
-    }
+        // Tableau
+        :global(.bx--data-table-container) {
+            padding: 0;
 
-    // Tableau
-    :global(.bx--data-table-container) {
-        padding: 0;
+            // Boutons d'action
+            :global(.bx--btn) {
+                gap: .5rem;
 
-        // Boutons d'action
-        :global(.bx--btn) {
-            gap: .5rem;
+                &:hover {
+                    background: var(--cds-layer-selected-hover);
+                }
+            }
 
-            &:hover {
-                background: var(--cds-layer-selected-hover);
+            // Bouton menu
+            :global(.bx--overflow-menu) {
+                display: inline-flex;
+                height: 100%;
+                padding: .75rem 0rem;
+                width: 52px;
+
+                :global(.bx--overflow-menu__icon) {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
             }
         }
-
-        // Bouton menu
-        :global(.bx--overflow-menu) {
-            display: inline-flex;
-            height: 100%;
-            padding: .75rem 0rem;
-            width: 52px;
-
-            :global(.bx--overflow-menu__icon) {
-                width: 1.5rem;
-                height: 1.5rem;
-            }
-        }
-
-        // Nom et type
+        // - Actions
+        :global(.bx--data-table tbody tr td:last-child) {text-align: right;}
+        // - Nom et type
         .name, .type {
             --icon-size: 25px;
 
@@ -457,68 +498,68 @@
 
             .text {font-size: .9em;}
         }
-    }
 
-    // Popups
-    // - Aperçu
-    .preview {
-        --icon-size: 120px;
+        // Popups
+        // - Aperçu
+        .preview {
+            --icon-size: 120px;
 
-        display: flex;
-        flex-flow: column;
-        justify-content: center;
-        align-items: center;
-        gap: 0rem;
-
-        img {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            border-radius: var(--icon-size);
-            box-shadow: 0 0 0 1px rgba(127,127,127,.5);
-            margin-bottom: 1rem;
-        }
-
-        p {
-            text-align: center;
-            padding: 0;
-        }
-
-        .name {font-size: 2em;}
-    }
-
-    // - Liste des moteurs sélectionnés
-    .list-se {
-        --icon-size: 35px;
-
-        display: flex;
-        flex-flow: column;
-        padding: 0 2rem;
-
-        .se-item {
             display: flex;
-            justify-content: flex-start;
+            flex-flow: column;
+            justify-content: center;
             align-items: center;
-            padding: .5rem 0;
-            gap: 1rem;
+            gap: 0rem;
 
             img {
                 width: var(--icon-size);
                 height: var(--icon-size);
                 border-radius: var(--icon-size);
                 box-shadow: 0 0 0 1px rgba(127,127,127,.5);
+                margin-bottom: 1rem;
             }
 
-            .text {
-                flex: 1;
+            p {
+                text-align: center;
+                padding: 0;
+            }
 
-                p {
-                    width: 100%;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
+            .name {font-size: 2em;}
+        }
+
+        // - Liste des moteurs sélectionnés
+        .list-se {
+            --icon-size: 35px;
+
+            display: flex;
+            flex-flow: column;
+            padding: 0 2rem;
+
+            .se-item {
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                padding: .5rem 0;
+                gap: 1rem;
+
+                img {
+                    width: var(--icon-size);
+                    height: var(--icon-size);
+                    border-radius: var(--icon-size);
+                    box-shadow: 0 0 0 1px rgba(127,127,127,.5);
                 }
 
-                .name {font-weight: bold;}
+                .text {
+                    flex: 1;
+
+                    p {
+                        width: 100%;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+
+                    .name {font-weight: bold;}
+                }
             }
         }
     }

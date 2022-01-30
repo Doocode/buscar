@@ -210,17 +210,17 @@
     loadPreferences();
 </script>
 
-<main>
+<main id="searchPage">
     <nav class="nav-searchProfile">
         {#each listSearchProfile as sp}
             {#if parseInt(selectedSearchProfileIndex) === parseInt(sp.id)}
-                <Link href="/#/" class="current" on:click={() => {selectSearchProfileById(sp.id)}}>
+                <Link class="current" on:click={() => {selectSearchProfileById(sp.id)}}>
                     <Icofont icon="{sp.icon}" size="16" />
                     <span class="label">{sp.text}</span>
                 </Link>
             {:else}
                 {#if sp.id != 0}
-                    <Link href="/#/" on:click={() => {selectSearchProfileById(sp.id)}}>
+                    <Link on:click={() => {selectSearchProfileById(sp.id)}}>
                         <Icofont icon="{sp.icon}" size="16" />
                         <span class="label">{sp.text}</span>
                     </Link>
@@ -362,7 +362,7 @@
 </main>
 
 <style lang="scss">
-    main {
+    main#searchPage {
         margin-top: -92px;
         padding: 10px;
         transition: all .3s;
@@ -382,6 +382,7 @@
             align-items: center;
             gap: 5px;
             text-underline-offset: 4px;
+            cursor: pointer;
         }
         :global(.bx--link.current) {
             color: var(--cds-text-01);
@@ -390,7 +391,7 @@
     }
 
     // Barre d'outils (boutons en bas de l'écran)
-    .bottomToolbar {
+    main#searchPage .bottomToolbar {
         position: absolute;
         left: 0; right: 0;
         bottom: 0;
@@ -409,14 +410,16 @@
     }
 
     // Popup des moteurs de recherche
-    .se-items { // Liste des moteurs de recherche (search engines items)
-        --icon-size: 50px;
-
-        display: flex;
-        flex-flow: wrap;
+    main#searchPage .se-items { // Liste des moteurs de recherche (search engines items)
+        --icon-size: 40px;
+        
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
 
         :global(.bx--tile--selectable) {
-            width: 140px;
+            border-radius: .6rem;
+            padding: var(--cds-spacing-05, 1rem);
+            min-width: 6rem;
         }
 
         img {
@@ -425,10 +428,13 @@
             border-radius: var(--icon-size);
             box-shadow: 0 0 0 1px rgba(127,127,127,.5);
         }
+        :global(.bx--modal-content p) {
+            padding: 0;
+        }
     }
 
     @media (max-width: 672px) {
-        main {margin: 0;}
+        main#searchPage {margin: 0;}
         :global(.query-form) {max-width: 400px;}
 
         .nav-searchProfile {
@@ -436,10 +442,23 @@
             justify-content: flex-start;
         }
 
-        .bottomToolbar {
+        main#searchPage .bottomToolbar {
             padding: 10px;
             :global(.icofont) {font-size: 22px;}
             :global(.text) {display: none;}
+        }
+    }
+
+    @media (min-width: 672px) {
+        main#searchPage .se-items {
+            --icon-size: 50px;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+    }
+
+    @media (min-width: 1056px) {
+        main#searchPage .se-items {
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
         }
     }
 </style>
