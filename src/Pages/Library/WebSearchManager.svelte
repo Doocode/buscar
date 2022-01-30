@@ -10,7 +10,7 @@
     // Initialisation
     let size;
     let tableColumns = [
-        { key: "name", value: "Site web de recherche" },
+        { key: "name", value: "Moteurs de recherche" },
         { key: "type", value: "Type" },
         { key: "query", value: "Adresse URL de la requête" },
         { key: "overflow", empty: true },
@@ -44,14 +44,20 @@
     // Réactivité
     $: {
         tableColumns = [
-            { key: "name", value: "Site web de recherche" },
+            { key: "name", value: "Moteurs de recherche" },
         ];
         switch (size) {
             case "max":
             case "xlg":
-                tableColumns.push({ key: "query", value: "Adresse URL de la requête" });
             case "lg":
+            case "md":
                 tableColumns.push({ key: "type", value: "Type" });
+        }
+        switch (size) {
+            case "max":
+            case "xlg":
+            case "lg":
+                tableColumns.push({ key: "query", value: "Adresse URL de la requête" });
         }
         tableColumns.push({ key: "overflow", empty: true });
     }

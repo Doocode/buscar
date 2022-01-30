@@ -15,10 +15,10 @@
 
 	// - Pages
 	import Header from './UI/Header.svelte'
-	import Search from './Page/Search.svelte'
-	import Library from './Page/Library.svelte'
-	import Preferences from './Page/Preferences.svelte'
-	import About from './Page/About.svelte'
+	import Search from './Pages/Search.svelte'
+	import Library from './Pages/Library.svelte'
+	import Preferences from './Pages/Preferences.svelte'
+	import About from './Pages/About.svelte'
 
 	// Propriétés
 	let currentContrastMode;
@@ -57,6 +57,10 @@
 </main>
 
 <style lang="scss">
+	main :global(.bx--modal-content) {
+		margin-bottom: 0;
+	}
+
 	@media (min-width: 672px) {
 		:global(.bx--modal-container) {
 			border-radius: 10px;

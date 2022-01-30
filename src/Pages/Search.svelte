@@ -1,18 +1,19 @@
 <script>
     // Imports
-    import { Button, Dropdown, Toggle, Modal, Grid, Row, 
-        Column, Link, SelectableTile,  RadioTile, TileGroup } 
-        from "carbon-components-svelte";
-	import { openSearchInCurrentPage, multiSelectionSearchEngines, 
-        } from '../Stores/settings'
+    import ModalSearchEnginesSelector
+        from "../Modals/ModalSearchEnginesSelector.svelte"
+    import { Button, Dropdown, Modal, Link }
+        from "carbon-components-svelte"
+	import { openSearchInCurrentPage, multiSelectionSearchEngines}
+        from '../Stores/settings'
 	import { listSearchEngines } from '../Stores/search'
-    import SearchBox from "../UI/SearchBox.svelte";
-    import Icofont from "../UI/Icofont.svelte";
-    import async from "async";
-    import { onDestroy } from 'svelte';
+    import SearchBox from "../UI/SearchBox.svelte"
+    import Icofont from "../UI/Icofont.svelte"
+    import async from "async"
+    import { onDestroy } from 'svelte'
 
     // Flags
-    let modalSelectSearchEngines = false;
+    let modalSelectSearchEngines = true;
     let modalSelectSearchProfile = false;
     let modalResetSelection = false;
     let openSearchInSamePage;
@@ -84,9 +85,12 @@
     });
 
     // Méthodes
-    function confirmChangeSearchEngines() {
+    function confirmChangeSearchEngines(e) {
         // Masquer la popup
         modalSelectSearchEngines = false;
+
+        // Appliquer la sélection
+        selectSearchEngineByIds(e.detail.selectedIds)
         
         // Mémoriser l'ancien profil de recherche
         if (lastSelectedSearchProfileIndex != selectedSearchProfileIndex)
@@ -125,6 +129,13 @@
             lastSelectedSearchProfileIndex = idProfileFound; // Effacer l'historique
         });
     }
+    function selectSearchEngineByIds(listIds) {
+        // Parcours de la liste des moteurs de recherche
+        searchEngines.map((seItem, index) => {
+            // Sélectionner le moteur de recherche s'il fait partie de la liste des ID
+            searchEngines[index].selected = listIds.indexOf(seItem.id) > -1;
+        });
+    }
     function cancelChangeSearchProfile() {
         selectedSearchProfileIndex = lastSelectedSearchProfileIndex;
         modalSelectSearchProfile = false;
@@ -150,14 +161,16 @@
         // Charger les moteurs de recherche du profil :
         let listSE = listSearchProfile[selectedSearchProfileIndex].searchEnginesId; // Moteurs de recherche du profil de recherche
         
-        // Parcours de la liste des moteurs de recherche local
+        /*// Parcours de la liste des moteurs de recherche local
         searchEngines.map((seItem, index) => {
             // Vérifier si le moteurs de recherche fait partie du profil de recherche
             if (listSE.indexOf(seItem.id) > -1)
                 searchEngines[index].selected = true; // Sélectionner le moteurs de recherche
             else
                 searchEngines[index].selected = false;
-        });
+        });*/
+        // Sélectionner les moteurs de recherche
+        selectSearchEngineByIds(listSE)
     }
     function resetSelection() {
         // Choisir le 1er item
@@ -255,73 +268,11 @@
     </div>
 
 
-    <Modal
+    <ModalSearchEnginesSelector
         bind:open={modalSelectSearchEngines}
-        modalHeading="Choisir un moteur de recherche"
-        primaryButtonText="Continuer"
-        on:click:button--primary={confirmChangeSearchEngines}
-        hasForm="true"
-        on:open
-        on:close={confirmChangeSearchEngines}
+        idSelectedSearchEngines={selectedSearchEnginesIDs.filter(() => true)}
         on:submit={confirmChangeSearchEngines}
-    >
-        <Grid style="padding: 0">
-            <Row>
-                <Column>
-                    <Toggle labelText="Lancer la recherche dans la page actuelle" 
-                        labelA="Non" labelB="Oui" bind:toggled={$openSearchInCurrentPage} />
-                </Column>
-                <Column>
-                    <Toggle labelText="Autoriser la sélection multiple" 
-                        labelA="Non" labelB="Activé" bind:toggled={$multiSelectionSearchEngines} />
-                </Column>
-                <!--Column>Rechercher</Column>
-                <Column>
-                    <Dropdown
-                        titleText="Trier par"
-                        selectedId="0"
-                        items={[
-                            { id: "0", text: "Nom" },
-                            { id: "1", text: "Sélection" },
-                        ]}
-                    />
-                </Column>
-                <Column>
-                    <Dropdown
-                        titleText="Affichage"
-                        selectedId="0"
-                        items={[
-                            { id: "0", text: "Icônes" },
-                            { id: "1", text: "Mosaïques" },
-                            { id: "2", text: "Liste détaillé" },
-                        ]}
-                    />
-                </Column-->
-            </Row>
-        </Grid>
-
-        <br/><br/>
-
-        <div class="se-list">
-            <TileGroup legend="Liste des moteurs de recherche">
-                <div class="se-items" role="group" aria-label="Liste des moteurs de recherche">
-                    {#each searchEngines.sort(sortSearchEngines) as seItem}
-                        {#if multiSelectSearchEngines}
-                            <SelectableTile bind:selected={seItem.selected}>
-                                <img src="{seItem.icon}" alt="Logo de { seItem.name }" />
-                                <p>{seItem.name}</p>
-                            </SelectableTile>
-                        {:else}
-                            <RadioTile value="{seItem.id}" bind:checked={seItem.selected}>
-                                <img src="{seItem.icon}" alt="Logo de { seItem.name }" />
-                                <p>{seItem.name}</p>
-                            </RadioTile>
-                        {/if}
-                    {/each}
-                </div>
-            </TileGroup>
-        </div>
-    </Modal>
+    />
 
     <Modal
         bind:open={modalSelectSearchProfile}
@@ -409,30 +360,6 @@
         :global(.icofont) {font-size: 16px;}
     }
 
-    // Popup des moteurs de recherche
-    main#searchPage .se-items { // Liste des moteurs de recherche (search engines items)
-        --icon-size: 40px;
-        
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-
-        :global(.bx--tile--selectable) {
-            border-radius: .6rem;
-            padding: var(--cds-spacing-05, 1rem);
-            min-width: 6rem;
-        }
-
-        img {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            border-radius: var(--icon-size);
-            box-shadow: 0 0 0 1px rgba(127,127,127,.5);
-        }
-        :global(.bx--modal-content p) {
-            padding: 0;
-        }
-    }
-
     @media (max-width: 672px) {
         main#searchPage {margin: 0;}
         :global(.query-form) {max-width: 400px;}
@@ -446,19 +373,6 @@
             padding: 10px;
             :global(.icofont) {font-size: 22px;}
             :global(.text) {display: none;}
-        }
-    }
-
-    @media (min-width: 672px) {
-        main#searchPage .se-items {
-            --icon-size: 50px;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-        }
-    }
-
-    @media (min-width: 1056px) {
-        main#searchPage .se-items {
-            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
         }
     }
 </style>

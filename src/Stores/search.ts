@@ -88,7 +88,7 @@ export const listSearchEngines = createSearchEngineList([
     },
 
     {
-        id: 8, name: "Google Image", type: SearchEngineType.images,
+        id: 8, name: "Google Images", type: SearchEngineType.images,
         icon: "/assets/search-engines/google.png",
         query: "https://www.google.fr/search?q=%query%&tbm=isch"
     },

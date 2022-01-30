@@ -12,7 +12,6 @@
 
 <style lang="scss">
     .icofont {
-        transition: all .3s;
         &:before {display: inline-block;}
         &.rotate-90:before {transform: rotate(90deg);}
         &.rotate-180:before {transform: rotate(180deg);}
