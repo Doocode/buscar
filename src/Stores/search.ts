@@ -53,68 +53,68 @@ export const SearchEngineType = {
 export const listSearchEngines = createSearchEngineList([
     {
         id: 1, name: "Google", type: SearchEngineType.web,
-        icon: "/assets/web-search/google.png",
+        icon: "/assets/search-engines/google.png",
         query: "https://www.google.fr/search?q=%query%"
     },
     {
         id: 2, name: "Bing", type: SearchEngineType.web,
-        icon: "/assets/web-search/bing.png",
+        icon: "/assets/search-engines/bing.png",
         query: "https://www.bing.com/search?q=%query%"
     },
     {
         id: 3, name: "Qwant", type: SearchEngineType.web,
-        icon: "/assets/web-search/qwant.png",
+        icon: "/assets/search-engines/qwant.png",
         query: "https://www.qwant.com/?q=%query%"
     },
     {
         id: 4, name: "DuckDuckGo", type: SearchEngineType.web,
-        icon: "/assets/web-search/duckduckgo.png",
+        icon: "/assets/search-engines/duckduckgo.png",
         query: "https://duckduckgo.com/?q=%query%"
     },
     {
         id: 5, name: "Ecosia", type: SearchEngineType.web,
-        icon: "/assets/web-search/ecosia.png",
+        icon: "/assets/search-engines/ecosia.png",
         query: "https://www.ecosia.org/search?q=%query%"
     },
     /*{
         id: 6, name: "Lilo", type: SearchEngineType.web,
-        icon: "/assets/web-search/lilo.png",
+        icon: "/assets/search-engines/lilo.png",
         query: "https://search.lilo.org/?q=%query%"
     },*/
     {
         id: 7, name: "Yandex", type: SearchEngineType.web,
-        icon: "/assets/web-search/yandex.png",
+        icon: "/assets/search-engines/yandex.png",
         query: "https://yandex.com/search/?text=%query%"
     },
 
     {
         id: 8, name: "Google Image", type: SearchEngineType.images,
-        icon: "/assets/web-search/google.png",
+        icon: "/assets/search-engines/google.png",
         query: "https://www.google.fr/search?q=%query%&tbm=isch"
     },
     {
         id: 9, name: "Bing Images", type: SearchEngineType.images,
-        icon: "/assets/web-search/bing.png",
+        icon: "/assets/search-engines/bing.png",
         query: "https://www.bing.com/images/search?q=%query%"
     },
     {
         id: 10, name: "Qwant Images", type: SearchEngineType.images,
-        icon: "/assets/web-search/qwant.png",
+        icon: "/assets/search-engines/qwant.png",
         query: "https://www.qwant.com/?t=images&q=%query%"
     },
     {
         id: 11, name: "DuckDuckGo Images", type: SearchEngineType.images,
-        icon: "/assets/web-search/duckduckgo.png",
+        icon: "/assets/search-engines/duckduckgo.png",
         query: "https://duckduckgo.com/?t=ffab&q=%query%&iax=images&ia=images"
     },
     {
         id: 12, name: "Ecosia Images", type: SearchEngineType.images,
-        icon: "/assets/web-search/ecosia.png",
+        icon: "/assets/search-engines/ecosia.png",
         query: "https://www.ecosia.org/images?q=%query%"
     },
     {
         id: 13, name: "Yandex Images", type: SearchEngineType.images,
-        icon: "/assets/web-search/yandex.png",
+        icon: "/assets/search-engines/yandex.png",
         query: "https://yandex.com/images/search?text=%query%"
     },
 ]);

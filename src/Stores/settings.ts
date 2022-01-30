@@ -17,9 +17,7 @@ export const ambiances = readable([
     { value: "g90",     name: "Sombre",         icon: "moon",   public: false },
     { value: "g100",    name: "Très sombre",    icon: "moon",   public: true },
 ]);
-export const filterPublicAmbiances = (a) => {
-    return a.public;
-}
+export const filterPublicAmbiances = a => a.public;
 
 // - Bouton "Retour" dans l'en-tête
 export const allowHeaderBackButton = writable(false);
