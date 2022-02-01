@@ -1,7 +1,8 @@
 <script>
     // Import
-    import { Toggle, TileGroup, RadioTile, Link } from "carbon-components-svelte"
-    import { contrastMode, ambiances, allowHeaderBackButton,
+    import { Toggle, TileGroup, RadioTile, Link, Grid, Row, Column }
+        from "carbon-components-svelte"
+    import { contrastMode, ambiances, allowHeaderBackButton, compactSearchBox,
         openSearchInCurrentPage, filterPublicAmbiances } from '../Stores/settings'
     import { onDestroy } from 'svelte'
     import Icofont from '../UI/Icofont.svelte'
@@ -47,9 +48,20 @@
 
     <br /><br /><br /><br />
     <h2>Rercherche</h2>
-    <Toggle labelText="Lancer la recherche dans la page actuelle"
-        bind:toggled={$openSearchInCurrentPage}
-        labelA="Non" labelB="Oui" />
+    <Grid style="max-width: 510px; margin: 0; padding: 0;">
+        <Row>
+            <Column>
+                <Toggle labelText="Lancer la recherche dans la page actuelle"
+                    bind:toggled={$openSearchInCurrentPage}
+                    labelA="Non" labelB="Oui" />
+            </Column>
+            <Column>
+                <Toggle labelText="Barre de recherche compacte"
+                    bind:toggled={$compactSearchBox}
+                    labelA="Non" labelB="Oui" />
+            </Column>
+        </Row>
+    </Grid>
     <br/><br/>
 
     <h5>Voir aussi</h5>

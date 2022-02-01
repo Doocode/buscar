@@ -31,5 +31,8 @@ export const openSearchInCurrentPage = writable(true);
 // - Sélection mulitiple des moteurs de recherche
 export const multiSelectionSearchEngines = writable(false);
 
+// - Sélection mulitiple des moteurs de recherche
+export const compactSearchBox = writable(false);
+
 // - Limite max pour l'affichage des "bulles" des moteurs de recherche
 export const maxDisplayBubble = writable(3);
