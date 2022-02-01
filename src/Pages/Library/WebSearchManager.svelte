@@ -4,8 +4,13 @@
         OverflowMenu, OverflowMenuItem, OutboundLink,
         Breakpoint } from "carbon-components-svelte"
     import { SearchEngineType, listSearchEngines } from '../../Stores/search'
+    import { pageName, pageIcon } from '../../Stores/header'
     import { onDestroy } from 'svelte'
     import Icofont from "../../UI/Icofont.svelte"
+
+    // MAJ du header
+    pageName.set("Moteurs de recherche")
+    pageIcon.set("circles")
 
     // Initialisation
     let size;

@@ -12,6 +12,7 @@
 
 	// - Stores
 	import { contrastMode } from './Stores/settings'
+	import { transparentHeader } from './Stores/header'
 
 	// - Pages
 	import Header from './UI/Header.svelte'
@@ -21,27 +22,8 @@
 	import About from './Pages/About.svelte'
 
 	// Propriétés
-	let currentContrastMode;
-
-	// Observations
-	const unsub_contrastMode = contrastMode.subscribe(value => {
-		currentContrastMode = value;
-	});
-
-	// Lifecycle
-	onDestroy(() => {
-		// Unsubscriptions
-		unsub_contrastMode();
-	});
-
-	// Application du contraste
-	$: document.documentElement.setAttribute("theme", currentContrastMode);
-</script>
-
-<main>
-	<Header bind:appname={appname} />
-
-	<Router routes={{
+	let currentContrastMode // Contraste de l'interface
+	let routes = { // Routes de l'app
 		'/': Search,
 		'/about': wrap({
 			component: About,
@@ -53,7 +35,34 @@
 		}),
 		'/library': Library,
 		'/preferences': Preferences,
-	}} />
+	}
+
+	// Observations
+	const unsub_contrastMode = contrastMode.subscribe(value => {
+		currentContrastMode = value
+	})
+
+	// Lifecycle
+	onDestroy(() => {
+		// Unsubscriptions
+		unsub_contrastMode();
+	})
+
+	// Application du contraste
+	$: document.documentElement.setAttribute("theme", currentContrastMode)
+
+	// Méthodes
+	function onRouteLoading() {
+		// Afficher la barre de titre
+		transparentHeader.set(false)
+	}
+</script>
+
+<main>
+	<Header bind:appname={appname} />
+
+	<Router routes={routes}
+		on:routeLoading={onRouteLoading} />
 </main>
 
 <style lang="scss">

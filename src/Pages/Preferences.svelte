@@ -1,11 +1,16 @@
 <script>
-    // Import
+    // Imports
     import { Toggle, TileGroup, RadioTile, Link, Grid, Row, Column }
         from "carbon-components-svelte"
     import { contrastMode, ambiances, allowHeaderBackButton, compactSearchBox,
         openSearchInCurrentPage, filterPublicAmbiances } from '../Stores/settings'
+    import { pageName, pageIcon } from '../Stores/header'
     import { onDestroy } from 'svelte'
     import Icofont from '../UI/Icofont.svelte'
+
+    // MAJ du header
+    pageName.set("Préférences")
+    pageIcon.set("config")
 
     // Attributs internes
     let currentContrastMode // Contraste de l'interface

@@ -6,6 +6,7 @@
     import { fade, fly } from 'svelte/transition'; // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
     import Icofont from './Icofont.svelte';
     import { contrastMode, allowHeaderBackButton } from '../Stores/settings'
+    import { pageName, pageIcon, transparentHeader } from '../Stores/header'
     import { onDestroy } from 'svelte'
 
     // Attributs à définir
@@ -14,50 +15,15 @@
     // Attributs internes
     let currentContrastMode; // Contraste de l'interface
     let allowBackButton; // Autoriser l'affichage du bouton "Retour"
-    let pageName = "Accueil"; // Nom de la page
-    let pageIcon = "screen"; // Icone de la page
     let menuWidth = 300; // Largeur du panneau de menu
 
     // Flags
     let backButton_visible = true;
     let leftMenu_visible = false;
     let rightMenu_visible = false;
-    let transparentBg = false;
 
     // Réactivité
     $: canGoBack = $location != "/";
-    $: { // Affichage du titre et de l'icône
-        // Diviser l'url pour obtenir les différentes sections
-        let sections = ($location).split("/");
-
-        // Titre par défaut
-        pageName = "Page non trouvée";
-        pageIcon = "disable";
-        transparentBg = false;
-
-        // Parser l'url pour déterminer l'icône et le titre de la page
-        if (sections.length > 1) {
-            switch (sections[1]) {
-                case "":
-                    pageName = "Accueil";
-                    pageIcon = "home";
-                    transparentBg = true;
-                    break;
-                case "library":
-                    pageName = "Bibliothèque";
-                    pageIcon = "details";
-                    break;
-                case "preferences":
-                    pageName = "Préférences";
-                    pageIcon = "config";
-                    break;
-                case "about":
-                    pageName = "A propos";
-                    pageIcon = "info";
-                    break;
-            }
-        }
-    }
 
     // Observations
     const unsub_contrastMode = contrastMode.subscribe(value => {
@@ -99,7 +65,7 @@
 	}
 </script>
 
-<header class:transparent="{transparentBg}">
+<header class:transparent="{$transparentHeader}">
     <div class="left">
         {#if canGoBack && allowBackButton}
             <span in:fade out:whoosh>
@@ -114,13 +80,10 @@
         </Button>
     </div>
     <div class="center">
-        <Icofont icon="{pageIcon}" />
-        <h1>{pageName}</h1>
+        <Icofont icon="{$pageIcon}" />
+        <h1>{$pageName}</h1>
     </div>
     <div class="right">
-        <!--Button kind="ghost" title="S'identifier">
-            <Icofont icon="profile" size="20" />
-        </Button-->
         <Button kind="ghost" title="Réglages" on:click={toggleRightMenu}>
             <Icofont icon="settings" size="20" />
         </Button>
@@ -145,6 +108,7 @@
 
             <div class="appIdent">
                 <Icofont icon="search" size="50" />
+                <img src="/assets/pwa-icons/icon-128x128.png" alt="Logo de l'application" />
                 <p class="title">{appname}</p>
             </div>
         </div>
@@ -168,17 +132,17 @@
             <Link href="/#/library" size="lg">
                 <Icofont icon="details" />
                 <span class="label">Bibliothèque</span>
-            </Link-->
-            <Link href="/#/library" size="lg">
-                <Icofont icon="search" />
-                <span class="label">Moteurs de recherche</span>
             </Link>
 
-            <span class="blank-space"></span>
+            <span class="blank-space"></span-->
 
             <Link href="/#/preferences" size="lg">
                 <Icofont icon="config" />
                 <span class="label">Préférences</span>
+            </Link>
+            <Link href="/#/library" size="lg">
+                <Icofont icon="search" />
+                <span class="label">Moteurs de recherche</span>
             </Link>
 
             <span class="blank-space"></span>
@@ -304,6 +268,8 @@
                 gap: 10px;
 
                 .title {font-size: 20px;}
+                :global(.icofont) {display: none;}
+                img {width: 80px;}
             }
         }
     }

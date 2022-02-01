@@ -4,23 +4,29 @@
         from "../Modals/ModalSearchEnginesSelector.svelte"
     import { Button, Dropdown, Modal, Link }
         from "carbon-components-svelte"
-	import { openSearchInCurrentPage, multiSelectionSearchEngines}
+	import { openSearchInCurrentPage, multiSelectionSearchEngines }
         from '../Stores/settings'
 	import { listSearchEngines } from '../Stores/search'
+    import { pageName, pageIcon, transparentHeader }
+        from '../Stores/header'
     import SearchBox from "../UI/SearchBox.svelte"
     import Icofont from "../UI/Icofont.svelte"
     import async from "async"
     import { onDestroy } from 'svelte'
 
+    // MAJ du header
+    pageName.set("Rechercher")
+    pageIcon.set("search")
+    transparentHeader.set(true)
+
     // Flags
-    let modalSelectSearchEngines = false;
-    let modalSelectSearchProfile = false;
-    let modalResetSelection = false;
-    let openSearchInSamePage;
-    let multiSelectSearchEngines;
+    let modalSelectSearchEngines = false
+    let modalSelectSearchProfile = false
+    let modalResetSelection = false
+    let openSearchInSamePage
 
     // Saisie de la requête
-    let queryInput = "";
+    let queryInput = ""
 
     // Moteurs de recherche
     let searchEngines = []; // Liste des moteurs de recherche
@@ -72,16 +78,12 @@
 	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
 		openSearchInSamePage = value;
 	});
-	const unsub_multiSelectionSearchEngines = multiSelectionSearchEngines.subscribe(value => {
-		multiSelectSearchEngines = value;
-	});
 
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
         unsub_listSearchEngines();
         unsub_openSearchInCurrentPage();
-        unsub_multiSelectionSearchEngines();
     });
 
     // Méthodes

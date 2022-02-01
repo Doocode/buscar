@@ -1,6 +1,11 @@
 <script>
     // Imports
-    import { Grid, Row, Column, OutboundLink } from "carbon-components-svelte";
+    import { Grid, Row, Column, OutboundLink } from "carbon-components-svelte"
+    import { pageName, pageIcon } from '../Stores/header'
+
+    // MAJ du header
+    pageName.set("A propos")
+    pageIcon.set("info")
 
     // Attributs
     export let appname = "Hello world!";
