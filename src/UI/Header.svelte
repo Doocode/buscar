@@ -125,7 +125,7 @@
             <Link href="/#/network" size="lg">
                 <Icofont icon="compass" />
                 <span class="label">Réseau</span>
-            </Link>
+            </Link-->
 
             <span class="blank-space"></span>
             
@@ -133,16 +133,20 @@
                 <Icofont icon="details" />
                 <span class="label">Bibliothèque</span>
             </Link>
+            <Link href="/#/library/search-engines" size="lg">
+                <Icofont icon="circles" />
+                <span class="label">Moteurs de recherche</span>
+            </Link>
+            <Link href="/#/library/search-profiles" size="lg">
+                <Icofont icon="search" />
+                <span class="label">Profils de recherche</span>
+            </Link>
 
-            <span class="blank-space"></span-->
+            <span class="blank-space"></span>
 
             <Link href="/#/preferences" size="lg">
                 <Icofont icon="config" />
                 <span class="label">Préférences</span>
-            </Link>
-            <Link href="/#/library" size="lg">
-                <Icofont icon="search" />
-                <span class="label">Moteurs de recherche</span>
             </Link>
 
             <span class="blank-space"></span>

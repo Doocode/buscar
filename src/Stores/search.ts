@@ -34,6 +34,38 @@ function createSearchEngineList(initial_value) {
     };
 }
 
+// - Liste des profils de recherche
+function createSearchProfileList(initial_value) {
+    const { subscribe, set, update } = writable(initial_value);
+
+    return {
+        subscribe,
+        add: (name, icon, searchEnginesIds, orderPresentation) => { // Ajouter un élément
+            update(list => [...list, {
+                id: list.at(-1).id + 1,
+                name: name, icon: icon,
+                orderPresentation: orderPresentation,
+                searchEnginesIds: searchEnginesIds,
+            }]);
+        },
+        updateByIndex: (index, name, icon, searchEnginesIds, orderPresentation) => { // Mettre à jour un item
+            update(list => {
+                list[index] = {
+                    id: list[index].id,
+                    name: name, icon: icon,
+                    orderPresentation: orderPresentation,
+                    searchEnginesIds: searchEnginesIds,
+                };
+                return list
+            });
+        },
+        deleteById: (id) => { // Supprimer un élément en utilisant son id
+            update(list => list.filter(item => parseInt(item.id) !== parseInt(id)))
+        },
+        reset: () => set(initial_value)
+    };
+}
+
 
 
 // Types de moteurs de recherche
@@ -117,4 +149,28 @@ export const listSearchEngines = createSearchEngineList([
         icon: "/assets/search-engines/yandex.png",
         query: "https://yandex.com/images/search?text=%query%"
     },
-]);
+])
+
+// Profils de recherche
+export const listSearchProfiles = createSearchProfileList([
+    {
+        id: 1, name: "Général", icon: "web",
+        orderPresentation: 1, searchEnginesIds: [1]
+    },
+    {
+        id: 2, name: "Images", icon: "image",
+        orderPresentation: 2, searchEnginesIds: [8, 9, 10]
+    },
+    {
+        id: 3, name: "Vidéos", icon: "play",
+        orderPresentation: 3, searchEnginesIds: []
+    },
+    {
+        id: 4, name: "Musiques", icon: "music",
+        orderPresentation: 4, searchEnginesIds: []
+    },
+    {
+        id: 5, name: "Mails", icon: "mail",
+        orderPresentation: 5, searchEnginesIds: []
+    },
+])

@@ -67,12 +67,18 @@
             </Column>
         </Row>
     </Grid>
-    <br/><br/>
+    
+    <br/><br/><br/>
 
     <h5>Voir aussi</h5>
-    <Link href="/#/library">
+    <Link href="/#/library/search-engines">
         <Icofont icon="arrow_right" />
         <span class="label">Gérer les moteurs de recherche</span>
+    </Link>
+    <br/><br/>
+    <Link href="/#/library/search-profiles">
+        <Icofont icon="arrow_right" />
+        <span class="label">Gérer les profils de recherche</span>
     </Link>
 </main>
 
