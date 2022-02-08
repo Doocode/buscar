@@ -12,7 +12,7 @@
 
 	// - Stores
 	import { contrastMode } from './Stores/settings'
-	import { transparentHeader } from './Stores/header'
+	import { transparentHeader, pageIcon, pageName } from './Stores/header'
 
 	// - Pages
 	import Header from './UI/Header.svelte'
@@ -55,6 +55,8 @@
 	function onRouteLoading() {
 		// Afficher la barre de titre
 		transparentHeader.set(false)
+		pageIcon.set("file")
+		pageName.set("Page sans nom")
 	}
 </script>
 

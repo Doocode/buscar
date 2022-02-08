@@ -41,6 +41,11 @@
         - Le filtre sur les moteurs de recherche
     */
     $: sortedSearchEngine = resortList(selectedSortMode, idSelectedSearchEngines, inputSearchSE)
+    $: if (idSelectedSearchEngines.length > 1) {
+        // Activer la sélection multiple s'il y a plusieurs moteurs sélectionnés
+        multiSelectionSearchEngines.set(true)
+    }
+    $: updateSelection(open)
 
 	// Observations
     const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
@@ -75,6 +80,7 @@
         searchEngines.forEach((seItem, index) => {
             searchEngines[index].selected = idSelectedSearchEngines.indexOf(seItem.id) > -1
         })
+        idSelectedSearchEngines = idSelectedSearchEngines
     }
     function confirmSelection() {
         // Récupérer les moteurs sélectionnés
@@ -178,14 +184,13 @@
     <Breakpoint bind:size />
 
     <Modal
-        bind:open={open}
-        modalHeading="Choisir un moteur de recherche"
-        primaryButtonText="Continuer"
-        hasForm="true"
+        bind:open
+        modalHeading="Moteurs de recherche"
+        primaryButtonText="Valider"
+        secondaryButtonText="Annuler"
         on:click:button--primary={confirmSelection}
+        on:click:button--secondary={() => open = false}
         on:open={updateSelection}
-        on:close={confirmSelection}
-        on:submit={confirmSelection}
     >
         <Tabs>
             <Tab label="Filtrer" />

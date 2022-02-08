@@ -1,11 +1,11 @@
 // Store pour la recherche (et les moteurs de recherche)
 
 // Imports
-import { writable } from 'svelte/store';
-
+import { writable } from 'svelte/store'
 
 
 // Store personnalisé : https://svelte.dev/tutorial/custom-stores
+// - Liste des moteurs de recherche
 function createSearchEngineList(initial_value) {
     const { subscribe, set, update } = writable(initial_value);
 
@@ -45,7 +45,7 @@ export const SearchEngineType = {
     files: "files",
     mails: "mails",
     news: "news",
-};
+}
 
 
 

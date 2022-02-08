@@ -98,7 +98,7 @@
             return "Vous devez donner un nom au moteur de recherche";
         }
         if (se_icon.length < 1) {
-            return "Vous devez saisir l'adresse URL de l'icon du moteur de recherche";
+            return "Vous devez saisir l'adresse URL de l'icône du moteur de recherche";
         }
         if (se_query.length < 1) {
             return "Vous devez saisir l'adresse URL de la requête du moteur de recherche";
@@ -171,8 +171,6 @@
 
         // Fermer les popups
         closeModals();
-
-        // svelte store update array item by index
     }
     function duplicateItem(id) {
         // Retrouver le moteur de recherche
@@ -391,7 +389,7 @@
         <Modal
             bind:open={modalEditItem}
             modalHeading="Modifier le moteur de recherche"
-            primaryButtonText="Enregister"
+            primaryButtonText="Enregistrer"
             secondaryButtonText="Annuler"
             on:click:button--secondary={closeModals}
             on:close={closeModals}
