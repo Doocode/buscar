@@ -140,6 +140,8 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                font-size: 10px;
+                text-align: center;
                 box-shadow: 0 0 0 2px transparent, 0 0 0 1px rgba(127,127,127,.5);
                 transition: all .2s;
 
