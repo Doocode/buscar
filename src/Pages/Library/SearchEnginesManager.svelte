@@ -3,7 +3,7 @@
     import { Modal, DataTable, Button, TextInput,
         OverflowMenu, OverflowMenuItem, OutboundLink,
         Breakpoint } from "carbon-components-svelte"
-    import { SearchEngineType, listSearchEngines } from '../../Stores/search'
+    import { SearchEngineTypes, listSearchEngines } from '../../Stores/search'
     import { pageName, pageIcon } from '../../Stores/header'
     import { onDestroy } from 'svelte'
     import Icofont from "../../UI/Icofont.svelte"
@@ -32,7 +32,15 @@
     // Observations
     const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
         searchEngines = value;
-        tableData = searchEngines
+        tableData = searchEngines.map((seItem) => {
+            return {
+                id: seItem.id,
+                name: seItem.name,
+                type: seItem.type,
+                icon: seItem.icon,
+                query: seItem.queryUrl,
+            }
+        })
     });
 
     // Lifecycle
@@ -132,7 +140,7 @@
 
         // Récupération et attribution des champs
         se_name = se.name;
-        se_query = se.query;
+        se_query = se.queryUrl;
         se_icon = se.icon;
         se_type = se.type;
 
@@ -150,7 +158,7 @@
         // Remplir le formulaire
         idSelectedItems = [se.id];
         se_name = se.name;
-        se_query = se.query;
+        se_query = se.queryUrl;
         se_icon = se.icon;
         se_type = se.type;
 
@@ -182,7 +190,7 @@
 
         // Remplir le formulaire
         se_name = se.name + " (2)";
-        se_query = se.query;
+        se_query = se.queryUrl;
         se_icon = se.icon;
         se_type = se.type;
 
@@ -222,36 +230,9 @@
             text: "(inconnu)"
         }
 
-        // Parsing
-        switch (type) {
-            case SearchEngineType.web:
-                template.icon = "web"
-                template.text = "Web"
-                break;
-            case SearchEngineType.images:
-                template.icon = "image"
-                template.text = "Images"
-                break;
-            case SearchEngineType.videos:
-                template.icon = "play"
-                template.text = "Vidéos"
-                break;
-            case SearchEngineType.music:
-                template.icon = "music"
-                template.text = "Musiques"
-                break;
-            case SearchEngineType.files:
-                template.icon = "file"
-                template.text = "Fichiers"
-                break;
-            case SearchEngineType.mails:
-                template.icon = "mail"
-                template.text = "Courriers"
-                break;
-            case SearchEngineType.news:
-                template.icon = "blog"
-                template.text = "Actualités"
-                break;
+        if (type != null) {
+            template.icon = type.icon
+            template.text = type.name
         }
 
         return template
@@ -435,7 +416,7 @@
 
                         <div class="text">
                             <p class="name">{searchEngines[findItemIndexById(idItem)].name}</p>
-                            <p class="query">{searchEngines[findItemIndexById(idItem)].query}</p>
+                            <p class="query">{searchEngines[findItemIndexById(idItem)].queryUrl}</p>
                         </div>
                     </div>
                 {/each}

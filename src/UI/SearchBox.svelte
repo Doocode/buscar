@@ -31,7 +31,7 @@
             let encoded = encodeURI(value);
 
             // Ajout de l'url avec la requête
-            urls.push(seItem.query.replace("%query%", encoded));
+            urls.push(seItem.queryUrl.replace("%query%", encoded));
 
             // Terminé
             return done();

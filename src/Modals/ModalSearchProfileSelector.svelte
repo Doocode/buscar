@@ -10,7 +10,7 @@
         from 'svelte'
     import SearchEnginesBubbles from "../UI/SearchEnginesBubbles.svelte"
     import Icofont from "../UI/Icofont.svelte"
-    import Utils from "../Utils"
+    import Utils from "../Classes/Utils"
 
     // Propriétés externes
     export let open = false; // Flag pour afficher la popup
