@@ -2,11 +2,13 @@
     // Imports
     import ModalSearchEnginesSelector
         from "../Modals/ModalSearchEnginesSelector.svelte"
+    import ModalSearchProfileSelector
+        from "../Modals/ModalSearchProfileSelector.svelte"
     import { Button, Dropdown, Modal, Link }
         from "carbon-components-svelte"
 	import { openSearchInCurrentPage, multiSelectionSearchEngines }
         from '../Stores/settings'
-	import { listSearchEngines } from '../Stores/search'
+	import { listSearchEngines, listSearchProfiles } from '../Stores/search'
     import { pageName, pageIcon, transparentHeader }
         from '../Stores/header'
     import SearchBox from "../UI/SearchBox.svelte"
@@ -46,18 +48,9 @@
     }
 
     // Profils de recherche
-    // - Index pour Valider/Annuler
-    let selectedSearchProfileIndex = 0;
-    let lastSelectedSearchProfileIndex = 0;
-    // - Liste des profils de recherche
-    const listSearchProfile = [
-        { id: 0, text: "Personnalisé", icon: "circles", searchEnginesId: [] },
-        { id: 1, text: "Général", icon: "web", searchEnginesId: [1] },
-        { id: 2, text: "Images", icon: "image", searchEnginesId: [8,9,10] },
-        { id: 3, text: "Vidéos", icon: "play", searchEnginesId: [] },
-        { id: 4, text: "Musiques", icon: "music", searchEnginesId: [] },
-        { id: 5, text: "Mails", icon: "mail", searchEnginesId: [] },
-    ];
+    let searchProfiles
+    let selectedSearchProfileID = [] // ID du profil de recherche sélectionné
+    const maxSearchProfilesInNavbar = 5
 
 	// Observations
     const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
@@ -75,6 +68,9 @@
             searchEngines = listSE;
         });
     });
+    const unsub_listSearchProfiles = listSearchProfiles.subscribe(value => {
+        searchProfiles = value;
+    });
 	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
 		openSearchInSamePage = value;
 	});
@@ -83,6 +79,7 @@
     onDestroy(() => {
         // Unsubscriptions
         unsub_listSearchEngines();
+        unsub_listSearchProfiles();
         unsub_openSearchInCurrentPage();
     });
 
@@ -93,10 +90,6 @@
 
         // Appliquer la sélection
         selectSearchEngineByIds(e.detail.selectedIds)
-        
-        // Mémoriser l'ancien profil de recherche
-        if (lastSelectedSearchProfileIndex != selectedSearchProfileIndex)
-            lastSelectedSearchProfileIndex = selectedSearchProfileIndex;
 
         // Initialisation pour rechercher un profil correspondant aux moteurs de recherche sélectionnés
         let profileMatch = false;
@@ -112,12 +105,12 @@
             profileMatch = false;
 
             // Avorter si le profil de recherche ne contient pas le même nombre d'items que la sélection actuelle
-            if (selectedSearchEnginesIDs.length != sp.searchEnginesId.length)
+            if (selectedSearchEnginesIDs.length != sp.searchEnginesIds.length)
                 return done();
 
             // À ce stade, il faut vérifier si les items du profils et de la sélection actuelle correspondent
-            let listSE = sp.searchEnginesId;
-            if (selectedSearchEnginesIDs.sort().join(',') === listSE.sort().join(',')) {
+            let listSE = sp.searchEnginesIds;
+            if (e.detail.selectedIds.sort().join(',') === listSE.sort().join(',')) {
                 profileMatch = true;
                 idProfileFound = sp.id;
             }
@@ -125,52 +118,40 @@
         };
 
         // Parcourir les profils de recherche
-        async.eachSeries(listSearchProfile, checkSearchProfile, () => {
+        async.eachSeries(searchProfiles, checkSearchProfile, () => {
             // Les profils de recherches ont été parcourus
-            selectedSearchProfileIndex = idProfileFound; // MAJ le profil de recherche choisi
-            lastSelectedSearchProfileIndex = idProfileFound; // Effacer l'historique
+            selectedSearchProfileID = idProfileFound; // MAJ l'id du profil de recherche choisi
         });
     }
     function selectSearchEngineByIds(listIds) {
+        selectedSearchEnginesIDs = listIds;
+        
         // Parcours de la liste des moteurs de recherche
         searchEngines.map((seItem, index) => {
             // Sélectionner le moteur de recherche s'il fait partie de la liste des ID
             searchEngines[index].selected = listIds.indexOf(seItem.id) > -1;
         });
     }
-    function cancelChangeSearchProfile() {
-        selectedSearchProfileIndex = lastSelectedSearchProfileIndex;
-        modalSelectSearchProfile = false;
-    }
-    function confirmChangeSearchProfile() {
+    function confirmChangeSearchProfile(e) {
         // MAJ l'historique
-        selectSearchProfileById(selectedSearchProfileIndex)
+        selectSearchProfileById(e.detail.selectedId)
 
         // Masquer la popup
         modalSelectSearchProfile = false;
     }
-    function selectSearchProfileById(idProfile) {
+    function selectSearchProfileById(idSearchProfile) {
         // MAJ le profil de recherche choisi
-        selectedSearchProfileIndex = idProfile;
+        selectedSearchProfileID = parseInt(idSearchProfile);
 
-        // Effacer l'historique
-        lastSelectedSearchProfileIndex = selectedSearchProfileIndex;
+        let searchProfile = searchProfiles.filter((spItem) => parseInt(spItem.id) == parseInt(idSearchProfile))[0]
 
         // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
-        if (listSearchProfile[selectedSearchProfileIndex].searchEnginesId.length > 1)
+        if (searchProfile.searchEnginesIds.length > 1)
             multiSelectionSearchEngines.set(true);
 
         // Charger les moteurs de recherche du profil :
-        let listSE = listSearchProfile[selectedSearchProfileIndex].searchEnginesId; // Moteurs de recherche du profil de recherche
-        
-        /*// Parcours de la liste des moteurs de recherche local
-        searchEngines.map((seItem, index) => {
-            // Vérifier si le moteurs de recherche fait partie du profil de recherche
-            if (listSE.indexOf(seItem.id) > -1)
-                searchEngines[index].selected = true; // Sélectionner le moteurs de recherche
-            else
-                searchEngines[index].selected = false;
-        });*/
+        let listSE = searchProfile.searchEnginesIds; // Moteurs de recherche du profil de recherche
+
         // Sélectionner les moteurs de recherche
         selectSearchEngineByIds(listSE)
     }
@@ -227,21 +208,27 @@
 
 <main id="searchPage">
     <nav class="nav-searchProfile">
-        {#each listSearchProfile as sp}
-            {#if parseInt(selectedSearchProfileIndex) === parseInt(sp.id)}
+        {#each searchProfiles.slice(0, maxSearchProfilesInNavbar) as sp}
+            {#if parseInt(selectedSearchProfileID) === parseInt(sp.id)}
                 <Link class="current" on:click={() => {selectSearchProfileById(sp.id)}}>
                     <Icofont icon="{sp.icon}" size="16" />
-                    <span class="label">{sp.text}</span>
+                    <span class="label">{sp.name}</span>
                 </Link>
             {:else}
                 {#if sp.id != 0}
                     <Link on:click={() => {selectSearchProfileById(sp.id)}}>
                         <Icofont icon="{sp.icon}" size="16" />
-                        <span class="label">{sp.text}</span>
+                        <span class="label">{sp.name}</span>
                     </Link>
                 {/if}
             {/if}
         {/each}
+        {#if searchProfiles.length > maxSearchProfilesInNavbar}
+            <Link on:click={() => {modalSelectSearchProfile = true}}>
+                <span class="label">Plus {searchProfiles.length - maxSearchProfilesInNavbar}</span>
+                <Icofont icon="dropdown" size="16" />
+            </Link>
+        {/if}
     </nav>
 
     <SearchBox
@@ -276,26 +263,11 @@
         on:submit={confirmChangeSearchEngines}
     />
 
-    <Modal
+    <ModalSearchProfileSelector
         bind:open={modalSelectSearchProfile}
-        modalHeading="Choisir un profil de recherche"
-        primaryButtonText="Continuer"
-        secondaryButtonText="Annuler"
-        on:click:button--secondary={cancelChangeSearchProfile}
-        on:click:button--primary={confirmChangeSearchProfile}
-        hasForm="true"
-        on:open
-        on:close={cancelChangeSearchProfile}
+        selectedID={selectedSearchProfileID}
         on:submit={confirmChangeSearchProfile}
-    >
-        <Dropdown
-            titleText="Profils de recherche"
-            bind:selectedIndex={selectedSearchProfileIndex}
-            items={listSearchProfile}
-        />
-        <br/><br/><br/><br/><br/><br/>
-        <br/><br/><br/><br/><br/><br/>
-    </Modal>
+    />
 
     <Modal
         danger

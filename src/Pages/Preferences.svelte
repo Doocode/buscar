@@ -52,7 +52,7 @@
 
 
     <br /><br /><br /><br />
-    <h2>Rercherche</h2>
+    <h2>Recherche</h2>
     <Grid style="max-width: 510px; margin: 0; padding: 0;">
         <Row>
             <Column>
@@ -86,7 +86,7 @@
     main.preferences {
         transition: all .3s;
 
-        h2, h3, h4, h5, h6 {margin-bottom: var(--cds-spacing-04);}
+        //h2, h3, h4, h5, h6 {margin-bottom: var(--cds-spacing-04);}
 
         :global(.bx--link) {
             display: inline-flex;

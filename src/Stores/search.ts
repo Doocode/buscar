@@ -3,7 +3,6 @@
 // Imports
 import { writable } from 'svelte/store'
 
-
 // Store personnalisé : https://svelte.dev/tutorial/custom-stores
 // - Liste des moteurs de recherche
 function createSearchEngineList(initial_value) {
@@ -81,6 +80,30 @@ export const SearchEngineType = {
 
 
 
+// Profils de recherche
+export const listSearchProfiles = createSearchProfileList([
+    {
+        id: 1, name: "Général", icon: "web",
+        orderPresentation: 1, searchEnginesIds: [1]
+    },
+    {
+        id: 2, name: "Images", icon: "image",
+        orderPresentation: 2, searchEnginesIds: [8, 9, 10]
+    },
+    {
+        id: 3, name: "Vidéos", icon: "play",
+        orderPresentation: 3, searchEnginesIds: []
+    },
+    {
+        id: 4, name: "Musiques", icon: "music",
+        orderPresentation: 4, searchEnginesIds: []
+    },
+    {
+        id: 5, name: "Mails", icon: "mail",
+        orderPresentation: 5, searchEnginesIds: []
+    },
+])
+
 // Moteurs de recherche
 export const listSearchEngines = createSearchEngineList([
     {
@@ -148,29 +171,5 @@ export const listSearchEngines = createSearchEngineList([
         id: 13, name: "Yandex Images", type: SearchEngineType.images,
         icon: "/assets/search-engines/yandex.png",
         query: "https://yandex.com/images/search?text=%query%"
-    },
-])
-
-// Profils de recherche
-export const listSearchProfiles = createSearchProfileList([
-    {
-        id: 1, name: "Général", icon: "web",
-        orderPresentation: 1, searchEnginesIds: [1]
-    },
-    {
-        id: 2, name: "Images", icon: "image",
-        orderPresentation: 2, searchEnginesIds: [8, 9, 10]
-    },
-    {
-        id: 3, name: "Vidéos", icon: "play",
-        orderPresentation: 3, searchEnginesIds: []
-    },
-    {
-        id: 4, name: "Musiques", icon: "music",
-        orderPresentation: 4, searchEnginesIds: []
-    },
-    {
-        id: 5, name: "Mails", icon: "mail",
-        orderPresentation: 5, searchEnginesIds: []
     },
 ])

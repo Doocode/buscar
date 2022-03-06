@@ -40,7 +40,7 @@
         - La sélection des moteurs de recherche
         - Le filtre sur les moteurs de recherche
     */
-    $: sortedSearchEngine = resortList(selectedSortMode, idSelectedSearchEngines, inputSearchSE)
+    $: sortedSearchEngines = resortList(selectedSortMode, idSelectedSearchEngines, inputSearchSE)
     $: if (idSelectedSearchEngines.length > 1) {
         // Activer la sélection multiple s'il y a plusieurs moteurs sélectionnés
         multiSelectionSearchEngines.set(true)
@@ -271,7 +271,7 @@
 
         <TileGroup legend="Liste des moteurs de recherche">
             <div class="se-items" role="group" aria-label="Liste des moteurs de recherche">
-                {#each sortedSearchEngine as seItem}
+                {#each sortedSearchEngines as seItem}
                     {#if multiSelectSearchEngines}
                         <SelectableTile bind:selected={seItem.selected} >
                             <img src="{seItem.icon}" alt="Logo de { seItem.name }" />
