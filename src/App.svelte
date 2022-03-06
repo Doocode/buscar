@@ -62,7 +62,18 @@
 		pageIcon.set("file")
 		pageName.set("Page sans nom")
 	}
+	const formatTitle = (title:string) => {
+        let appName = "Buscar"
+
+        if (title.length > 0 && title != " ")
+            return title + " - " + appName
+        return appName
+    }
 </script>
+
+<svelte:head>
+    <title>{ formatTitle($pageName) }</title>
+</svelte:head>
 
 <main>
 	<Header bind:appname={appname} />

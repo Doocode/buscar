@@ -1,6 +1,6 @@
 
 class Utils {
-    stringContains(text, search) {
+    stringContains(text:string, search:string) {
         // TODO: Echapper les accents
         return text.toLowerCase().indexOf(search.toLowerCase()) > -1
     }

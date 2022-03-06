@@ -1,9 +1,11 @@
 <script>
     // Imports
-    import { Modal, DataTable, Button, TextInput,
+    import { Modal, DataTable, Button, TextInput, Tooltip,
         OverflowMenu, OverflowMenuItem, OutboundLink,
-        Breakpoint } from "carbon-components-svelte"
-    import { SearchEngineTypes, listSearchEngines } from '../../Stores/search'
+        Breakpoint, Dropdown, ContentSwitcher, Switch }
+        from "carbon-components-svelte"
+    import { SearchEngineTypes, listSearchEngines } 
+        from '../../Stores/search'
     import { pageName, pageIcon } from '../../Stores/header'
     import { onDestroy } from 'svelte'
     import Icofont from "../../UI/Icofont.svelte"
@@ -18,10 +20,14 @@
     let tableData = []
     let idSelectedItems = []
     let searchEngines
+    let listSearchEngineTypes = []
+    let dropdownSearchEngineTypes = []
+    let contentIndex = 0 // Index pour le ContentSwitcher
     let se_name = ""
     let se_query = ""
     let se_icon = ""
-    let se_type = ""
+    let se_type = null
+    let selectedTypeIndex = 0
 
     // Flags
     let modalAddItem = false
@@ -69,6 +75,7 @@
         }
         tableColumns.push({ key: "overflow", empty: true });
     }
+    $: contentSwitcherDisabled = validateForm(se_name, se_icon, se_query) != true
 
     // Méthodes
     function findItemById(id) {
@@ -76,18 +83,18 @@
         for (let ii=0; ii<searchEngines.length; ii++) {
             // Si l'item a été retrouvé
             if (parseInt(searchEngines[ii].id) === parseInt(id))
-                return searchEngines[ii]; // Retourner l'item
+                return searchEngines[ii] // Retourner l'item
         }
-        return null;
+        return null
     }
     function findItemIndexById(id) {
         // Rechercher l'item dans la liste
         for (let ii=0; ii<searchEngines.length; ii++) {
             // Si l'item a été retrouvé
             if (parseInt(searchEngines[ii].id) === parseInt(id))
-                return ii; // Retourner l'index
+                return ii // Retourner l'index
         }
-        return -1;
+        return -1
     }
     function closeModals() {
         // Fermer la popup
@@ -97,22 +104,25 @@
         modalDeleteItem = false;
 
         // Vider le formulaire
-        se_name = "";
-        se_query = "";
-        se_icon = "";
+        se_name = ""
+        se_query = ""
+        se_icon = ""
+        se_type = null
+        selectedTypeIndex = 0
+        contentIndex = 0
     }
     function validateForm() {
         if (se_name.length < 1) {
-            return "Vous devez donner un nom au moteur de recherche";
+            return "Vous devez donner un nom au moteur de recherche"
         }
         if (se_icon.length < 1) {
-            return "Vous devez saisir l'adresse URL de l'icône du moteur de recherche";
+            return "Vous devez saisir l'adresse URL de l'icône du moteur de recherche"
         }
         if (se_query.length < 1) {
-            return "Vous devez saisir l'adresse URL de la requête du moteur de recherche";
+            return "Vous devez saisir l'adresse URL de la requête du moteur de recherche"
         }
         if (se_query.indexOf("%query%") < 1) {
-            return "Vous devez inclure \"%query%\" dans l'adresse URL de la requête du moteur de recherche";
+            return "Vous devez inclure \"%query%\" dans l'adresse URL de la requête du moteur de recherche"
         }
 
         // Les données saisies sont correctes
@@ -125,7 +135,8 @@
             return alert(validate);
 
         // Ajouter le moteur de recherche dans le Store
-        listSearchEngines.add(se_name, se_icon, se_query, "")
+        listSearchEngines.add(se_name, se_icon, se_query, 
+            listSearchEngineTypes[selectedTypeIndex])
 
         // Fermer la popup et vider le formulaire
         closeModals();
@@ -162,6 +173,12 @@
         se_icon = se.icon;
         se_type = se.type;
 
+        // Rechercher le type
+        listSearchEngineTypes.forEach((type, index) => {
+            if (type.id == se_type.id)
+                selectedTypeIndex = index
+        })
+
         // Ouvrir la popup
         modalEditItem = true;
     }
@@ -174,7 +191,8 @@
         // Mettre à jour la liste
         listSearchEngines.updateByIndex(
             findItemIndexById(idSelectedItems[0]),
-            se_name, se_icon, se_query, se_type
+            se_name, se_icon, se_query, 
+            listSearchEngineTypes[selectedTypeIndex]
         );
 
         // Fermer les popups
@@ -193,6 +211,12 @@
         se_query = se.queryUrl;
         se_icon = se.icon;
         se_type = se.type;
+
+        // Rechercher le type
+        listSearchEngineTypes.forEach((type, index) => {
+            if (type.id == se_type.id)
+                selectedTypeIndex = index
+        })
 
         // Ouvrir la popup
         modalAddItem = true;
@@ -237,6 +261,23 @@
 
         return template
     }
+    const onInit = () => {
+        // Génération d'une liste de types de moteurs de recherche
+        listSearchEngineTypes = [] // Liste des instances (pour le Store)
+        dropdownSearchEngineTypes = [] // Liste des objets (pour le Dropdown)
+        for (let key in SearchEngineTypes) {
+            let item = SearchEngineTypes[key] // Instance du type de moteur de recherche
+            listSearchEngineTypes.push(item)
+
+            dropdownSearchEngineTypes.push({
+                id: item.id,
+                text: item.name,
+                icon: item.icon
+            })
+        }
+    }
+
+    onInit()
 </script>
 
 <main class="wsManager">
@@ -326,25 +367,54 @@
             on:close={closeModals}
             on:submit={createItem}
         >
-            <TextInput
-                labelText="Nom du moteur de recherche"
-                bind:value={se_name}
-                placeholder="Google" required />
-            <br/><br/>
-            <TextInput
-                labelText="Adresse url de la requête"
-                placeholder="https://www.domain.com/search?query=%query%"
-                helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
-                bind:value={se_query}
-                required />
-            <br/><br/>
-            <TextInput
-                labelText="Logo du moteur de recherche"
-                placeholder="https://www.domain.com/logo.png"
-                helperText="Le logo sera placé dans un cadre circulaire"
-                bind:value={se_icon}
-                required />
-            <br /><br />
+            <ContentSwitcher bind:selectedIndex={contentIndex}>
+                <Switch text="Edition" disabled={contentSwitcherDisabled} />
+                <Switch text="Aperçu" disabled={contentSwitcherDisabled} />
+            </ContentSwitcher>
+            <br/>
+            {#if contentSwitcherDisabled}
+                <Tooltip triggerText="Le mode Aperçu est désactivé" align="center">
+                    <p>Pour activer le mode "Aperçu", remplissez le formulaire et respectez la consigne suivante :</p>
+                    <br/><p>- { validateForm() }</p>
+                </Tooltip>
+            {/if}
+            <br/>
+
+            {#if contentIndex == 0}
+                <TextInput
+                    labelText="Nom du moteur de recherche"
+                    bind:value={se_name}
+                    placeholder="Google" required />
+                <br/><br/>
+                <Dropdown 
+                    titleText="Type du moteur de recherche"
+                    bind:selectedIndex={selectedTypeIndex}
+                    items={dropdownSearchEngineTypes} />
+                <br /><br />
+                <TextInput
+                    labelText="Adresse url de la requête"
+                    placeholder="https://www.domain.com/search?query=%query%"
+                    helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
+                    bind:value={se_query}
+                    required />
+                <br/><br/>
+                <TextInput
+                    labelText="Logo du moteur de recherche"
+                    placeholder="https://www.domain.com/logo.png"
+                    helperText="Le logo sera placé dans un cadre circulaire"
+                    bind:value={se_icon}
+                    required />
+                <br /><br />
+            {:else}
+                <div class="preview">
+                    <img src="{se_icon}" alt="Logo de {se_name}" />
+                    <p class="name">{se_name}</p>
+                    <p class="query">
+                        <OutboundLink href="{se_query.replace("%query%", "test")}">{se_query}</OutboundLink>
+                    </p>
+                </div>
+                <br /><br />
+            {/if}
         </Modal>
 
         <Modal
@@ -376,25 +446,54 @@
             on:close={closeModals}
             on:submit={updateItem}
         >
-            <TextInput
-                labelText="Nom du moteur de recherche"
-                bind:value={se_name}
-                placeholder="Google" required />
-            <br/><br/>
-            <TextInput
-                labelText="Adresse url de la requête"
-                placeholder="https://www.domain.com/search?query=%query%"
-                helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
-                bind:value={se_query}
-                required />
-            <br/><br/>
-            <TextInput
-                labelText="Logo du moteur de recherche"
-                placeholder="https://www.domain.com/logo.png"
-                helperText="Le logo sera placé dans un cadre circulaire"
-                bind:value={se_icon}
-                required />
-            <br /><br />
+            <ContentSwitcher bind:selectedIndex={contentIndex}>
+                <Switch text="Edition" disabled={contentSwitcherDisabled} />
+                <Switch text="Aperçu" disabled={contentSwitcherDisabled} />
+            </ContentSwitcher>
+            <br/>
+            {#if contentSwitcherDisabled}
+                <Tooltip triggerText="Le mode Aperçu est désactivé" align="center">
+                    <p>Pour activer le mode "Aperçu", remplissez le formulaire et respectez la consigne suivante :</p>
+                    <br/><p>- { validateForm() }</p>
+                </Tooltip>
+            {/if}
+            <br/>
+
+            {#if contentIndex == 0}
+                <TextInput
+                    labelText="Nom du moteur de recherche"
+                    bind:value={se_name}
+                    placeholder="Google" required />
+                <br/><br/>
+                <Dropdown 
+                    titleText="Type du moteur de recherche"
+                    bind:selectedIndex={selectedTypeIndex}
+                    items={dropdownSearchEngineTypes} />
+                <br /><br />
+                <TextInput
+                    labelText="Adresse url de la requête"
+                    placeholder="https://www.domain.com/search?query=%query%"
+                    helperText="Les occurences du mot clé %query% seront remplacés par la recherche saisie"
+                    bind:value={se_query}
+                    required />
+                <br/><br/>
+                <TextInput
+                    labelText="Logo du moteur de recherche"
+                    placeholder="https://www.domain.com/logo.png"
+                    helperText="Le logo sera placé dans un cadre circulaire"
+                    bind:value={se_icon}
+                    required />
+                <br /><br />
+            {:else}
+                <div class="preview">
+                    <img src="{se_icon}" alt="Logo de {se_name}" />
+                    <p class="name">{se_name}</p>
+                    <p class="query">
+                        <OutboundLink href="{se_query.replace("%query%", "test")}">{se_query}</OutboundLink>
+                    </p>
+                </div>
+                <br /><br />
+            {/if}
         </Modal>
 
         <Modal
