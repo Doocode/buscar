@@ -1,0 +1,21 @@
+main.help-section {
+    h3.format {
+        margin: 2.5rem 0 .5rem 0;
+    }
+
+    p.format {
+        margin: .9rem 0;
+        text-align: justify;
+    }
+
+    ul.format {
+        list-style: disc;
+        padding-left: 30px;
+        line-height: 1.5em;
+
+        li {
+            margin: .5rem 0;
+            font-size: var(--cds-body-long-02-font-size, 1rem);
+        }
+    }
+}

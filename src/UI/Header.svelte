@@ -151,9 +151,9 @@
 
             <span class="blank-space"></span>
 
-            <Link href="/#/about" size="lg">
+            <Link href="/#/help" size="lg">
                 <Icofont icon="info" />
-                <span class="label">A propos</span>
+                <span class="label">Aide</span>
             </Link>
         </div>
     </nav>

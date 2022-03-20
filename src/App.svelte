@@ -6,8 +6,8 @@
 
 	// Imports
 	// - Packages/modules
-	import Router, {location, link} from 'svelte-spa-router'
-	import {wrap} from 'svelte-spa-router/wrap'
+	import Router from 'svelte-spa-router'
+	import { wrap } from 'svelte-spa-router/wrap'
 	import { onDestroy } from 'svelte'
 
 	// - Stores
@@ -21,20 +21,18 @@
 	import SearchEnginesManager from './Pages/Library/SearchEnginesManager.svelte'
 	import SearchProfilesManager from './Pages/Library/SearchProfilesManager.svelte'
 	import Preferences from './Pages/Preferences.svelte'
-	import About from './Pages/About.svelte'
+	import Help from './Pages/Help.svelte'
 
 	// Propriétés
+	// - Propriétés pour la page "A propos"
+	const HELP_PROPS = {
+		appname: appname, 
+		appversion: appversion,
+		license: license,
+	}
 	let currentContrastMode // Contraste de l'interface
 	let routes = { // Routes de l'app
 		'/': Search,
-		'/about': wrap({
-			component: About,
-			props: {
-				appname: appname, 
-				appversion: appversion,
-				license: license,
-			}
-		}),
 		'/library/': Library,
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,
@@ -42,6 +40,16 @@
 		// Préférences
 		'/preferences': Preferences,
 		'/preferences/:section': Preferences,
+		
+		// Aide
+		'/help': wrap({
+			component: Help,
+			props: HELP_PROPS
+		}),
+		'/help/:section':  wrap({
+			component: Help,
+			props: HELP_PROPS
+		}),
 	}
 
 	// Observations
