@@ -23,8 +23,11 @@
     let listSearchEngineTypes = []
     let dropdownSearchEngineTypes = []
     let contentIndex = 0 // Index pour le ContentSwitcher
+    let invalidAliasMessage = ""
+    let se_id = -1
     let se_name = ""
     let se_query = ""
+    let se_alias = ""
     let se_icon = ""
     let se_type = null
     let selectedTypeIndex = 0
@@ -44,6 +47,7 @@
                 name: seItem.name,
                 type: seItem.type,
                 icon: seItem.icon,
+                alias: seItem.alias,
                 query: seItem.queryUrl,
             }
         })
@@ -65,7 +69,8 @@
             case "xlg":
             case "lg":
             case "md":
-                tableColumns.push({ key: "type", value: "Type" });
+                tableColumns.push({ key: "type", value: "Type" })
+                tableColumns.push({ key: "alias", value: "Alias" })
         }
         switch (size) {
             case "max":
@@ -75,7 +80,7 @@
         }
         tableColumns.push({ key: "overflow", empty: true });
     }
-    $: contentSwitcherDisabled = validateForm(se_name, se_icon, se_query) != true
+    $: contentSwitcherDisabled = validateForm(se_name, se_icon, se_query, se_alias) != true
 
     // Méthodes
     function findItemById(id) {
@@ -104,8 +109,10 @@
         modalDeleteItem = false;
 
         // Vider le formulaire
+        se_id = -1
         se_name = ""
         se_query = ""
+        se_alias = ""
         se_icon = ""
         se_type = null
         selectedTypeIndex = 0
@@ -124,9 +131,23 @@
         if (se_query.indexOf("%query%") < 1) {
             return "Vous devez inclure \"%query%\" dans l'adresse URL de la requête du moteur de recherche"
         }
+        // Vérifier si l'alias saisi n'est pas déjà utilisé par un autre moteur de recherche
+        let isAliasValid = true
+        for (let ii=0; ii<searchEngines.length; ii++) { // Vérifier dans chaque moteur de recherche
+            if (se_alias.toLowerCase() === searchEngines[ii].alias.toLowerCase() && se_id !== parseInt(searchEngines[ii].id)) { // Si les alias correspondent et pas les id
+                // L'alias n'est pas valide
+                invalidAliasMessage = "Cet alias est déjà utilisé par le moteur \"" + searchEngines[ii].name + "\"."
+                isAliasValid = false
+                break
+            }
+        }
+        if (!isAliasValid)
+            return invalidAliasMessage
+        else
+            invalidAliasMessage = ""
 
         // Les données saisies sont correctes
-        return true;
+        return true
     }
     function createItem() {
         // Vérifie que les données du formulaire sont corrects
@@ -135,7 +156,7 @@
             return alert(validate);
 
         // Ajouter le moteur de recherche dans le Store
-        listSearchEngines.add(se_name, se_icon, se_query, 
+        listSearchEngines.add(se_name, se_alias, se_icon, se_query, 
             listSearchEngineTypes[selectedTypeIndex])
 
         // Fermer la popup et vider le formulaire
@@ -150,8 +171,10 @@
             return alert("Le moteur de recherche n'existe pas");
 
         // Récupération et attribution des champs
+        se_id = se.id
         se_name = se.name;
         se_query = se.queryUrl;
+        se_alias = se.alias;
         se_icon = se.icon;
         se_type = se.type;
 
@@ -168,8 +191,10 @@
 
         // Remplir le formulaire
         idSelectedItems = [se.id];
+        se_id = se.id
         se_name = se.name;
         se_query = se.queryUrl;
+        se_alias = se.alias;
         se_icon = se.icon;
         se_type = se.type;
 
@@ -191,7 +216,7 @@
         // Mettre à jour la liste
         listSearchEngines.updateByIndex(
             findItemIndexById(idSelectedItems[0]),
-            se_name, se_icon, se_query, 
+            se_name, se_alias, se_icon, se_query, 
             listSearchEngineTypes[selectedTypeIndex]
         );
 
@@ -207,8 +232,10 @@
             return alert("L'item n'existe pas");
 
         // Remplir le formulaire
+        se_id = -1
         se_name = se.name + " (2)";
         se_query = se.queryUrl;
+        se_alias = se.alias + "2";
         se_icon = se.icon;
         se_type = se.type;
 
@@ -317,6 +344,12 @@
                     <Icofont icon={ parseType(row.type).icon } size="20" />
                     <span class="text">{ parseType(row.type).text }</span>
                 </div>
+            {:else if cell.key === "alias"}
+                {#if cell.value.length > 0}
+                    {cell.value}
+                {:else}
+                    (Non défini)
+                {/if}
             {:else if cell.key === "overflow"}
                 {#if size == "sm"}
                     <!-- Ne pas afficher de boutons supplémentaire -->
@@ -360,6 +393,7 @@
     <div class="modals">
         <Modal
             bind:open={modalAddItem}
+            bind:primaryButtonDisabled={contentSwitcherDisabled}
             modalHeading="Créer un moteur de recherche"
             primaryButtonText="Créer"
             secondaryButtonText="Annuler"
@@ -374,7 +408,7 @@
             <br/>
             {#if contentSwitcherDisabled}
                 <Tooltip triggerText="Le mode Aperçu est désactivé" align="center">
-                    <p>Pour activer le mode "Aperçu", remplissez le formulaire et respectez la consigne suivante :</p>
+                    <p>Pour activer le mode "Aperçu", vous devez remplir le formulaire correctement en respectant la règle suivante :</p>
                     <br/><p>- { validateForm() }</p>
                 </Tooltip>
             {/if}
@@ -398,6 +432,14 @@
                     bind:value={se_query}
                     required />
                 <br/><br/>
+                <TextInput
+                    labelText="Alias du moteur de recherche"
+                    helperText="Raccourci pour utiliser le moteur de recherche"
+                    bind:value={se_alias}
+                    invalidText={invalidAliasMessage}
+                    invalid={invalidAliasMessage.length > 0}
+                    required />
+                <br /><br />
                 <TextInput
                     labelText="Logo du moteur de recherche"
                     placeholder="https://www.domain.com/logo.png"
@@ -439,6 +481,7 @@
 
         <Modal
             bind:open={modalEditItem}
+            bind:primaryButtonDisabled={contentSwitcherDisabled}
             modalHeading="Modifier le moteur de recherche"
             primaryButtonText="Enregistrer"
             secondaryButtonText="Annuler"
@@ -477,6 +520,14 @@
                     bind:value={se_query}
                     required />
                 <br/><br/>
+                <TextInput
+                    labelText="Alias du moteur de recherche"
+                    helperText="Raccourci pour utiliser le moteur de recherche"
+                    bind:value={se_alias}
+                    invalidText={invalidAliasMessage}
+                    invalid={invalidAliasMessage.length > 0}
+                    required />
+                <br /><br />
                 <TextInput
                     labelText="Logo du moteur de recherche"
                     placeholder="https://www.domain.com/logo.png"

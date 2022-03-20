@@ -11,16 +11,16 @@ function createSearchEngineList(initial_value) {
 
     return {
         subscribe,
-        add: (name, icon, query, type) => { // Ajouter un élément
+        add: (name, alias, icon, query, type) => { // Ajouter un élément
             // Partir de l'état actuel de la liste pour ajouter à la fin : https://svelte.dev/tutorial/updating-arrays-and-objects
             update(list => [
                 ...list, 
-                new SearchEngine(parseInt(list.at(-1).id) + 1, name, type, icon, query)
+                new SearchEngine(parseInt(list.at(-1).id) + 1, name, alias, type, icon, query)
             ]);
         },
-        updateByIndex: (index, name, icon, query, type) => { // Mettre à jour un item
+        updateByIndex: (index, name, alias, icon, query, type) => { // Mettre à jour un item
             update(list => {
-                list[index] = new SearchEngine(list[index].id, name, type, icon, query)
+                list[index] = new SearchEngine(list[index].id, name, alias, type, icon, query)
                 return list
             });
         },
@@ -105,41 +105,41 @@ export const listSearchProfiles = createSearchProfileList([
 
 // Moteurs de recherche
 export const listSearchEngines = createSearchEngineList([
-    new SearchEngine(1, "Google", SearchEngineTypes.web, 
+    new SearchEngine(1, "Google", "g", SearchEngineTypes.web, 
         "/assets/search-engines/google.png", 
         "https://www.google.fr/search?q=%query%"),
-    new SearchEngine(2, "Bing", SearchEngineTypes.web,
+    new SearchEngine(2, "Bing", "b", SearchEngineTypes.web,
         "/assets/search-engines/bing.png",
         "https://www.bing.com/search?q=%query%"),
-    new SearchEngine(3, "Qwant", SearchEngineTypes.web,
+    new SearchEngine(3, "Qwant", "q", SearchEngineTypes.web,
         "/assets/search-engines/qwant.png",
         "https://www.qwant.com/?q=%query%"),
-    new SearchEngine(4, "DuckDuckGo", SearchEngineTypes.web,
+    new SearchEngine(4, "DuckDuckGo", "d", SearchEngineTypes.web,
         "/assets/search-engines/duckduckgo.png",
         "https://duckduckgo.com/?q=%query%"),
-    new SearchEngine(5, "Ecosia", SearchEngineTypes.web,
+    new SearchEngine(5, "Ecosia", "e", SearchEngineTypes.web,
         "/assets/search-engines/ecosia.png",
         "https://www.ecosia.org/search?q=%query%"),
-    new SearchEngine(6, "Yandex", SearchEngineTypes.web,
+    new SearchEngine(6, "Yandex", "yx", SearchEngineTypes.web,
         "/assets/search-engines/yandex.png",
         "https://yandex.com/search/?text=%query%"),
 
-    new SearchEngine(7, "Google Images", SearchEngineTypes.images,
+    new SearchEngine(7, "Google Images", "gi", SearchEngineTypes.images,
         "/assets/search-engines/google.png",
         "https://www.google.fr/search?q=%query%&tbm=isch"),
-    new SearchEngine(8, "Bing Images", SearchEngineTypes.images,
+    new SearchEngine(8, "Bing Images", "bi", SearchEngineTypes.images,
         "/assets/search-engines/bing.png",
         "https://www.bing.com/images/search?q=%query%"),
-    new SearchEngine(9, "Qwant Images", SearchEngineTypes.images,
+    new SearchEngine(9, "Qwant Images", "qi", SearchEngineTypes.images,
         "/assets/search-engines/qwant.png",
         "https://www.qwant.com/?t=images&q=%query%"),
-    new SearchEngine(10, "DuckDuckGo Images", SearchEngineTypes.images,
+    new SearchEngine(10, "DuckDuckGo Images", "di", SearchEngineTypes.images,
         "/assets/search-engines/duckduckgo.png",
         "https://duckduckgo.com/?t=ffab&q=%query%&iax=images&ia=images"),
-    new SearchEngine(11, "Ecosia Images", SearchEngineTypes.images,
+    new SearchEngine(11, "Ecosia Images", "ei", SearchEngineTypes.images,
         "/assets/search-engines/ecosia.png",
         "https://www.ecosia.org/images?q=%query%"),
-    new SearchEngine(12, "Yandex Images", SearchEngineTypes.images,
+    new SearchEngine(12, "Yandex Images", "yxi", SearchEngineTypes.images,
         "/assets/search-engines/yandex.png",
         "https://yandex.com/images/search?text=%query%"),
 ])

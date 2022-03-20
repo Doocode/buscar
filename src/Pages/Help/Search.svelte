@@ -2,7 +2,7 @@
     // Imports
     import { aliasAddSearchEngine, aliasRemoveSearchEngine, aliasReplaceSearchEngine } 
         from '../../Stores/settings'
-    import { Breadcrumb, BreadcrumbItem, Link }
+    import { Breadcrumb, BreadcrumbItem, Link, CodeSnippet }
         from "carbon-components-svelte";
     import { pageName, pageIcon }
         from '../../Stores/header'
@@ -21,6 +21,7 @@
         {title: "Aide", url: "/#/help"},
         {title: TITLE_PAGE, url: "/#/help/search", current: true},
     ]
+    const copiedToClipboard = "Texte copié dans le presse-papier"
 </script>
 
 <main class="help-section">
@@ -76,6 +77,36 @@
     <p class="format">Vous avez la possibilité de créer/modifier et supprimer autant profils de recherche
         que vous désirez depuis la
         <Link href="/#/library/search-profiles" size="lg">bibliothèque</Link>.</p>
+
+
+
+    <h3 class="format">Les alias des moteurs de recherche</h3>
+    <p class="format">Les alias sont des raccourcis pour utiliser des moteurs de recherche. Lorsque
+        la fonctionnalité est activée, vous pouvez de sélectionner (ou désélectionner)
+        un moteur de recherche depuis la barre de recherche.</p>
+    <p class="format">Pour l'utiliser, il suffira alors de saisir un des préfixes, selon l'action que
+        vous souhaitez réaliser suivi de l'alias du moteur de recherche concerné. Tapez
+        ensuite `espace` pour exécuter votre alias sinon il ne sera pas traité.</p>
+    <p class="format">Par exemple si vous saisissez :</p>
+    <ul class="format">
+        <li>"<CodeSnippet type="inline"
+                feedback={copiedToClipboard}
+                code="{$aliasAddSearchEngine}g " />", vous sélectionnerez
+            le moteur de recherche dont l'alias est "g".</li>
+        <li>"<CodeSnippet type="inline"
+                feedback={copiedToClipboard}
+                code="{$aliasRemoveSearchEngine}b " />", vous retirerez de
+            la sélection le moteur de recherche dont l'alias est "b".</li>
+        <li>"<CodeSnippet type="inline"
+                feedback={copiedToClipboard}
+                code="{$aliasReplaceSearchEngine}q " />", vous remplacerez
+            les moteurs de recherche sélectionnés par celui dont l'alias est "q".</li>
+    </ul>
+    <p>Vous pouvez paramétrer les préfixes des alias dans la page des
+        <Link href="/#/preferences" size="lg">préférences</Link>.
+        Vous n'avez droit qu'à un seul caractère par préfixe. Il est conseillé d'utiliser
+        des caractères spéciaux pour les préfixes
+    </p>
 </main>
 
 <style lang="scss">

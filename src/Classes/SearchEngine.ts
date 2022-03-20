@@ -16,18 +16,20 @@ export class SearchEngineType {
 // Représente un moteur de recherche
 export class SearchEngine {
     // Propriétés
-    id: number
+    _id: number
     _name: string
     _icon: string
+    _alias: string
     _type: SearchEngineType
     _queryUrl: string
 
     // Constructeurs
-    constructor(id: number, name: string, type: SearchEngineType, icon: string, queryUrl: string) {
-        this.id = id
+    constructor(id: number, name: string, alias: string, type: SearchEngineType, icon: string, queryUrl: string) {
+        this._id = id
         this._name = name
         this._icon = icon
         this._type = type
+        this._alias = alias.toLowerCase()
         this._queryUrl = queryUrl
     }
 
@@ -47,14 +49,17 @@ export class SearchEngine {
 
 
     // GETTERS
-    getId(): number {
-        return this.id
+    get id(): number {
+        return this._id
     }
     get name(): string {
         return this._name
     }
     get icon(): string {
         return this._icon
+    }
+    get alias(): string {
+        return this._alias
     }
     get type(): SearchEngineType {
         return this._type
@@ -66,16 +71,16 @@ export class SearchEngine {
 
 
     // SETTERS
-    setId(value: string | number) {
+    set id(value: string | number) {
         let num = Number(value)
 
         // Ne pas autoriser NaN, Infinity, etc
         if (!Number.isFinite(num)) {
-            this.id = 0
+            this._id = 0
             return
         }
 
-        this.id = num
+        this._id = num
     }
     set name(value: string) {
         // Ne pas autoriser une chaine vide
@@ -88,6 +93,9 @@ export class SearchEngine {
     }
     set icon(value: string | null) {
         this._icon = value
+    }
+    set alias(value: string) {
+        this._alias = value.toLowerCase()
     }
     set type(value: SearchEngineType) {
         this._type = value

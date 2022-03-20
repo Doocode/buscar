@@ -36,3 +36,24 @@ export const compactSearchBox = writable(false);
 
 // - Limite max pour l'affichage des "bulles" des moteurs de recherche
 export const maxDisplayBubble = writable(3);
+
+// - Utilisation des alias des moteurs de recherche
+export const enableSearchEngineAlias = writable(true);
+
+// - Alias pour ajouter un moteur de recherche
+export const aliasAddSearchEngine = writable("+");
+
+// - Alias pour supprimer un moteur de recherche
+export const aliasRemoveSearchEngine = writable("-");
+
+// - Alias pour remplacer des moteurs de recherche
+export const aliasReplaceSearchEngine = writable("!");
+
+// - Alias pour ajouter un moteur de recherche
+export const enableAliasAddSearchEngine = writable(true);
+
+// - Alias pour supprimer un moteur de recherche
+export const enableAliasRemoveSearchEngine = writable(true);
+
+// - Alias pour remplacer des moteurs de recherche
+export const enableAliasReplaceSearchEngine = writable(true);

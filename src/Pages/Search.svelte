@@ -4,15 +4,18 @@
         from "../Modals/ModalSearchEnginesSelector.svelte"
     import ModalSearchProfileSelector
         from "../Modals/ModalSearchProfileSelector.svelte"
-    import { Button, Dropdown, Modal, Link }
+    import { Button, Modal, Link }
         from "carbon-components-svelte"
-	import { openSearchInCurrentPage, multiSelectionSearchEngines }
+	import { openSearchInCurrentPage, multiSelectionSearchEngines,
+        enableSearchEngineAlias }
         from '../Stores/settings'
-	import { listSearchEngines, listSearchProfiles } from '../Stores/search'
+	import { listSearchEngines, listSearchProfiles }
+        from '../Stores/search'
     import { pageName, pageIcon, transparentHeader }
         from '../Stores/header'
     import SearchBox from "../UI/SearchBox.svelte"
     import Icofont from "../UI/Icofont.svelte"
+    import AliasChecker from "../AliasChecker.svelte"
     import async from "async"
     import { onDestroy } from 'svelte'
 
@@ -29,6 +32,7 @@
 
     // Saisie de la requête
     let queryInput = ""
+    let searchBox // L'instance de la barre de recherche
 
     // Moteurs de recherche
     let searchEngines = []; // Liste des moteurs de recherche
@@ -84,13 +88,17 @@
     });
 
     // Méthodes
-    function confirmChangeSearchEngines(e) {
+    const confirmChangeSearchEngines = (e) => {
         // Masquer la popup
         modalSelectSearchEngines = false;
 
         // Appliquer la sélection
         selectSearchEngineByIds(e.detail.selectedIds)
 
+        // Sélectionner le profil de recherche correspondant aux moteurs séléctionnés
+        updateSelectedSearchProfile()
+    }
+    const updateSelectedSearchProfile = () => {
         // Initialisation pour rechercher un profil correspondant aux moteurs de recherche sélectionnés
         let profileMatch = false;
         let idProfileFound = 0;
@@ -110,7 +118,7 @@
 
             // À ce stade, il faut vérifier si les items du profils et de la sélection actuelle correspondent
             let listSE = sp.searchEnginesIds;
-            if (e.detail.selectedIds.sort().join(',') === listSE.sort().join(',')) {
+            if (selectedSearchEnginesIDs.sort().join(',') === listSE.sort().join(',')) {
                 profileMatch = true;
                 idProfileFound = sp.id;
             }
@@ -155,23 +163,23 @@
         // Sélectionner les moteurs de recherche
         selectSearchEngineByIds(listSE)
     }
-    function resetSelection() {
+    const resetSelection = () => {
         // Choisir le 1er item
-        loadPreferences(); // TODO: Choisir uniquement le profil par défaut
+        loadPreferences()
 
         modalResetSelection = false // Fermer la popup
     }
-    function executeQuery(e) {
+    const executeQuery = (e) => {
         // Liste des pages à ouvrir
-        let pages = e.detail.urls;
+        let pages = e.detail.urls
 
         // Erreur si la requête saisie n'est pas valide
         if (e.detail.value.length == 0) 
-            return alert("Vous ne pouvez pas lancer une recherche vide");
+            return alert("Vous ne pouvez pas lancer une recherche vide")
 
         // Erreur s'il n'y a aucun moteur de recherche sélectionné
         if (pages.length == 0)
-            return alert("Vous devez choisir au moins un moteur de recherche");
+            return alert("Vous devez choisir au moins un moteur de recherche")
 
         // Ouverture des pages
         async.eachSeries(pages, function openPage(url, done) {
@@ -200,6 +208,55 @@
         if ( a.name > b.name )
             return 1;
         return 0;
+    }
+    const addSearchEngineToSelection = (e) => {
+        // Le moteur de recherche à ajouter
+        let searchEngine = e.detail.searchEngine
+
+        // Vérifier si le moteur de recherche n'est pas déjà séléctionné
+        if (selectedSearchEnginesIDs.indexOf(searchEngine.id) < 0) {
+            // Ajouter le moteur de recherche à la sélection
+            selectedSearchEnginesIDs.push(searchEngine.id)
+            selectSearchEngineByIds(selectedSearchEnginesIDs)
+
+            // Séléctionner le profil de recherche correspondant aux moteurs séléctionnés
+            updateSelectedSearchProfile()
+
+            // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
+        }
+    }
+    const removeSearchEngineToSelection = (e) => {
+        // Le moteur de recherche à retirer
+        let searchEngine = e.detail.searchEngine
+
+        // Vérifier si le moteur de recherche est séléctionné
+        let index = selectedSearchEnginesIDs.indexOf(searchEngine.id)
+        if (index >= 0) {
+            // Ajouter le moteur de recherche à la sélection
+            selectedSearchEnginesIDs.splice(index, 1)
+            selectSearchEngineByIds(selectedSearchEnginesIDs)
+
+            // Séléctionner le profil de recherche correspondant aux moteurs restants
+            updateSelectedSearchProfile()
+
+            // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
+        }
+    }
+    const replaceSearchEngineToSelection = (e) => {
+        // Le moteur de recherche à sélectionner
+        let searchEngine = e.detail.searchEngine
+
+        // Ajouter le moteur de recherche à la séléction
+        selectedSearchEnginesIDs = [searchEngine.id]
+        selectSearchEngineByIds(selectedSearchEnginesIDs)
+
+        // Séléctionner le profil de recherche correspondant
+        updateSelectedSearchProfile()
+
+        // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
+    }
+    const onUpdateQuery = (e) => { // Mettre à jour la requete
+        searchBox.changeValue(e.detail.query)
     }
 
     // Charger les paramètres par défaut
@@ -232,11 +289,24 @@
     </nav>
 
     <SearchBox
+        bind:this={ searchBox }
         bind:value={ queryInput }
         on:submit={ executeQuery }
         on:askSearchEngines={() => (modalSelectSearchEngines = true)}
         searchEngines={searchEngines.filter((seItem) => seItem.selected)}
+        placeholder="Tapez votre requête ici"
     />
+
+    {#if $enableSearchEngineAlias}
+        <AliasChecker
+            bind:query={ queryInput }
+            on:updateQuery={onUpdateQuery}
+            on:selectSearchEngine={addSearchEngineToSelection}
+            on:deselectSearchEngine={removeSearchEngineToSelection}
+            on:replaceSearchEngine={replaceSearchEngineToSelection}
+            selectedSearchEngines={searchEngines.filter((seItem) => seItem.selected)}
+        />
+    {/if}
 
     <div class="bottomToolbar">
         <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectSearchEngines = true)}>
