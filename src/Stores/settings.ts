@@ -11,10 +11,10 @@ export const contrastMode = writable("g10");
 
 // - Ambiances : choix proposés aux utilisateurs
 export const ambiances = readable([
-    { value: "white",   name: "Claire",         icon: "sun",    public: false },
+    { value: "white",   name: "Claire",         icon: "sun",    public: true },
     { value: "g10",     name: "Lumineuse",      icon: "sun",    public: true },
-    { value: "g80",     name: "Gris clair",     icon: "moon",   public: false },
-    { value: "g90",     name: "Sombre",         icon: "moon",   public: false },
+    { value: "g80",     name: "Gris clair",     icon: "moon",   public: true },
+    { value: "g90",     name: "Sombre",         icon: "moon",   public: true },
     { value: "g100",    name: "Très sombre",    icon: "moon",   public: true },
 ]);
 export const filterPublicAmbiances = a => a.public;
