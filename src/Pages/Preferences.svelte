@@ -1,133 +1,237 @@
 <script>
+    // Exports
+    /**
+     * Les paramètres depuis le routeur (svelte-spa-router)
+     * @type {object}
+     */
+    export let params = {}
+
+
+
     // Imports
-    import { Toggle, TileGroup, RadioTile, Link, Grid, Row, Column }
-        from "carbon-components-svelte"
-    import { contrastMode, ambiances, allowHeaderBackButton, compactSearchBox,
-        openSearchInCurrentPage, filterPublicAmbiances } from '../Stores/settings'
-    import { pageName, pageIcon } from '../Stores/header'
-    import { onDestroy } from 'svelte'
-    import Icofont from '../UI/Icofont.svelte'
+    import { Breakpoint }
+        from 'carbon-components-svelte'
+    import { push, pop, replace, link }
+        from 'svelte-spa-router'
+    import { pageName, pageIcon }
+        from '../Stores/header'
+    import { onMount }
+        from 'svelte'
+    import Router
+        from 'svelte-spa-router'
+    import PageLinks
+        from '../UI/PageLinks.svelte'
+    import Display
+        from './Preferences/Display.svelte'
+    import Search
+        from './Preferences/Search.svelte'
+
+
+
+    // Propriétés internes
+    const ROUTER_PREFIX = '/preferences'
+    const ROUTES = {
+        '/search':          Search,
+        '/interface':       Display,
+        '/':                Display,
+    }
+    let pages = [
+        {name: "Apparence", path: "interface", icon: "screen"},
+        {name: "Recherche", path: "search", icon: "search"},
+        //{type: "separator"},
+    ]
+    let size
+
+
 
     // MAJ du header
     pageName.set("Préférences")
     pageIcon.set("config")
 
-    // Attributs internes
-    let currentContrastMode // Contraste de l'interface
-    let listAmbiances // Liste des ambiances possibles
 
-    // Observations
-    const unsub_contrastMode = contrastMode.subscribe(value => {
-        currentContrastMode = value
-    });
-    const unsub_ambiances = ambiances.subscribe(value => {
-        listAmbiances = value
-    });
 
     // Lifecycle
-    onDestroy(() => {
-        // Unsubscriptions
-        unsub_contrastMode()
-        unsub_ambiances()
-    });
+    onMount(() => {
+        // Parser les paramètres dans l'adresse URL
+        parseRouterArgs()
+    })
+
+
+
+    // Réactivité
+    $: isNavMenuVisible = canDisplayNavMenu(size)
+    $: isContentVisible = canDisplayContent(size)
+    $: parseRouterArgs(size) // Responsivité mobile/tablette/pc
+
+
+
+    // Fonctions
+    const parseRouterArgs = () => {
+        // Si la section n'est pas définie
+        if (typeof(params.section) === "undefined" || params.section === null) {
+            // En fonction de la taille de l'écran
+            switch(size) {
+                case "lg":
+                case "xlg":
+                case "max":
+                    return push(ROUTER_PREFIX + '/interface')
+            }
+        }
+    }
+    const isCurrentPage = (page) => {
+        // Si la section est définie dans l'url
+        if (params.section !== null) {
+            // Vérifier si la section actuelle correspond à la page
+            return params.section === page.path
+        }
+
+        // Sinon vérifier si le lien correspond à la page de recherche
+        return false
+    }
+    const isSectionValid = (section) => {
+        // Vérifier si la section fait partie des routes définies sans compter les routes '*' et '/'
+        let routes = Object.keys(ROUTES)
+
+        // Parcourir les routes existantes
+        for (let ii=0; ii<routes.length; ii++) {
+            let path = routes[ii]
+            let pathSplit = path.split('/')
+
+            // Si la route contient plusieurs caractères et qu'il commence par '/'
+            if (path.length > 1 && path.indexOf('/') == 0 && pathSplit.length > 1) {
+                if (pathSplit[1] == section) // Si la route correspond
+                    return true
+            }
+        }
+    }
+    const canDisplayBothSide = () => {
+        // Si la taille de l'écran est
+        switch (size) {
+            case 'lg': // "large"
+            case 'xlg': // "extra large"
+            case 'max': // "maximale"
+                return true // => Pour afficher la navigation et le contenu
+        }
+
+        // Sinon afficher un seul coté : navigation ou contenu
+        return false
+    }
+    const canDisplayNavMenu = () => {
+        // Afficher le menu de navigation
+        // 1. S'il est possible d'afficher les deux parties de la page
+        if (canDisplayBothSide())
+            return true
+
+        // 2. Sinon si la section attendue est présente ...
+        if (params.section !== null) {
+            // ... et qu'elle ne correspond pas à une page existante
+            return !isSectionValid(params.section)
+        }
+
+        // Autrement
+        return true // => Afficher
+    }
+    const canDisplayContent = () => {
+        // Afficher le contenu de la page (dans le Router)
+        // 1. S'il est possible d'afficher les deux parties de la page
+        if (canDisplayBothSide())
+            return true
+
+        // 2. Ou sinon si la section attendue est présente ...
+        if (params.section !== null) {
+            // ... et qu'elle correspond à une page existante
+            return isSectionValid(params.section)
+        }
+
+        // Autrement
+        return false // => Masquer
+    }
+    const onRouteLoaded = () => {
+        // Mise à jour du flag du lien actif
+        for (let ii=0; ii<pages.length; ii++) {
+            let link = pages[ii]
+            if (typeof(link.path) !== "undefined")
+                pages[ii].current = isCurrentPage(link)
+        }
+
+        pages = pages
+    }
 </script>
 
+<Breakpoint bind:size={size} />
+
 <main class="preferences">
-    <h2>Affichage</h2>
-    <Toggle labelText="Afficher le bouton 'Retour' en haut"
-        bind:toggled={$allowHeaderBackButton}
-        labelA="Non" labelB="Oui" />
-    <br/><br/>
-    
-    <TileGroup legend="Ambiance de l'interface"
-        on:select={(e) => { contrastMode.set(e.detail) }}>
-        {#each listAmbiances.filter(filterPublicAmbiances) as ambiance}
-            <RadioTile value={ambiance.value} checked={currentContrastMode == ambiance.value} >
-                <Icofont icon={ambiance.icon} size="22" />
-                <span class="text">{ambiance.name}</span>
-            </RadioTile>
-        {/each}
-    </TileGroup>
+    {#if isNavMenuVisible}
+        <div class="nav-section">
+            <h2>Préférences</h2>
+            <PageLinks
+                links={pages}
+                legend={(size == "sm" || size == "md") ? "" : "Navigation"}
+                linkPrefix="/#{ROUTER_PREFIX}/"
+                size={(size == "sm" || size == "md") ? "lg" : "sm"} />
+        </div>
+    {/if}
 
-
-
-    <br /><br /><br /><br />
-    <h2>Recherche</h2>
-    <Grid style="max-width: 510px; margin: 0; padding: 0;">
-        <Row>
-            <Column>
-                <Toggle labelText="Lancer la recherche dans la page actuelle"
-                    bind:toggled={$openSearchInCurrentPage}
-                    labelA="Non" labelB="Oui" />
-            </Column>
-            <Column>
-                <Toggle labelText="Barre de recherche compacte"
-                    bind:toggled={$compactSearchBox}
-                    labelA="Non" labelB="Oui" />
-            </Column>
-        </Row>
-    </Grid>
-    
-    <br/><br/><br/>
-
-    <h5>Voir aussi</h5>
-    <Link href="/#/library/search-engines">
-        <Icofont icon="arrow_right" />
-        <span class="label">Gérer les moteurs de recherche</span>
-    </Link>
-    <br/><br/>
-    <Link href="/#/library/search-profiles">
-        <Icofont icon="arrow_right" />
-        <span class="label">Gérer les profils de recherche</span>
-    </Link>
+    {#if isContentVisible}
+        <div class="router-section">
+            <Router
+                routes={ROUTES}
+                prefix={ROUTER_PREFIX} 
+                on:routeLoaded={onRouteLoaded} />
+        </div>
+    {/if}
 </main>
 
 <style lang="scss">
     main.preferences {
-        transition: all .3s;
+        display: flex;
+        max-width: 1100px;
+        margin: auto;
+        padding: 2rem 2rem;
+        gap: 2rem;
+        position: relative;
+        transition: all .5s;
 
-        //h2, h3, h4, h5, h6 {margin-bottom: var(--cds-spacing-04);}
-
-        :global(.bx--link) {
-            display: inline-flex;
-            gap: .5rem;
-            align-items: center;
+        // Navigation
+        .nav-section {
+            position: sticky;
+            top: 2rem;
+            align-self: flex-start;
         }
 
-        // Sélecteur d'ambiance
-        :global(.bx--tile-group div) {
-            max-width: 1100px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-        :global(.bx--tile--selectable .text) {
-            display: block;
-            margin-top: var(--cds-spacing-03);
+        // Section affiché depuis le Router
+        .router-section {
+            flex: 1;
         }
     }
 
-    @media (max-width: 672px) {
-        main.preferences {margin: var(--cds-spacing-05);}
-    }
-
-    @media (min-width: 672px) {
+    @media (max-width: 672px) { // width < md
         main.preferences {
-            margin: var(--cds-spacing-09) auto;
-            max-width: 1100px;
-            padding: 0 var(--cds-spacing-05);
-            
-            // Sélecteur d'ambiance
-            :global(.bx--tile-group div) {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
+            padding: 1rem;
+            flex: 1;
+
+            // Navigation
+            .nav-section {flex: 1}
+        }
+    }
+
+    @media (max-width: 1056px) { // width < lg
+        main.preferences {
+            // Navigation
+            :global(.page-links) {
+                margin: 1rem -.5rem;
             }
         }
     }
 
-    @media (min-width: 1056px) {
-        // Sélecteur d'ambiance
-        main.preferences :global(.bx--tile-group div) {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+    @media (min-width: 1056px) { // width > lg
+        main.preferences {
+            .nav-section {
+                width: 250px;
+            }
+            .router-section {
+                flex: 1;
+            }
         }
     }
 </style>

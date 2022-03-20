@@ -202,9 +202,13 @@
 
         > .left, > .right, > .center {display: flex;}
 
-        > .left, > .right {
-            flex: 2;
+        &:not(.transparent) {
+            > .left, > .right {
+                flex: 2;
+            }
+        }
 
+        > .left, > .right {
             :global(button:not(.bx--btn--tertiary)) {color: var(--cds-text-01);}
         }
 

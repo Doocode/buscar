@@ -38,7 +38,10 @@
 		'/library/': Library,
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,
+
+		// Préférences
 		'/preferences': Preferences,
+		'/preferences/:section': Preferences,
 	}
 
 	// Observations
@@ -83,6 +86,7 @@
 </main>
 
 <style lang="scss">
+	main {min-height: 100%;}
 	main :global(.bx--modal-content) {
 		margin-bottom: 0;
 	}
