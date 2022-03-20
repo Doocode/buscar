@@ -1,53 +1,86 @@
 <script>
-    // Imports
-    import { Button, TextInput, FluidForm } from "carbon-components-svelte";
-    import { compactSearchBox, maxDisplayBubble } from '../Stores/settings'
-    import Icofont from "../UI/Icofont.svelte";
-    import { createEventDispatcher } from 'svelte';
-    import async from "async";
+    // Exports
+    /**
+     * Le label du formulaire
+     * @type {string}
+     */
+    export let label = "Rechercher"
 
-    // Propriétés externes
-    export let label = "Rechercher" // Libellé du formulaire
-    export let searchEngines = []; // Moteurs de recherche sélectionnés
-    export let value = ""; // Texte saisie dans le formulaire
-    export let placeholder = "météo du jour"; // Texte de suggestion
+    /**
+     * La liste des moteurs de recherche sélectionnés
+     * @type {array}
+     */
+    export let searchEngines = []
+    
+    /**
+     * Le texte saisie dans le formulaire
+     * @type {string}
+     */
+    export let value = ""
+    
+    /**
+     * Le texte de suggestion
+     * @type {string}
+     */
+    export let placeholder = "Tapez votre requête ici"
+
+
+
+    // Imports
+    import { Button, TextInput, FluidForm }
+        from "carbon-components-svelte"
+    import { compactSearchBox, maxDisplayBubble }
+        from '../Stores/settings'
+    import Icofont
+        from "../UI/Icofont.svelte"
+    import { createEventDispatcher }
+        from 'svelte'
+    import async
+        from "async"
+
+
 
     // Propriétés internes
     const dispatch = createEventDispatcher(); // Pour créer des events
 
+
+
     // Méthodes
     // - askSearchEngines : Proposer de choisir un ou des moteurs de recherche
-    function askSearchEngines() {
-		dispatch('askSearchEngines');
+    const askSearchEngines = () => {
+		dispatch('askSearchEngines')
     }
     // - submit : Lancer la requête
-    function submit() {
+    const submit = () => {
         // Initialisation de la liste des urls
-        let urls = [];
+        let urls = []
 
         // Parcours des moteurs de recherche sélectionnés
         async.eachSeries(searchEngines, function generateUrls(seItem, done) {
             // Echapper les caractères spéciaux (%, =, ?) dans la saisie
-            let encoded = encodeURI(value);
+            let encoded = encodeURI(value)
 
             // Ajout de l'url avec la requête
-            urls.push(seItem.queryUrl.replace("%query%", encoded));
+            urls.push(seItem.queryUrl.replace("%query%", encoded))
 
             // Terminé
-            return done();
+            return done()
         }, function finished() {
             // Fin de la tache => lancer l'event
             dispatch('submit', {
                 value: value,
                 urls: urls
-            });
-        });
+            })
+        })
     }
     // - onKeyUp : Lorsqu'une touche pressée est relachée
-    function onKeyUp(e) {
+    const onKeyUp = (e) => {
         if (e.keyCode == 13) // Touche Entrée
-            submit();
-        return true;
+            submit()
+        return true
+    }
+    export const changeValue = (v) => {
+        value = v
     }
 
 </script>
@@ -119,7 +152,7 @@
 
     .searchBox {
         max-width: 670px;
-        margin: 25px auto;
+        margin: 0;
 
         // Les bulles : les icones des moteurs de recherche
         .bubbles {
@@ -225,13 +258,6 @@
 
         :global(.bx--text-input) {
             border-radius: 10px 0 0 10px;
-        }
-    }
-
-    // Affichage standard
-    @media (min-width: 672px) {
-        .searchBox {
-            margin: 100px auto;
         }
     }
 </style>
