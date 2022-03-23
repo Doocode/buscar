@@ -6,8 +6,10 @@
         from "../Modals/ModalSearchProfileSelector.svelte"
     import { Button, Modal, Link }
         from "carbon-components-svelte"
-	import { openSearchInCurrentPage, multiSelectionSearchEngines,
-        enableSearchEngineAlias }
+	import { multiSelectionSearchEngines, enableSelectSearchEnginesLimit, 
+        enableSearchEngineAlias, actionWhenOpeningSearchPage,
+        startupSearchProfileId, startupSearchEnginesIds,
+        selectSearchEnginesLimitValue }
         from '../Stores/settings'
 	import { listSearchEngines, listSearchProfiles }
         from '../Stores/search'
@@ -17,7 +19,7 @@
     import Icofont from "../UI/Icofont.svelte"
     import AliasChecker from "../AliasChecker.svelte"
     import async from "async"
-    import { onDestroy } from 'svelte'
+    import { onDestroy, onMount } from 'svelte'
 
     // MAJ du header
     pageName.set("Rechercher")
@@ -28,6 +30,7 @@
     let modalSelectSearchEngines = false
     let modalSelectSearchProfile = false
     let modalResetSelection = false
+    let modalErrorLimitReached = false
     let openSearchInSamePage
 
     // Saisie de la requête
@@ -75,17 +78,6 @@
     const unsub_listSearchProfiles = listSearchProfiles.subscribe(value => {
         searchProfiles = value;
     });
-	const unsub_openSearchInCurrentPage = openSearchInCurrentPage.subscribe(value => {
-		openSearchInSamePage = value;
-	});
-
-    // Lifecycle
-    onDestroy(() => {
-        // Unsubscriptions
-        unsub_listSearchEngines();
-        unsub_listSearchProfiles();
-        unsub_openSearchInCurrentPage();
-    });
 
     // Méthodes
     const confirmChangeSearchEngines = (e) => {
@@ -131,14 +123,24 @@
             selectedSearchProfileID = idProfileFound; // MAJ l'id du profil de recherche choisi
         });
     }
-    function selectSearchEngineByIds(listIds) {
-        selectedSearchEnginesIDs = listIds;
+    const selectSearchEngineByIds = (listIds) => {
+        // Vérifier s'il faut limiter le nombre d'items
+        let limitSelectionReached = listIds.length > $selectSearchEnginesLimitValue
+        if ($enableSelectSearchEnginesLimit && limitSelectionReached) {
+            modalErrorLimitReached = true
+            listIds = []
+        }
+        selectedSearchEnginesIDs = listIds
         
         // Parcours de la liste des moteurs de recherche
         searchEngines.map((seItem, index) => {
             // Sélectionner le moteur de recherche s'il fait partie de la liste des ID
-            searchEngines[index].selected = listIds.indexOf(seItem.id) > -1;
+            searchEngines[index].selected = listIds.indexOf(seItem.id) > -1
         });
+        
+        // Sélectionner le profil de recherche correspondant aux moteurs séléctionnés
+        if ($enableSelectSearchEnginesLimit && limitSelectionReached)
+            updateSelectedSearchProfile()
     }
     function confirmChangeSearchProfile(e) {
         // MAJ l'historique
@@ -199,8 +201,18 @@
         });
     }
     function loadPreferences() {
-        // Charger le profil de recherche par défaut (charge le moteur de recherche du profil)
-        selectSearchProfileById(1);
+        switch ($actionWhenOpeningSearchPage) {
+            case "searchProfile":
+                // Charger le profil de recherche par défaut (charge le moteur de recherche du profil)
+                selectSearchProfileById($startupSearchProfileId)
+                break
+            case "searchEngines":
+                // Charger les moteurs de recherche par défaut
+                selectSearchEngineByIds($startupSearchEnginesIds)
+                // Sélectionner le profil de recherche correspondant aux moteurs séléctionnés
+                updateSelectedSearchProfile()
+                break
+        }
     }
     function sortSearchEngines(a, b) {
         if ( a.name < b.name )
@@ -258,9 +270,21 @@
     const onUpdateQuery = (e) => { // Mettre à jour la requete
         searchBox.changeValue(e.detail.query)
     }
+    const onPageMount = () => {
+        // Charger les paramètres par défaut
+        loadPreferences()
+    }
 
-    // Charger les paramètres par défaut
-    loadPreferences();
+
+
+    // Lifecycle
+    onDestroy(() => {
+        // Unsubscriptions
+        unsub_listSearchEngines()
+        unsub_listSearchProfiles()
+    })
+    onMount(onPageMount)
+
 </script>
 
 <main id="searchPage">
@@ -288,14 +312,16 @@
         {/if}
     </nav>
 
-    <SearchBox
-        bind:this={ searchBox }
-        bind:value={ queryInput }
-        on:submit={ executeQuery }
-        on:askSearchEngines={() => (modalSelectSearchEngines = true)}
-        searchEngines={searchEngines.filter((seItem) => seItem.selected)}
-        placeholder="Tapez votre requête ici"
-    />
+    <div class="centered-form">
+        <SearchBox
+            bind:this={ searchBox }
+            bind:value={ queryInput }
+            on:submit={ executeQuery }
+            on:askSearchEngines={() => (modalSelectSearchEngines = true)}
+            searchEngines={searchEngines.filter((seItem) => seItem.selected)}
+            placeholder="Tapez votre requête ici"
+        />
+    </div>
 
     {#if $enableSearchEngineAlias}
         <AliasChecker
@@ -355,6 +381,23 @@
         <p>Voulez-vous vraiment rétablir le profil de recherche par défaut ?</p>
         <br /><br /><br />
     </Modal>
+
+    <Modal
+        size="sm"
+        bind:open={modalErrorLimitReached}
+        modalHeading="Limite atteinte"
+        primaryButtonText="D'accord"
+        on:click:button--primary={() => (modalErrorLimitReached = false)}
+        on:close={() => (modalErrorLimitReached = false)}
+    >
+        <span style="float: right; color: var(--cds-support-03); margin-left: var(--cds-spacing-04);">
+            <Icofont icon="warning" size="50" />
+        </span>
+        <strong>Vous ne pouvez pas sélectionner plus de {$selectSearchEnginesLimitValue} moteur(s) de recherche.</strong>
+        <br/><br/>
+        <p>Si vous souhaitez quand même en sélectionner plus, réhaussez la limite ou désactivez le paramètre dans vos préférences.</p>
+        <br /><br /><br />
+    </Modal>
 </main>
 
 <style lang="scss">
@@ -403,6 +446,16 @@
             align-items: center;
         }
         :global(.icofont) {font-size: 16px;}
+    }
+
+    // Barre de recherche
+    .centered-form {
+        display: flex;
+        justify-content: center;
+
+        :global(.searchBox) {
+            flex: 1;
+        }
     }
 
     @media (max-width: 672px) {

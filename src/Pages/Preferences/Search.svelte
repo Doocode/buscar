@@ -3,15 +3,26 @@
     import { compactSearchBox, enableSearchEngineAlias, openSearchInCurrentPage,
         aliasAddSearchEngine, aliasRemoveSearchEngine, aliasReplaceSearchEngine,
         enableAliasAddSearchEngine, enableAliasRemoveSearchEngine,
-        enableAliasReplaceSearchEngine } 
+        enableAliasReplaceSearchEngine, enableSelectSearchEnginesLimit,
+        selectSearchEnginesLimitValue, actionWhenOpeningSearchPage,
+        startupSearchProfileId, startupSearchEnginesIds } 
         from '../../Stores/settings'
-    import { Breadcrumb, BreadcrumbItem, Toggle, Link, DataTable, Modal,
-        Grid, Row, Column, TextInput, OverflowMenu, OverflowMenuItem, Breakpoint }
+    import { listSearchProfiles, listSearchEngines }
+        from '../../Stores/search'
+    import { Breadcrumb, BreadcrumbItem, Toggle, Link, DataTable, Modal, Checkbox,
+        Grid, Row, Column, TextInput, OverflowMenu, OverflowMenuItem, Breakpoint,
+        NumberInput, RadioButtonGroup, RadioButton, Button, ClickableTile }
         from "carbon-components-svelte"
-    import { pageName, pageIcon }
-        from '../../Stores/header'
+    import ModalSearchEnginesSelector
+        from '../../Modals/ModalSearchEnginesSelector.svelte'
+    import ModalSearchProfileSelector
+        from '../../Modals/ModalSearchProfileSelector.svelte'
+    import SearchEnginesBubbles
+        from '../../UI/SearchEnginesBubbles.svelte'
     import Icofont
         from '../../UI/Icofont.svelte'
+    import { pageName, pageIcon }
+        from '../../Stores/header'
 
 
 
@@ -28,6 +39,8 @@
         $enableAliasReplaceSearchEngine)
     $: isAliasValid = checkAlias(currentAliasValue, currentAliasId)
     $: tableAliasHead = filterTableAliasHead(size)
+    $: selectedStartupSearchProfile = findSearchProfile($startupSearchProfileId)
+    $: selectedStartupSearchEngines = findSearchEngines($startupSearchEnginesIds)
 
 
 
@@ -42,7 +55,14 @@
         { key: "enabled", value: "Etat" },
         { key: "overflow", empty: true },
     ]
-    const FORBIDDEN_CHARACTERS = [' '] // Liste des caractères spéciaux interdits
+    const FORBIDDEN_CHARACTERS = [' '] // Liste des caractères spéciaux interdits pour les préfixes (alias)
+    const RADIO_STARTUP_ACTIONS = [
+        {value: "searchProfile", text: "Sélectionner un profil de recherche spécifique"},
+        {value: "searchEngines", text: "Sélectionner des moteurs de recherche spéciques"},
+        {value: "nothing", text: "Ne rien faire"},
+    ]
+    let modalSearchProfiles = false // Popup pour choisir un profil de recherche
+    let modalSearchEngines = false // Popup pour choisir des moteurs de recherche
     let modalAliasEditor = false // Popup pour modifier le prefixe d'un alias
     let currentAliasId = -1
     let currentAliasText = ""
@@ -132,6 +152,26 @@
             return true
         })
     }
+    const findSearchProfile = () => {
+        // Rechercher le profil de recherche correspondant
+        let results = $listSearchProfiles.filter(
+            item => item.id == $startupSearchProfileId
+        )
+
+        // Rechercher les moteurs de recherche
+        results[0].searchEngines = $listSearchEngines.filter(
+            item => results[0].searchEnginesIds.indexOf(item.id) > -1
+        )
+
+        // Retourner le 1er item (= l'unique resultat)
+        return results[0]
+    }
+    const findSearchEngines = () => {
+        // Rechercher les moteurs de recherche correspondants
+        return $listSearchEngines.filter(
+            item => $startupSearchEnginesIds.indexOf(item.id) > -1
+        )
+    }
 </script>
 
 <Breakpoint bind:size />
@@ -152,21 +192,62 @@
 
 
 
-    <h3 class="format">Général</h3>
-    <Grid style="max-width: 510px; margin: 0; padding: 0;">
-        <Row>
-            <Column>
-                <Toggle labelText="Lancer la recherche dans la page actuelle"
-                    bind:toggled={$openSearchInCurrentPage}
-                    labelA="Non" labelB="Oui" />
-            </Column>
-            <Column>
-                <Toggle labelText="Barre de recherche compacte"
-                    bind:toggled={$compactSearchBox}
-                    labelA="Non" labelB="Oui" />
-            </Column>
-        </Row>
-    </Grid>
+    <h3 class="format">Au démarrage</h3>
+    <RadioButtonGroup orientation="vertical"
+        bind:selected={$actionWhenOpeningSearchPage}
+        legendText="Lors de l'affichage de la page de recherche"
+    >
+        {#each RADIO_STARTUP_ACTIONS as radioItem}
+            <RadioButton labelText={radioItem.text} value={radioItem.value} />
+        {/each}
+    </RadioButtonGroup>
+    {#if $actionWhenOpeningSearchPage == "searchProfile"}
+        <ClickableTile
+            class="btnStartup" id="btnSearchProfile"
+            on:click={(e) => (modalSearchProfiles = true)}
+            title="Définir le profil de recherche du démarrage"
+        >
+            <div class="data">
+                <legend class="bx--label">Le profil de recherche au démarrage :</legend>
+                <div class="ident">
+                    <Icofont icon="{selectedStartupSearchProfile.icon}" size="18" />
+                    <p class="name">{selectedStartupSearchProfile.name}</p>
+                </div>
+                {#if selectedStartupSearchProfile.searchEngines.length > 0}
+                    <SearchEnginesBubbles bubbleSize="30px"
+                        searchEngines={selectedStartupSearchProfile.searchEngines} />
+                {:else}
+                    <p class="placeholder">(Aucun moteur de recherche)</p>
+                {/if}
+            </div>
+            <div class="menu">
+                <Icofont icon="settings" size="18" />
+            </div>
+        </ClickableTile>
+    {:else if $actionWhenOpeningSearchPage == "searchEngines"}
+        <ClickableTile
+            class="btnStartup" id="btnSearchEngine"
+            on:click={(e) => (modalSearchEngines = true)}
+            title="Définir les moteurs de recherche du démarrage"
+        >
+            <div class="data">
+                <legend class="bx--label">Les moteurs de recherche au démarrage :</legend>
+                <div class="ident">
+                    <Icofont icon="search" size="18" />
+                    <p class="name">{selectedStartupSearchEngines.length} item(s)</p>
+                </div>
+                {#if selectedStartupSearchEngines.length > 0}
+                    <SearchEnginesBubbles bubbleSize="30px"
+                        searchEngines={selectedStartupSearchEngines} />
+                {:else}
+                    <p class="placeholder">(Aucun moteur de recherche)</p>
+                {/if}
+            </div>
+            <div class="menu">
+                <Icofont icon="settings" size="18" />
+            </div>
+        </ClickableTile>
+    {/if}
 
 
 
@@ -221,7 +302,41 @@
             </svelte:fragment>
         </DataTable>
     {/if}
-    
+
+
+
+    <h3 class="format">Options</h3>
+    <Grid style="max-width: 510px; margin: 0; padding: 0;">
+        <Row>
+            <Column>
+                <Toggle labelText="Lancer la recherche dans la page actuelle"
+                    bind:toggled={$openSearchInCurrentPage}
+                    labelA="Non" labelB="Oui" />
+            </Column>
+            <Column>
+                <Toggle labelText="Barre de recherche compacte"
+                    bind:toggled={$compactSearchBox}
+                    labelA="Non" labelB="Oui" />
+            </Column>
+        </Row>
+    </Grid>
+
+    <br/><br/>
+    <Checkbox
+        bind:checked={$enableSelectSearchEnginesLimit}
+        labelText="Limiter la sélection de plusieurs moteurs de recherche en simultané" />
+    {#if $enableSelectSearchEnginesLimit}
+        <br/>
+        <div class="indent" style="max-width: 420px;">
+            <NumberInput
+                min={1} max={15} allowEmpty="false"
+                bind:value={$selectSearchEnginesLimitValue}
+                invalidText="Le nombre attendu doit être entre 1 et 15."
+                label="Limite maximum de sélection de moteurs de recherche"
+            />
+        </div>
+    {/if}
+
 
 
     <br/><br/><br/>
@@ -260,6 +375,16 @@
 
             <p class="format"><strong>Conseil</strong> : <br/> Utilisez un caractère spécial comme préfixe pour les alias</p>
         </Modal>
+
+        <ModalSearchEnginesSelector
+            bind:open={modalSearchEngines}
+            bind:idSelectedSearchEngines={$startupSearchEnginesIds}
+            on:submit={() => (modalSearchEngines = false)} />
+
+        <ModalSearchProfileSelector
+            bind:open={modalSearchProfiles}
+            bind:selectedID={$startupSearchProfileId}
+            on:submit={() => (modalSearchProfiles = false)} />
     </div>
 </main>
 
@@ -267,6 +392,35 @@
     @import './Preferences.scss';
 
     #prefs-search {
+        // Vue "Au démarrage"
+        :global(.bx--tile--clickable.btnStartup) {
+            margin-top: var(--cds-spacing-06);
+            border-radius: 10px;
+            align-items: flex-end;
+        }
+        .btnStartup {
+            // Données visibles
+            .data {
+                display: inline-flex;
+                flex-flow: column;
+                align-items: flex-start;
+                gap: var(--cds-spacing-03)
+            }
+
+
+            .ident {
+                display: inline-flex;
+                align-items: center;
+                gap: var(--cds-spacing-03);
+
+                .name {font-size: 100%;}
+            }
+            .placeholder {
+                color: var(--cds-text-02);
+                font-size: 100%;
+            }
+        }
+
         // Vue "Préfixe"
         .cell-prefix {
             --size: 30px;
@@ -300,6 +454,12 @@
             display: inline-flex;
             align-items: center;
             gap: var(--cds-spacing-03);
+        }
+
+        // Indentation
+        .indent {
+            --value: var(--cds-spacing-06);
+            margin-left: var(--value);
         }
 
         // Liens "Voir aussi"

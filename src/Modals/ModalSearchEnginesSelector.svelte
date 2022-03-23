@@ -90,6 +90,7 @@
                 listIds.push(parseInt(seItem.id))
             return seItem.selected;
         })
+        idSelectedSearchEngines = listIds
         
         // Signaler la confirmation
         dispatch('submit', {
@@ -147,6 +148,9 @@
         idSelectedSearchEngines = listIds
     }
     function unselectAll() {
+        // Activer la sélection multiple
+        multiSelectionSearchEngines.set(true)
+        
         // Initialisation de la liste des IDs
         let listIds = [];
 
