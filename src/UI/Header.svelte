@@ -1,44 +1,37 @@
 <script>
     // Imports
     import { pop, location } from 'svelte-spa-router'
-    import { ButtonSet, Button, Link } from "carbon-components-svelte";
-    import { elasticOut, quintOut } from 'svelte/easing';
-    import { fade, fly } from 'svelte/transition'; // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
-    import Icofont from './Icofont.svelte';
-    import { contrastMode, allowHeaderBackButton } from '../Stores/settings'
+    import { Button, Link } from "carbon-components-svelte"
+    import { elasticOut, quintOut } from 'svelte/easing'
+    import { fade, fly } from 'svelte/transition' // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
+    import Icofont from './Icofont.svelte'
+    import { allowHeaderBackButton } from '../Stores/settings'
     import { pageName, pageIcon, transparentHeader } from '../Stores/header'
-    import { onDestroy } from 'svelte'
+    import QuickControlsPane from './QuickControls/QuickControlsPane.svelte'
+
+
 
     // Attributs à définir
-    export let appname = "Lorem ipsum";
+    export let appname = "Lorem ipsum"
+
+
 
     // Attributs internes
-    let currentContrastMode; // Contraste de l'interface
-    let allowBackButton; // Autoriser l'affichage du bouton "Retour"
     let menuWidth = 300; // Largeur du panneau de menu
 
+
+
     // Flags
-    let backButton_visible = true;
-    let leftMenu_visible = false;
-    let rightMenu_visible = false;
+    let backButton_visible = true
+    let leftMenu_visible = false
+    let rightMenu_visible = false
+
+
 
     // Réactivité
     $: canGoBack = $location != "/";
 
-    // Observations
-    const unsub_contrastMode = contrastMode.subscribe(value => {
-        currentContrastMode = value;
-    });
-    const unsub_backBtn = allowHeaderBackButton.subscribe(value => {
-        allowBackButton = value;
-    });
 
-    // Lifecycle
-    onDestroy(() => {
-        // Unsubscriptions
-        unsub_contrastMode();
-        unsub_backBtn();
-    });
 
     // Méthodes
     function toggleLeftMenu() {
@@ -67,7 +60,7 @@
 
 <header class:transparent="{$transparentHeader}">
     <div class="left">
-        {#if canGoBack && allowBackButton}
+        {#if canGoBack && $allowHeaderBackButton}
             <span in:fade out:whoosh>
                 <Button kind="tertiary" class="btn-back" title="Retour vers la page précédente" on:click={goBack}>
                     <Icofont icon="arrow_left" size="20" />
@@ -84,7 +77,7 @@
         <h1>{$pageName}</h1>
     </div>
     <div class="right">
-        <Button kind="ghost" title="Réglages" on:click={toggleRightMenu}>
+        <Button kind="ghost" title="Réglages rapides" on:click={toggleRightMenu} >
             <Icofont icon="settings" size="20" />
         </Button>
     </div>
@@ -159,25 +152,11 @@
     </nav>
 {/if}
 
-<div
-    class="menu-right"
-	class:expanded="{rightMenu_visible}"
->
-    <h2>Réglages</h2>
-    <ButtonSet stacked style="width: 100%">
-        {#each ['white', 'g10', 'g80', 'g90', 'g100'] as value}
-            <Button
-                disabled={currentContrastMode === value}
-                kind="secondary"
-                on:click={() => {
-                    contrastMode.set(value);
-                }}
-            >
-                Mode "{value}"
-            </Button>
-        {/each}
-    </ButtonSet>
-</div>
+{#if rightMenu_visible}
+    <div class="quick-controls">
+        <QuickControlsPane on:close={toggleRightMenu} />
+    </div>
+{/if}
 
 <style lang="scss">
     header {
@@ -282,30 +261,13 @@
         }
     }
 
-    .menu-right {
-        margin: 25px;
-        //min-width: 250px;
-        background: var(--cds-ui-01, #fff);
-        border-radius: 10px;
-        box-shadow: 0 0 50px rgba(0,0,0,.3);
-        overflow: auto;
-        transition: all .2s;
-
-        display: flex;
-        flex-flow: column;
-
+    .quick-controls {
+        --margin: 1.3rem;
         position: absolute;
-        top: 92px;
-        right: -300px;
+        top: var(--margin);
+        right: var(--margin);
         z-index: 100;
-
-        display: none;
-        &.expanded {right: 0px; display: flex;}
-
-        h2 {
-            margin: 25px;
-            font-size: 20px;
-        }
+        transition: all .3s;
     }
 
 
@@ -322,9 +284,9 @@
         .menu-left {
             width: 100%;
         }
-        
-        .menu-right {
-            top: 52px;
+
+        .quick-controls {
+            --margin: 1px;
         }
 	}
 </style>

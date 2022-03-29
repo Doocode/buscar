@@ -462,6 +462,11 @@
             margin-left: var(--value);
         }
 
+        // Saisie de nombre
+        :global(.bx--number input[type="number"]) {
+            margin: 0;
+        }
+
         // Liens "Voir aussi"
         :global(.bx--link) {
             display: inline-flex;
