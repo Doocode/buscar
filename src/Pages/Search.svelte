@@ -320,7 +320,7 @@
             on:askSearchEngines={() => (modalSelectSearchEngines = true)}
             searchEngines={searchEngines.filter((seItem) => seItem.selected)}
             placeholder="Tapez votre requête ici"
-        />
+            clickableBubbles="true" />
     </div>
 
     {#if $enableSearchEngineAlias}

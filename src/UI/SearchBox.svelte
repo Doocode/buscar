@@ -23,14 +23,28 @@
      * @type {string}
      */
     export let placeholder = "Tapez votre requête ici"
+    
+    /**
+     * Possible de cliquer sur les bulles des moteurs de recherche
+     * @type {boolean}
+     */
+    export let clickableBubbles = false
+    
+    /**
+     * Afficher le bouton "Lancer la recherche"
+     * @type {boolean}
+     */
+    export let submitVisible = true
 
 
 
     // Imports
     import { Button, TextInput, FluidForm }
         from "carbon-components-svelte"
-    import { compactSearchBox, maxDisplayBubble }
+    import { compactSearchBox }
         from '../Stores/settings'
+    import SearchEnginesBubbles
+        from "./SearchEnginesBubbles.svelte"
     import Icofont
         from "../UI/Icofont.svelte"
     import { createEventDispatcher }
@@ -41,7 +55,7 @@
 
 
     // Propriétés internes
-    const dispatch = createEventDispatcher(); // Pour créer des events
+    const dispatch = createEventDispatcher() // Pour créer des events
 
 
 
@@ -79,54 +93,51 @@
             submit()
         return true
     }
+    // - bubblesClicked : Lors du clic sur les bulles
+    const bubblesClicked = () => {
+        if (clickableBubbles)
+            return askSearchEngines()
+    }
     export const changeValue = (v) => {
         value = v
     }
-
 </script>
 
 <div class="searchBox"
     class:without-bubbles={ searchEngines.length == 0 }
     class:compact={ $compactSearchBox }
+    class:without-submit={ !submitVisible }
 >
     {#if $compactSearchBox}
         {#if searchEngines.length > 0}
-            <div class="bubbles" title="Cliquez ici pour sélectionner les moteurs de recherche" on:click={askSearchEngines}>
-                {#each searchEngines.slice(0, $maxDisplayBubble) as wsearch}
-                    <img class="bubble icon" src="{ wsearch.icon }"
-                        title="La recherche se fera sur { wsearch.name }"
-                        alt="Logo de { wsearch.name }" />
-                {/each}
-
-                {#if searchEngines.length > $maxDisplayBubble}
-                    <span class="bubble count" title="Il y a { searchEngines.length - $maxDisplayBubble } sites web en plus">
-                        +{ searchEngines.length - $maxDisplayBubble }
-                    </span>
-                {/if}
+            <div class="bubble-box" title="Les moteurs de recherche sélectionnés">
+                <SearchEnginesBubbles
+                    clickable={ clickableBubbles }
+                    searchEngines={ searchEngines }
+                    bubbleSize="32px"
+                    collapse="true"
+                    on:click={ bubblesClicked } />
             </div>
         {/if}
 
         <TextInput size="xl" placeholder={ placeholder }
             on:keyup={ onKeyUp } bind:value={ value } />
 
-        <Button on:click={ submit }>
-            <Icofont icon="search" size="20" />
-        </Button>
+        {#if submitVisible}
+            <Button on:click={ submit } title="Lancer la recherche">
+                <Icofont icon="search" size="20" />
+            </Button>
+        {/if}
     {:else}
         <FluidForm class="query-form">
             {#if searchEngines.length > 0}
-                <div class="bubbles" title="Cliquez ici pour sélectionner les moteurs de recherche" on:click={askSearchEngines}>
-                    {#each searchEngines.slice(0, $maxDisplayBubble) as wsearch}
-                        <img class="bubble icon" src="{ wsearch.icon }"
-                            title="La recherche se fera sur { wsearch.name }"
-                            alt="Logo de { wsearch.name }" />
-                    {/each}
-
-                    {#if searchEngines.length > $maxDisplayBubble}
-                        <span class="bubble count" title="Il y a { searchEngines.length - $maxDisplayBubble } sites web en plus">
-                            +{ searchEngines.length - $maxDisplayBubble }
-                        </span>
-                    {/if}
+                <div class="bubble-box" title="Les moteurs de recherche sélectionnés">
+                    <SearchEnginesBubbles
+                        clickable={ clickableBubbles }
+                        searchEngines={ searchEngines }
+                        bubbleSize="40px"
+                        collapse="true"
+                        on:click={ bubblesClicked } />
                 </div>
             {/if}
 
@@ -134,9 +145,11 @@
                 labelText={ label } placeholder={ placeholder }
                 on:keyup={ onKeyUp } bind:value={ value } />
 
-            <Button on:click={ submit }>
-                <Icofont icon="search" size="20" />
-            </Button>
+            {#if submitVisible}
+                <Button on:click={ submit } title="Lancer la recherche">
+                    <Icofont icon="search" size="20" />
+                </Button>
+            {/if}
         </FluidForm>
     {/if}
 </div>
@@ -145,7 +158,6 @@
     // Variables
     :root {
         --border-radius: 10px;
-        --bubble-size: 40px;
         --button-size: 64px;
         --input-padding_left: .5rem; // L'espace entre les bulles et l'input/label
     }
@@ -155,40 +167,15 @@
         margin: 0;
 
         // Les bulles : les icones des moteurs de recherche
-        .bubbles {
+        .bubble-box {
             display: flex;
             justify-content: center;
             align-items: center;
             padding-left: 12px;
             padding-right: 5px;
-            cursor: pointer;
             background: var(--cds-field-01);
             border-radius: var(--border-radius) 0 0 var(--border-radius);
             border-bottom: 1px solid var(--cds-ui-04);
-
-            .bubble {
-                width: var(--bubble-size);
-                height: var(--bubble-size);
-                border-radius: var(--bubble-size);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: 10px;
-                text-align: center;
-                box-shadow: 0 0 0 2px transparent, 0 0 0 1px rgba(127,127,127,.5);
-                transition: all .2s;
-
-                + .bubble {margin-left: -7px;}
-
-                // Affichage du nombre d'items restants
-                &.count {
-                    background: var(--cds-ui-background);
-                }
-            }
-
-            &:hover .bubble {
-                box-shadow: 0 0 0 2px var(--cds-interactive-01), 0 0 0 1px rgba(127,127,127,.5);
-            }
         }
 
         // Le bouton de confirmation
@@ -208,11 +195,10 @@
             display: flex;
 
             // Le bouton de confirmation
-            --bubble-size: 32px; // Taille des bulles des moteurs de recherche
             --button-size: 48px; // Taille du bouton de confirmation
             
             // Les bulles : les icones des moteurs de recherche
-            .bubbles {padding-left: 9px;}
+            .bubble-box {padding-left: 8px;}
 
             // Zone de saisie
             :global(.bx--text-input) {
@@ -258,6 +244,18 @@
 
         :global(.bx--text-input) {
             border-radius: 10px 0 0 10px;
+        }
+    }
+
+    :global(.bx--modal) .searchBox .bubble-box {
+        background: var(--cds-field-02);
+    }
+
+    // Affichage sans bouton valider
+    .searchBox.without-submit {
+        :global(.query-form .bx--text-input),
+        :global(.bx--text-input) {
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
         }
     }
 </style>
