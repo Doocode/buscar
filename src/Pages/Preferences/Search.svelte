@@ -11,7 +11,7 @@
         from '../../Stores/search'
     import { Breadcrumb, BreadcrumbItem, Toggle, Link, DataTable, Modal, Checkbox,
         Grid, Row, Column, TextInput, OverflowMenu, OverflowMenuItem, Breakpoint,
-        NumberInput, RadioButtonGroup, RadioButton, Button, ClickableTile }
+        NumberInput, RadioButtonGroup, RadioButton, ClickableTile }
         from "carbon-components-svelte"
     import ModalSearchEnginesSelector
         from '../../Modals/ModalSearchEnginesSelector.svelte'
