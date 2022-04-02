@@ -1,4 +1,13 @@
 <script>
+    // Exports
+    /**
+     * La hauteur du composant ("extend" pour plein écran - "fit" pour compact)
+     * @type {"expand" | "fit"}
+     */
+    export let size = "expand"
+
+
+
     // Imports
     import ModalSearchEnginesSelector
         from "../Modals/ModalSearchEnginesSelector.svelte"
@@ -21,10 +30,14 @@
     import async from "async"
     import { onDestroy, onMount } from 'svelte'
 
+
+
     // MAJ du header
     pageName.set("Rechercher")
     pageIcon.set("search")
     transparentHeader.set(true)
+
+
 
     // Flags
     let modalSelectSearchEngines = false
@@ -32,37 +45,45 @@
     let modalResetSelection = false
     let modalErrorLimitReached = false
     let openSearchInSamePage
+    let innerHeight
+
+
 
     // Saisie de la requête
     let queryInput = ""
     let searchBox // L'instance de la barre de recherche
 
+
+
     // Moteurs de recherche
-    let searchEngines = []; // Liste des moteurs de recherche
-    let selectedSearchEnginesIDs = []; // Liste des moteurs de recherche sélectionnés
+    let searchEngines = [] // Liste des moteurs de recherche
+    let selectedSearchEnginesIDs = [] // Liste des moteurs de recherche sélectionnés
     $: {
         // Initialisation
-        selectedSearchEnginesIDs = [];
+        selectedSearchEnginesIDs = []
 
         // Parcourir les moteurs de recherche
         searchEngines.forEach((seItem, index) => {
             // Si l'item est sélectionné
             if (seItem.selected) {
                 // Mémoriser l'id de l'item
-                selectedSearchEnginesIDs.push(parseInt(seItem.id));
+                selectedSearchEnginesIDs.push(parseInt(seItem.id))
             }
-        });
+        })
     }
 
+
+
     // Profils de recherche
-    let searchProfiles
     let selectedSearchProfileID = [] // ID du profil de recherche sélectionné
     const maxSearchProfilesInNavbar = 5
+
+
 
 	// Observations
     const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
         // Regénération de la liste en local
-        let listSE = [];
+        let listSE = []
         async.eachSeries(value, function parseSE(seItem, done) {
             // Ajouts des propriétés manquantes
             seItem.selected = selectedSearchEnginesIDs.indexOf(seItem.id) > -1
@@ -72,17 +93,16 @@
             return done()
         }, function finished() {
             // Mise à jour
-            searchEngines = listSE;
-        });
-    });
-    const unsub_listSearchProfiles = listSearchProfiles.subscribe(value => {
-        searchProfiles = value;
-    });
+            searchEngines = listSE
+        })
+    })
+
+
 
     // Méthodes
     const confirmChangeSearchEngines = (e) => {
         // Masquer la popup
-        modalSelectSearchEngines = false;
+        modalSelectSearchEngines = false
 
         // Appliquer la sélection
         selectSearchEngineByIds(e.detail.selectedIds)
@@ -92,36 +112,36 @@
     }
     const updateSelectedSearchProfile = () => {
         // Initialisation pour rechercher un profil correspondant aux moteurs de recherche sélectionnés
-        let profileMatch = false;
-        let idProfileFound = 0;
+        let profileMatch = false
+        let idProfileFound = 0
 
         // Callback pour vérifier si un profil de recherche correspond à la sélection actuelle
-        let checkSearchProfile = function(sp, done) {
+        let checkSearchProfile = (sp, done) => {
             // Ne rien faire si un profil de recherche correspondant a été repéré
             if (profileMatch)
-                return done();
+                return done()
 
             // Au départ, on considère que ce profil de recherche ne correspond pas
-            profileMatch = false;
+            profileMatch = false
 
             // Avorter si le profil de recherche ne contient pas le même nombre d'items que la sélection actuelle
             if (selectedSearchEnginesIDs.length != sp.searchEnginesIds.length)
-                return done();
+                return done()
 
             // À ce stade, il faut vérifier si les items du profils et de la sélection actuelle correspondent
-            let listSE = sp.searchEnginesIds;
+            let listSE = sp.searchEnginesIds
             if (selectedSearchEnginesIDs.sort().join(',') === listSE.sort().join(',')) {
-                profileMatch = true;
-                idProfileFound = sp.id;
+                profileMatch = true
+                idProfileFound = sp.id
             }
-            done();
-        };
+            done()
+        }
 
         // Parcourir les profils de recherche
-        async.eachSeries(searchProfiles, checkSearchProfile, () => {
+        async.eachSeries($listSearchProfiles, checkSearchProfile, () => {
             // Les profils de recherches ont été parcourus
-            selectedSearchProfileID = idProfileFound; // MAJ l'id du profil de recherche choisi
-        });
+            selectedSearchProfileID = idProfileFound // MAJ l'id du profil de recherche choisi
+        })
     }
     const selectSearchEngineByIds = (listIds) => {
         // Vérifier s'il faut limiter le nombre d'items
@@ -136,31 +156,31 @@
         searchEngines.map((seItem, index) => {
             // Sélectionner le moteur de recherche s'il fait partie de la liste des ID
             searchEngines[index].selected = listIds.indexOf(seItem.id) > -1
-        });
+        })
         
         // Sélectionner le profil de recherche correspondant aux moteurs séléctionnés
         if ($enableSelectSearchEnginesLimit && limitSelectionReached)
             updateSelectedSearchProfile()
     }
-    function confirmChangeSearchProfile(e) {
+    const confirmChangeSearchProfile = (e) => {
         // MAJ l'historique
         selectSearchProfileById(e.detail.selectedId)
 
         // Masquer la popup
-        modalSelectSearchProfile = false;
+        modalSelectSearchProfile = false
     }
-    function selectSearchProfileById(idSearchProfile) {
+    const selectSearchProfileById = (idSearchProfile) => {
         // MAJ le profil de recherche choisi
-        selectedSearchProfileID = parseInt(idSearchProfile);
+        selectedSearchProfileID = parseInt(idSearchProfile)
 
-        let searchProfile = searchProfiles.filter((spItem) => parseInt(spItem.id) == parseInt(idSearchProfile))[0]
+        let searchProfile = $listSearchProfiles.filter((spItem) => parseInt(spItem.id) == parseInt(idSearchProfile))[0]
 
         // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
         if (searchProfile.searchEnginesIds.length > 1)
-            multiSelectionSearchEngines.set(true);
+            multiSelectionSearchEngines.set(true)
 
         // Charger les moteurs de recherche du profil :
-        let listSE = searchProfile.searchEnginesIds; // Moteurs de recherche du profil de recherche
+        let listSE = searchProfile.searchEnginesIds // Moteurs de recherche du profil de recherche
 
         // Sélectionner les moteurs de recherche
         selectSearchEngineByIds(listSE)
@@ -187,20 +207,20 @@
         async.eachSeries(pages, function openPage(url, done) {
             // Ne pas prendre en charge la 1ère page dans cette fonction s'il faut l'ouvrir dans la page actuelle
             if (pages[0] == url && openSearchInSamePage)
-                return done();
+                return done()
 
             // Ouvrir l'adresse URL dans une nouvelle page
-            window.open(url);
+            window.open(url)
 
             // Passer au suivant
-            return done();
+            return done()
         }, function finished() {
             // Ouvrir la page restante dans la page actuelle si le paramètre est activé
             if (openSearchInSamePage)
-                window.open(pages[0], "_self"); // "_self" => Ouvrir l'adresse URL dans la page actuelle
-        });
+                window.open(pages[0], "_self") // "_self" => Ouvrir l'adresse URL dans la page actuelle
+        })
     }
-    function loadPreferences() {
+    const loadPreferences = () => {
         switch ($actionWhenOpeningSearchPage) {
             case "searchProfile":
                 // Charger le profil de recherche par défaut (charge le moteur de recherche du profil)
@@ -214,12 +234,12 @@
                 break
         }
     }
-    function sortSearchEngines(a, b) {
+    const sortSearchEngines = (a, b) => {
         if ( a.name < b.name )
-            return -1;
+            return -1
         if ( a.name > b.name )
-            return 1;
-        return 0;
+            return 1
+        return 0
     }
     const addSearchEngineToSelection = (e) => {
         // Le moteur de recherche à ajouter
@@ -281,15 +301,33 @@
     onDestroy(() => {
         // Unsubscriptions
         unsub_listSearchEngines()
-        unsub_listSearchProfiles()
     })
     onMount(onPageMount)
 
 </script>
 
-<main id="searchPage">
+<div class="scanners">
+    {#if $enableSearchEngineAlias}
+        <AliasChecker
+            bind:query={ queryInput }
+            on:updateQuery={onUpdateQuery}
+            on:selectSearchEngine={addSearchEngineToSelection}
+            on:deselectSearchEngine={removeSearchEngineToSelection}
+            on:replaceSearchEngine={replaceSearchEngineToSelection}
+            selectedSearchEngines={searchEngines.filter(seItem => seItem.selected)}
+        />
+    {/if}
+</div>
+
+<svelte:window bind:innerHeight={innerHeight} />
+
+<main id="searchPage"
+    class:fit={size == "fit"}
+    class:expand={size == "expand"}
+    style="--height: {innerHeight}px"
+>
     <nav class="nav-searchProfile">
-        {#each searchProfiles.slice(0, maxSearchProfilesInNavbar) as sp}
+        {#each $listSearchProfiles.slice(0, maxSearchProfilesInNavbar) as sp}
             {#if parseInt(selectedSearchProfileID) === parseInt(sp.id)}
                 <Link class="current" on:click={() => {selectSearchProfileById(sp.id)}}>
                     <Icofont icon="{sp.icon}" size="16" />
@@ -304,9 +342,9 @@
                 {/if}
             {/if}
         {/each}
-        {#if searchProfiles.length > maxSearchProfilesInNavbar}
+        {#if $listSearchProfiles.length > maxSearchProfilesInNavbar}
             <Link on:click={() => {modalSelectSearchProfile = true}}>
-                <span class="label">Plus {searchProfiles.length - maxSearchProfilesInNavbar}</span>
+                <span class="label">Plus {$listSearchProfiles.length - maxSearchProfilesInNavbar}</span>
                 <Icofont icon="dropdown" size="16" />
             </Link>
         {/if}
@@ -317,42 +355,32 @@
             bind:this={ searchBox }
             bind:value={ queryInput }
             on:submit={ executeQuery }
-            on:askSearchEngines={() => (modalSelectSearchEngines = true)}
-            searchEngines={searchEngines.filter((seItem) => seItem.selected)}
+            on:askSearchEngines={() => modalSelectSearchEngines = true}
+            searchEngines={searchEngines.filter(seItem => seItem.selected)}
             placeholder="Tapez votre requête ici"
             clickableBubbles="true" />
     </div>
 
-    {#if $enableSearchEngineAlias}
-        <AliasChecker
-            bind:query={ queryInput }
-            on:updateQuery={onUpdateQuery}
-            on:selectSearchEngine={addSearchEngineToSelection}
-            on:deselectSearchEngine={removeSearchEngineToSelection}
-            on:replaceSearchEngine={replaceSearchEngineToSelection}
-            selectedSearchEngines={searchEngines.filter((seItem) => seItem.selected)}
-        />
-    {/if}
-
     <div class="bottomToolbar">
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectSearchEngines = true)}>
+        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchEngines = true}>
             <Icofont icon="circles" />
             <span class="text">Moteurs de recherche</span>
         </Button>
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalSelectSearchProfile = true)}>
+        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchProfile = true}>
             <Icofont icon="search" />
             <span class="text">Profils de recherche</span>
         </Button>
 
         <span class="spacer"></span>
 
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => (modalResetSelection = true)}>
+        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalResetSelection = true}>
             <Icofont icon="bin" />
             <span class="text">Réinitialiser</span>
         </Button>
     </div>
+</main>
 
-
+<div class="modals">
     <ModalSearchEnginesSelector
         bind:open={modalSelectSearchEngines}
         idSelectedSearchEngines={selectedSearchEnginesIDs.filter(() => true)}
@@ -369,8 +397,8 @@
         danger
         size="sm"
         bind:open={modalResetSelection}
-        modalHeading="Rétablir le profil de recherche par défaut"
-        primaryButtonText="Réinitialiser"
+        modalHeading="Réinitialiser la sélection"
+        primaryButtonText="Continuer"
         secondaryButtonText="Annuler"
         on:click:button--primary={resetSelection}
         on:click:button--secondary={() => (modalResetSelection = false)}
@@ -378,7 +406,7 @@
         on:close={() => (modalResetSelection = false)}
         on:submit={resetSelection}
     >
-        <p>Voulez-vous vraiment rétablir le profil de recherche par défaut ?</p>
+        <p>Souhaitez-vous réellement rétablir la sélection initiale des moteurs de recherche ?</p>
         <br /><br /><br />
     </Modal>
 
@@ -387,8 +415,8 @@
         bind:open={modalErrorLimitReached}
         modalHeading="Limite atteinte"
         primaryButtonText="D'accord"
-        on:click:button--primary={() => (modalErrorLimitReached = false)}
-        on:close={() => (modalErrorLimitReached = false)}
+        on:click:button--primary={() => modalErrorLimitReached = false}
+        on:close={() => modalErrorLimitReached = false}
     >
         <span style="float: right; color: var(--cds-support-03); margin-left: var(--cds-spacing-04);">
             <Icofont icon="warning" size="50" />
@@ -398,13 +426,28 @@
         <p>Si vous souhaitez quand même en sélectionner plus, réhaussez la limite ou désactivez le paramètre dans vos préférences.</p>
         <br /><br /><br />
     </Modal>
-</main>
+</div>
 
 <style lang="scss">
     main#searchPage {
         margin-top: -92px;
         padding: 10px;
         transition: all .3s;
+
+        &.fit,
+        &.expand {
+            position: relative;
+            display: flex;
+            flex-flow: column;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        &.fit {min-height: 300px;}
+        &.expand {
+            --height: 300px;
+            height: var(--height);
+        }
     }
 
     // Profils de recherche (liens en haut de l'écran)
@@ -431,13 +474,10 @@
 
     // Barre d'outils (boutons en bas de l'écran)
     main#searchPage .bottomToolbar {
-        position: absolute;
-        left: 0; right: 0;
-        bottom: 0;
-
         display: flex;
-        padding: 25px;
         transition: all .5s;
+        position: static;
+        padding: 10px;
 
         .spacer {flex: 1;}
         :global(button) {
@@ -459,16 +499,26 @@
     }
 
     @media (max-width: 672px) {
-        main#searchPage {margin: 0;}
-        :global(.query-form) {max-width: 400px;}
+        // Composant
+        main#searchPage {
+            margin: 0;
 
+            // En plein écran
+            &.expand {
+                height: calc(var(--height) - 52px); // 52px = hauteur du header 
+            }
+        }
+
+        // Profils de recherche
         .nav-searchProfile {
             padding: 8px;
             justify-content: flex-start;
         }
 
+        // Barre d'outils en bas
         main#searchPage .bottomToolbar {
-            padding: 10px;
+            padding: 0;
+
             :global(.icofont) {font-size: 22px;}
             :global(.text) {display: none;}
         }
