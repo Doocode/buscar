@@ -1,23 +1,33 @@
 <script>
-    // Imports
-    import { pop, location } from 'svelte-spa-router'
-    import { Button, Link } from "carbon-components-svelte"
-    import { elasticOut, quintOut } from 'svelte/easing'
-    import { fade, fly } from 'svelte/transition' // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
-    import Icofont from './Icofont.svelte'
-    import { allowHeaderBackButton } from '../Stores/settings'
-    import { pageName, pageIcon, transparentHeader } from '../Stores/header'
-    import QuickControlsPane from './QuickControls/QuickControlsPane.svelte'
-
-
-
-    // Attributs à définir
+    // Exports
     export let appname = "Lorem ipsum"
 
 
 
+    // Imports
+    import { pop, location }
+        from 'svelte-spa-router'
+    import { Button, Link }
+        from "carbon-components-svelte"
+    import { elasticOut, quintOut }
+        from 'svelte/easing'
+    import { fade, fly }
+        from 'svelte/transition' // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
+    import Icofont
+        from './Icofont.svelte'
+    import { allowHeaderBackButton }
+        from '../Stores/settings'
+    import { pageName, pageIcon, transparentHeader }
+        from '../Stores/header'
+    import QuickControlsPane
+        from './QuickControls/QuickControlsPane.svelte'
+    import OutClick
+        from 'svelte-outclick'
+
+
+
     // Attributs internes
-    let menuWidth = 300; // Largeur du panneau de menu
+    let menuWidth = 300 // Largeur du panneau de menu
 
 
 
@@ -29,32 +39,32 @@
 
 
     // Réactivité
-    $: canGoBack = $location != "/";
+    $: canGoBack = $location != "/"
 
 
 
     // Méthodes
-    function toggleLeftMenu() {
-        leftMenu_visible = !leftMenu_visible;
-        rightMenu_visible = false;
+    const toggleLeftMenu = () => {
+        leftMenu_visible = !leftMenu_visible
+        rightMenu_visible = false
     }
-    function toggleRightMenu() {
-        rightMenu_visible = !rightMenu_visible;
-        leftMenu_visible = false;
+    const toggleRightMenu = () => {
+        rightMenu_visible = !rightMenu_visible
+        leftMenu_visible = false
     }
-    function goBack() {
-        pop();
+    const goBack = () => {
+        pop()
         backButton_visible = !backButton_visible
     }
-    function whoosh(node, params) {
-		const existingTransform = getComputedStyle(node).transform.replace('none', '');
+    const whoosh = (node, params) => {
+		const existingTransform = getComputedStyle(node).transform.replace('none', '')
 
 		return {
 			delay: params.delay || 0,
 			duration: params.duration || 400,
 			easing: params.easing || elasticOut,
 			css: (t, u) => `transform: ${existingTransform} scale(${t})`
-		};
+		}
 	}
 </script>
 
@@ -84,72 +94,74 @@
 </header>
 
 {#if leftMenu_visible}
-    <nav 
-        class="menu-left" 
-        bind:clientWidth={menuWidth}
-        transition:fly="{{duration: 300, x: -menuWidth, y: 0, opacity: 1, easing: quintOut}}"
-    >
-        <div class="head">
-            <Button 
-                kind="tertiary" 
-                on:click="{toggleLeftMenu}" 
-                style="border-radius: 5px; gap: 5px; min-height: auto; padding: 10px;"
-            >
-                <Icofont icon="cross" />
-                <span class="label">Fermer le menu</span>
-            </Button>
+    <OutClick on:outclick={toggleLeftMenu} >
+        <nav
+            class="menu-left"
+            bind:clientWidth={menuWidth}
+            transition:fly="{{duration: 300, x: -menuWidth, y: 0, opacity: 1, easing: quintOut}}"
+        >
+            <div class="head">
+                <Button 
+                    kind="tertiary" 
+                    on:click="{toggleLeftMenu}" 
+                    style="border-radius: 8px; gap: 10px; min-height: auto; padding: 12px;"
+                >
+                    <Icofont icon="arrow_left" size="16" />
+                    <span class="label">Fermer le menu</span>
+                </Button>
 
-            <div class="appIdent">
-                <Icofont icon="search" size="50" />
-                <img src="/assets/pwa-icons/icon-128x128.png" alt="Logo de l'application" />
-                <p class="title">{appname}</p>
+                <div class="appIdent">
+                    <Icofont icon="search" size="50" />
+                    <img src="/assets/pwa-icons/icon-128x128.png" alt="Logo de l'application" />
+                    <p class="title">{appname}</p>
+                </div>
             </div>
-        </div>
 
-        <div class="links" on:click="{toggleLeftMenu}" >
-            <Link href="/#/" size="lg">
-                <Icofont icon="home" />
-                <span class="label">Accueil</span>
-            </Link>
-            <!--Link href="/#/bookmarks" size="lg">
-                <Icofont icon="squares" />
-                <span class="label">Favoris</span>
-            </Link>
-            <Link href="/#/network" size="lg">
-                <Icofont icon="compass" />
-                <span class="label">Réseau</span>
-            </Link-->
+            <div class="links" on:click="{toggleLeftMenu}" >
+                <Link href="/#/" size="lg">
+                    <Icofont icon="home" />
+                    <span class="label">Accueil</span>
+                </Link>
+                <!--Link href="/#/bookmarks" size="lg">
+                    <Icofont icon="squares" />
+                    <span class="label">Favoris</span>
+                </Link>
+                <Link href="/#/network" size="lg">
+                    <Icofont icon="compass" />
+                    <span class="label">Réseau</span>
+                </Link-->
 
-            <span class="blank-space"></span>
-            
-            <Link href="/#/library" size="lg">
-                <Icofont icon="details" />
-                <span class="label">Bibliothèque</span>
-            </Link>
-            <Link href="/#/library/search-engines" size="lg">
-                <Icofont icon="circles" />
-                <span class="label">Moteurs de recherche</span>
-            </Link>
-            <Link href="/#/library/search-profiles" size="lg">
-                <Icofont icon="search" />
-                <span class="label">Profils de recherche</span>
-            </Link>
+                <span class="blank-space"></span>
+                
+                <!--Link href="/#/library" size="lg">
+                    <Icofont icon="details" />
+                    <span class="label">Bibliothèque</span>
+                </Link-->
+                <Link href="/#/library/search-engines" size="lg">
+                    <Icofont icon="circles" />
+                    <span class="label">Moteurs de recherche</span>
+                </Link>
+                <Link href="/#/library/search-profiles" size="lg">
+                    <Icofont icon="search" />
+                    <span class="label">Profils de recherche</span>
+                </Link>
 
-            <span class="blank-space"></span>
+                <span class="blank-space"></span>
 
-            <Link href="/#/preferences" size="lg">
-                <Icofont icon="config" />
-                <span class="label">Préférences</span>
-            </Link>
+                <Link href="/#/preferences" size="lg">
+                    <Icofont icon="config" />
+                    <span class="label">Préférences</span>
+                </Link>
 
-            <span class="blank-space"></span>
+                <span class="blank-space"></span>
 
-            <Link href="/#/help" size="lg">
-                <Icofont icon="info" />
-                <span class="label">Aide</span>
-            </Link>
-        </div>
-    </nav>
+                <Link href="/#/help" size="lg">
+                    <Icofont icon="info" />
+                    <span class="label">Aide</span>
+                </Link>
+            </div>
+        </nav>
+    </OutClick>
 {/if}
 
 {#if rightMenu_visible}
@@ -214,7 +226,7 @@
 
     .menu-left {
         min-width: 300px;
-        background: var(--cds-ui-01, #fff);
+        background: var(--cds-ui-01);
         box-shadow: 0 0 50px rgba(0,0,0,.3);
         transition: background .2s;
 
@@ -280,10 +292,6 @@
                 :global(.icofont) {font-size: 18px;}
             }
 		}
-
-        .menu-left {
-            width: 100%;
-        }
 
         .quick-controls {
             --margin: 1px;
