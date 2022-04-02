@@ -25,6 +25,8 @@
         from './Preferences/Display.svelte'
     import Search
         from './Preferences/Search.svelte'
+    import QuickSettings
+        from './Preferences/QuickSettings.svelte'
 
 
 
@@ -33,12 +35,14 @@
     const ROUTES = {
         '/search':          Search,
         '/interface':       Display,
+        '/quick-settings':  QuickSettings,
         '/':                Display,
     }
     let pages = [
         {name: "Apparence", path: "interface", icon: "screen"},
         {name: "Recherche", path: "search", icon: "search"},
-        //{type: "separator"},
+        {type: "separator"},
+        {name: "Réglages rapides", path: "quick-settings", icon: "settings"},
     ]
     let size
 

@@ -72,3 +72,63 @@ export const enableSelectSearchEnginesLimit = writable(true)
 
 // - Valeur de la limite pour la sélection des moteurs de recherche
 export const selectSearchEnginesLimitValue = writable(5)
+
+
+
+// RÉGLAGES RAPIDES
+// - Liste des réglages rapides
+export const listQuickControls = createQuickControlsList([
+    { id: 1, position: 1, visible: true, icon: "palette",
+    longName: "Sélecteur d'ambiances", value:'ambianceSelector' },
+    { id: 2, position: 2, visible: true, icon: "search",
+    longName: "Largeur de la barre de recherche", value:'compactSearchBar' },
+    { id: 3, position: 3, visible: true, icon: "compass",
+    longName: "Alias des moteurs de recherche", value:'searchEnginesAlias' },
+    { id: 4, position: 4, visible: false, icon: "circles",
+    longName: "Limiter la sélection des moteurs", value:'limitSelectSearchEngines' },
+    { id: 5, position: 5, visible: false, icon: "arrow_left",
+    longName: "Afficher le bouton Retour", value:'backButton' },
+])
+// Store spécial pour les contrôles rapides
+function createQuickControlsList(initial_value) {
+    const { subscribe, set, update } = writable(initial_value);
+
+    return {
+        subscribe,
+        toggleVisibility: (value) => {
+            // Vérifier que la valeur existe
+            let results = initial_value.filter(i => i.value == value)
+            if (results.length != 1)
+                return
+
+            // Retrouver l'index
+            let index = initial_value.indexOf(results[0])
+
+            // Mise à jour
+            update(list => {
+                list[index].visible = !list[index].visible
+                return list
+            })
+        },
+        switchPosition: (valueA, valueB) => {
+            // Vérifier que les valeurs existent
+            let results = initial_value.filter(i => i.value == valueA || i.value == valueB)
+            if (results.length != 2)
+                return
+
+            // Retrouver les index
+            let indexA = initial_value.indexOf(results[0])
+            let indexB = initial_value.indexOf(results[1])
+
+            // Mise à jour
+            update(list => {
+                let posA = list[indexA].position
+                //let posB = list[indexB].position
+                list[indexA].position = list[indexB].position
+                list[indexB].position = posA
+                return list
+            })
+        },
+        reset: () => set(initial_value)
+    };
+}

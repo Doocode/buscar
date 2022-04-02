@@ -2,8 +2,10 @@
     // Imports
     import { allowHeaderBackButton, compactSearchBox, enableSearchEngineAlias,
         enableSelectSearchEnginesLimit, selectSearchEnginesLimitValue,
-        contrastMode, ambiances }
+        contrastMode, listQuickControls }
         from "../../Stores/settings"
+    import { Link }
+        from "carbon-components-svelte"
     import QuickTile
         from "./QuickTile.svelte"
     import QuickToggle
@@ -22,13 +24,6 @@
 
 
     // Propriétés
-    const TILES = [
-        {position: 1, visible: true, value:'ambianceSelector'},
-        {position: 2, visible: true, value:'compactSearchBar'},
-        {position: 3, visible: true, value:'searchEnginesAlias'},
-        {position: 4, visible: true, value:'limitSelectSearchEngines'},
-        {position: 5, visible: true, value:'backButton'},
-    ]
     const ROUTES = {
         home: "",
         ambiances: "ambiances",
@@ -39,14 +34,14 @@
 
 
     // Réactivité
-    $: currentAmbiance = $ambiances.filter((a) => a.value == $contrastMode)[0]
+    $: currentContrastPref = parseCurrentContrastMode($contrastMode)
 
 
 
     // Fonctions
     const getTiles = () => {
         // Trier et filtrer les tuiles
-        return TILES
+        return $listQuickControls
             .sort((a, b) => (a.position - b.position)) // Trié les tuiles selon leurs positions
             .filter((a) => (a.visible)) // Filtrer les tuiles visibles
     }
@@ -58,6 +53,14 @@
     }
     const displayAmbiances = () => {
         currentPage = ROUTES.ambiances
+    }
+    const parseCurrentContrastMode = () => {
+        switch($contrastMode) {
+            case "browser":
+                return {icon: "screen", name: "Système"}
+            case "custom":
+                return {icon: "settings", name: "Personnalisé"}
+        }
     }
 </script>
 
@@ -76,8 +79,8 @@
                                 <QuickTile on:click={displayAmbiances}
                                     name="Ambiances" icon="palette">
                                     <div class="value">
-                                        <Icofont icon={currentAmbiance.icon} size="14" />
-                                        <p class="label">{currentAmbiance.name}</p>
+                                        <Icofont icon={currentContrastPref.icon} size="14" />
+                                        <p class="label">{currentContrastPref.name}</p>
                                     </div>
                                 </QuickTile>
                             {:else if tile.value == 'compactSearchBar'}
@@ -108,6 +111,13 @@
                                 <!--p>Tuile inconnue : {tile.value}</p-->
                             {/if}
                         {/each}
+                    </div>
+
+                    <div style="padding: var(--cds-spacing-05);">
+                        <Link href="/#/preferences/quick-settings">
+                            <Icofont icon="settings" size="16" />
+                            <span class="label">Modifier ce panneau</span>
+                        </Link>
                     </div>
                 </ControlsPage>
             </div>
@@ -151,6 +161,13 @@
 
                 p {font-size: 100%;}
             }
+        }
+
+        // Liens
+        :global(.bx--link) {
+            display: inline-flex;
+            gap: var(--cds-spacing-03);
+            align-items: center;
         }
     }
 
