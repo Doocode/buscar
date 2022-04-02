@@ -1,56 +1,61 @@
 <script>
-    // Imports
-    import { Dropdown, Toggle, Modal, Grid, Row, Column, TextInput,
-        SelectableTile,  RadioTile, TileGroup, Breakpoint, 
-        Tabs, Tab, TabContent, ButtonSet, Button, FormGroup }
-        from "carbon-components-svelte"
-	import { multiSelectionSearchEngines}
-        from '../Stores/settings'
-	import { listSearchEngines } from '../Stores/search'
-    import async from "async"
-    import { createEventDispatcher, onDestroy } from 'svelte';
-    import Icofont from "../UI/Icofont.svelte";
+    // Exports
+    export let open = false // Flag pour afficher la popup
+    export let idSelectedSearchEngines = [] // Liste des ID des moteurs sélectionnés
 
-    // Propriétés externes
-    export let open = false; // Flag pour afficher la popup
-    export let idSelectedSearchEngines = []; // Liste des ID des moteurs sélectionnés
+
+
+    // Imports
+    import { Modal, SelectableTile,  RadioTile, TileGroup, Breakpoint, Search,
+        OverflowMenu, OverflowMenuItem }
+        from "carbon-components-svelte"
+	import { multiSelectionSearchEngines }
+        from '../Stores/settings'
+	import { listSearchEngines }
+        from '../Stores/search'
+    import async
+        from "async"
+    import { createEventDispatcher, onDestroy }
+        from 'svelte'
+    import Icofont
+        from "../UI/Icofont.svelte"
+
+    
 
     // Propriétés internes
-    const dispatch = createEventDispatcher(); // Pour créer des events
-    let multiSelectSearchEngines // Flag pour la sélection multiple
+    const dispatch = createEventDispatcher() // Pour créer des events
     let searchEngines = [] // Liste des moteurs de recherche
     let sortMenu = [
-        { id: 0, text: "Nom [asc]", sort: {on: "name", order: "asc"} },
-        { id: 1, text: "Nom [desc]", sort: {on: "name", order: "desc"} },
-        { id: 2, text: "Sélection [asc]", sort: {on: "selected", order: "asc"} },
-        { id: 3, text: "Sélection [desc]", sort: {on: "selected", order: "desc"} },
+        { id: 0, text: "Nom", sort: {on: "name", order: "asc"} },
+        { id: 1, text: "Nom", sort: {on: "name", order: "desc"} },
+        { id: 2, text: "Type", sort: {on: "type", order: "asc"} },
+        { id: 3, text: "Type", sort: {on: "type", order: "desc"} },
+        { id: 4, text: "Sélection", sort: {on: "selected", order: "asc"} },
+        { id: 5, text: "Sélection", sort: {on: "selected", order: "desc"} },
     ]
     let selectedSortMode = 0 // Mode de tri
     let inputSearchSE = "" // Filter les moteurs de recherche
     let size // Taille de l'écran (responsive)
 
+
+
     // Réactivité
-    $: {
-        // Activer la sélection multiple s'il y plusieurs moteurs sélectionnés
-        if (idSelectedSearchEngines.length > 1)
-            multiSelectSearchEngines = true
-    }
+    $: if (idSelectedSearchEngines.length > 1) // S'il faut sélectionner plusieurs moteurs
+            multiSelectionSearchEngines.set(true) // Activer la sélection multiple
     /* Recalculer la liste des moteurs de recherche lorsque un des éléments suivants change :
         - Le mode de tri (ordre d'affichage)
         - La sélection des moteurs de recherche
         - Le filtre sur les moteurs de recherche
     */
     $: sortedSearchEngines = resortList(selectedSortMode, idSelectedSearchEngines, inputSearchSE)
-    $: if (idSelectedSearchEngines.length > 1) {
-        // Activer la sélection multiple s'il y a plusieurs moteurs sélectionnés
-        multiSelectionSearchEngines.set(true)
-    }
     $: updateSelection(open)
+
+
 
 	// Observations
     const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
         // Regénération de la liste en local
-        let listSE = [];
+        let listSE = []
         async.eachSeries(value, function parseSE(seItem, done) {
             // Ajouts des propriétés manquantes
             seItem.selected = idSelectedSearchEngines.indexOf(seItem.id) > -1
@@ -60,35 +65,35 @@
             return done()
         }, function finished() {
             // Mise à jour
-            searchEngines = listSE;
-        });
-    });
-	const unsub_multiSelectionSearchEngines = multiSelectionSearchEngines.subscribe(value => {
-		multiSelectSearchEngines = value;
-	});
+            searchEngines = listSE
+        })
+    })
+
+
 
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
-        unsub_listSearchEngines();
-        unsub_multiSelectionSearchEngines();
-    });
+        unsub_listSearchEngines()
+    })
+
+
 
     // Méthodes
-    function updateSelection() {
+    const updateSelection = () => {
         // Actualiser la liste des moteurs sélectionnés
         searchEngines.forEach((seItem, index) => {
             searchEngines[index].selected = idSelectedSearchEngines.indexOf(seItem.id) > -1
         })
         idSelectedSearchEngines = idSelectedSearchEngines
     }
-    function confirmSelection() {
+    const confirmSelection = () => {
         // Récupérer les moteurs sélectionnés
-        let listIds = [];
+        let listIds = []
         let listItems = searchEngines.filter((seItem) => {
             if (seItem.selected)
                 listIds.push(parseInt(seItem.id))
-            return seItem.selected;
+            return seItem.selected
         })
         idSelectedSearchEngines = listIds
         
@@ -96,30 +101,36 @@
         dispatch('submit', {
             selectedItems: listItems,
             selectedIds: listIds
-        });
+        })
     }
-    function sortSearchEngines(a, b) {
+    const sortSearchEngines = (a, b) => {
         // Récupérer le mode de tri
-        let sortMode = sortMenu[selectedSortMode].sort;
+        let sortMode = sortMenu[selectedSortMode].sort
 
         // En fonction du mode de tri
         switch (sortMode.on) {
             case "name": // Trier sur le nom
                 if ( a.name < b.name )
-                    return sortMode.order == "asc" ? -1 : 1;
+                    return sortMode.order == "asc" ? -1 : 1
                 if ( a.name > b.name )
-                    return sortMode.order == "asc" ? 1 : -1;
-                break;
+                    return sortMode.order == "asc" ? 1 : -1
+                break
             case "selected":
                 if ( a.selected < b.selected )
-                    return sortMode.order == "asc" ? -1 : 1;
+                    return sortMode.order == "asc" ? -1 : 1
                 if ( a.selected > b.selected )
-                    return sortMode.order == "asc" ? 1 : -1;
-                break;
+                    return sortMode.order == "asc" ? 1 : -1
+                break
+            case "type":
+                if ( a.type.id < b.type.id )
+                    return sortMode.order == "asc" ? -1 : 1
+                if ( a.type.id > b.type.id )
+                    return sortMode.order == "asc" ? 1 : -1
+                break
         }
-        return 0;
+        return 0
     }
-    function resortList() {
+    const resortList = () => {
         // Tri des moteurs de recherche
         let list = searchEngines.sort(sortSearchEngines)
 
@@ -128,14 +139,14 @@
             list = list.filter((seItem) => seItem.name.toLowerCase().indexOf(inputSearchSE.toLowerCase()) > -1)
         }
 
-        return list;
+        return list
     }
-    function selectAll() {
+    const selectAll = () => {
         // Activer la sélection multiple
         multiSelectionSearchEngines.set(true)
 
         // Initialisation de la liste des IDs
-        let listIds = [];
+        let listIds = []
 
         // Parcourir les moteurs de recherche
         for (let ii=0; ii<searchEngines.length; ii++) {
@@ -147,28 +158,27 @@
         resortList()
         idSelectedSearchEngines = listIds
     }
-    function unselectAll() {
+    const unselectAll = () => {
         // Activer la sélection multiple
         multiSelectionSearchEngines.set(true)
         
         // Initialisation de la liste des IDs
-        let listIds = [];
+        let listIds = []
 
         // Parcourir les moteurs de recherche
-        for (let ii=0; ii<searchEngines.length; ii++) {
+        for (let ii=0; ii<searchEngines.length; ii++)
             searchEngines[ii].selected = false // Sélectionner l'item
-        }
         
         // Mettre à jour l'affichage
         resortList()
         idSelectedSearchEngines = listIds
     }
-    function toggleSelection() {
+    const toggleSelection = () => {
         // Activer la sélection multiple
         multiSelectionSearchEngines.set(true)
 
         // Initialisation de la liste des IDs
-        let listIds = [];
+        let listIds = []
 
         // Parcourir les moteurs de recherche
         for (let ii=0; ii<searchEngines.length; ii++) {
@@ -196,87 +206,74 @@
         on:click:button--secondary={() => open = false}
         on:open={updateSelection}
     >
-        <Tabs>
-            <Tab label="Filtrer" />
-            <Tab label="Sélection" />
-
-            <svelte:fragment slot="content">
-                <TabContent>
-                    <Grid style="padding: 0">
-                        <Row>
-                            <Column style="padding-top: .2rem;">
-                                <TextInput labelText="Rechercher"
-                                    placeholder="Rechercher dans le nom du moteur de recherche"
-                                    bind:value={inputSearchSE} />
-                            </Column>
-                            <Column>
-                                <Dropdown
-                                    titleText="Trier par"
-                                    bind:selectedIndex={selectedSortMode}
-                                    items={sortMenu}
-                                />
-                            </Column>
-                            <!--Column>
-                                <Dropdown
-                                    titleText="Affichage"
-                                    selectedIndex="0"
-                                    items={[
-                                        { id: "0", text: "Icônes" },
-                                        { id: "1", text: "Mosaïques" },
-                                        { id: "2", text: "Liste détaillé" },
-                                    ]}
-                                />
-                            </Column-->
-                        </Row>
-                    </Grid>
-                </TabContent>
-                <TabContent>
-                    <Grid style="padding: 0">
-                        <Row>
-                            <Column>
-                                <FormGroup legendText="Sélectionner" style="margin: 0">
-                                    <ButtonSet class="big">
-                                        <Button kind="ghost" on:click={selectAll}>
-                                            <Icofont icon="squares" size="22" />
-                                            <span class="text">Tout</span>
-                                        </Button>
-                                        <Button kind="ghost" on:click={unselectAll}>
-                                            <Icofont icon="disable" size="22" />
-                                            <span class="text">Aucun</span>
-                                        </Button>
-                                        {#if size != "sm"}
-                                            <Button kind="ghost" on:click={toggleSelection}>
-                                                <Icofont icon="reload" size="22" />
-                                                <span class="text">Inverser</span>
-                                            </Button>
-                                        {/if}
-                                    </ButtonSet>
-                                    {#if size == "sm"}
-                                        <ButtonSet>
-                                            <Button kind="ghost" on:click={toggleSelection}>
-                                                <Icofont icon="reload" size="16" />
-                                                <span class="text">Inverser</span>
-                                            </Button>
-                                        </ButtonSet>
-                                    {/if}
-                                </FormGroup>
-                            </Column>
-                            <Column>
-                                <Toggle labelText="Sélection multiple" 
-                                    labelA="Non" labelB="Activé" bind:toggled={$multiSelectionSearchEngines} />
-                            </Column>
-                        </Row>
-                    </Grid>
-                </TabContent>
-            </svelte:fragment>
-        </Tabs>
+        <div class="toolbar" class:flow-column={["sm"].indexOf(size) > -1}>
+            <Search placeholder="Rechercher un moteur de recherche"
+                bind:value={inputSearchSE} />
+        
+            <div class="toolbar">
+                <OverflowMenu flipped>
+                    <div slot="menu" class="menu-button">
+                        <Icofont icon="sort" size="16" />
+                        <span class="label">Trier</span>
+                        <Icofont icon="dropdown" size="14" />
+                    </div>
+    
+                    {#each sortMenu as item, i}
+                        <OverflowMenuItem
+                            primaryFocus={selectedSortMode == i}
+                            on:click={() => selectedSortMode = i} >
+                            <div class="label">
+                                {#if item.sort.order == "asc"}
+                                    <Icofont icon="arrow_up" size="16" />
+                                {:else}
+                                    <Icofont icon="arrow_down" size="16" />
+                                {/if}
+                                <span class="text">{item.text}</span>
+                            </div>
+                        </OverflowMenuItem>
+                    {/each}
+                </OverflowMenu>
+                
+                <OverflowMenu flipped>
+                    <div slot="menu" class="menu-button">
+                        <Icofont icon="circles" size="16" />
+                        <span class="label">Sélection</span>
+                        <Icofont icon="dropdown" size="14" />
+                    </div>
+    
+                    <OverflowMenuItem on:click={selectAll} >
+                        <div class="label">
+                            <Icofont icon="squares" size="16" />
+                            <span class="text">Tout</span>
+                        </div>
+                    </OverflowMenuItem>
+                    <OverflowMenuItem on:click={unselectAll} >
+                        <div class="label">
+                            <Icofont icon="disable" size="16" />
+                            <span class="text">Aucun</span>
+                        </div>
+                    </OverflowMenuItem>
+                    <OverflowMenuItem on:click={toggleSelection} >
+                        <div class="label">
+                            <Icofont icon="reload" size="16" />
+                            <span class="text">Inverser</span>
+                        </div>
+                    </OverflowMenuItem>
+                    {#if $multiSelectionSearchEngines }
+                        <OverflowMenuItem text="Sélection simple" on:click={() => {multiSelectionSearchEngines.set(!$multiSelectionSearchEngines)}} />
+                    {:else}
+                        <OverflowMenuItem text="Sélection multiple" on:click={() => {multiSelectionSearchEngines.set(!$multiSelectionSearchEngines)}} />
+                    {/if}
+                </OverflowMenu>
+            </div>
+        </div>
 
         <br/><br/>
 
         <TileGroup legend="Liste des moteurs de recherche">
             <div class="se-items" role="group" aria-label="Liste des moteurs de recherche">
                 {#each sortedSearchEngines as seItem}
-                    {#if multiSelectSearchEngines}
+                    {#if $multiSelectionSearchEngines}
                         <SelectableTile bind:selected={seItem.selected} >
                             <img src="{seItem.icon}" alt="Logo de { seItem.name }" />
                             <p>{seItem.name}</p>
@@ -295,51 +292,72 @@
 </main>
 
 <style lang="scss">
-    main.modalSelector-SE :global(.bx--tab-content) {
-        border: 2px solid var(--cds-ui-03);
-        margin-top: -2px;
+    main.modalSelector-SE {
+        // Barre d'outils
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: var(--cds-spacing-03);
+            --border-radius: 7px;
 
-        // Boutons "Sélectionner"
-        :global(.bx--btn-set .bx--btn) {
-            text-align: left;
-            box-shadow: none;
-            border-radius: 6px;
-            justify-content: flex-start;
-            padding: .5rem .7rem;
-            min-height: initial;
-            min-width: initial;
-            width: initial;
-            gap: .5rem;
+            &.flow-column {
+                flex-flow: column;
+                align-items: flex-end;
+            }
         }
 
-        // Boutons "Sélectionner"
-        :global(.bx--btn-set.big .bx--btn) {
-            text-align: center;
-            flex-flow: column;
-            min-width: 70px;
+        // Barre de recherche
+        :global(.bx--search--xl .bx--search-input),
+        :global(.bx--search--xl .bx--search-close) {
+            border-radius: var(--border-radius);
+            height: 2.5rem;
+            margin: 0;
         }
-    }
-    main.modalSelector-SE .se-items { // Liste des moteurs de recherche (search engines items)
-        --icon-size: 40px;
-        
-        display: grid;
-        grid-gap: .3rem;
-        grid-template-columns: 1fr 1fr;
-
-        :global(.bx--tile--selectable) {
-            border-radius: .6rem;
-            padding: var(--cds-spacing-04);
-            min-width: 6rem;
+        :global(.bx--search--xl .bx--search-close) {
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
         }
 
-        img {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            border-radius: var(--icon-size);
-            box-shadow: 0 0 0 1px rgba(127,127,127,.5);
+        // Bouton menu
+        :global(.bx--overflow-menu) {
+            width: auto;
+            border-radius: var(--border-radius);
         }
-        :global(.bx--modal-content p) {
-            padding: 0;
+        .menu-button {
+            padding: 1rem .9rem;
+            color: var(--cds-text-02);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--cds-spacing-03);
+        }
+        div.label {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--cds-spacing-03);
+        }
+
+        // Liste des moteurs de recherche (search engines items)
+        .se-items {
+            --icon-size: 40px;
+            
+            display: grid;
+            grid-gap: .3rem;
+            grid-template-columns: 1fr 1fr;
+
+            :global(.bx--tile--selectable) {
+                border-radius: .6rem;
+                padding: var(--cds-spacing-04);
+                min-width: 6rem;
+            }
+
+            img {
+                width: var(--icon-size);
+                height: var(--icon-size);
+                border-radius: var(--icon-size);
+                box-shadow: 0 0 0 1px rgba(127,127,127,.5);
+            }
+            :global(.bx--modal-content p) {
+                padding: 0;
+            }
         }
     }
 
