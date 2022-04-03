@@ -1,6 +1,6 @@
 <script>
     // Imports
-    import { Modal, TextInput, RadioTile, TileGroup }
+    import { Modal, Search, RadioTile, TileGroup }
         from "carbon-components-svelte"
 	import { listSearchProfiles, listSearchEngines }
         from '../Stores/search'
@@ -147,7 +147,7 @@
         on:click:button--primary={confirmSelection}
         on:click:button--secondary={() => open = false}
     >
-        <TextInput labelText="Rechercher" bind:value={inputSearchSP} />
+        <Search placeholder="Rechercher les profils de recherche" bind:value={inputSearchSP} />
 
         <br/>
 
@@ -225,6 +225,17 @@
                 font-size: .9em;
                 opacity: .6;
             }
+        }
+    }
+
+    main.modalSelector-SP {
+        :global(.bx--search--xl .bx--search-input),
+        :global(.bx--search--xl .bx--search-close) {
+            border-radius: var(--border-radius);
+            margin: 0;
+        }
+        :global(.bx--search--xl .bx--search-close) {
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
         }
     }
 

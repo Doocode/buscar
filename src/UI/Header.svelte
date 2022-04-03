@@ -218,6 +218,9 @@
             background: transparent;
             box-shadow: none;
             pointer-events: none;
+            
+            z-index: 1;
+            position: relative;
 
             > .center {display: none;}
             > .left, > .right {pointer-events: all;}

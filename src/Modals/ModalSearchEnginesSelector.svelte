@@ -268,7 +268,7 @@
             </div>
         </div>
 
-        <br/><br/>
+        <br/>
 
         <TileGroup legend="Liste des moteurs de recherche">
             <div class="se-items" role="group" aria-label="Liste des moteurs de recherche">
@@ -303,6 +303,21 @@
             &.flow-column {
                 flex-flow: column;
                 align-items: flex-end;
+            }
+        }
+        :global(.bx--modal-content > .toolbar) {
+            position: sticky;
+            top: -8px;
+            background: var(--cds-ui-01);
+            margin-top: -8px;
+            z-index: 2;
+            margin-left: -15px;
+            margin-right: -15px;
+            padding: 8px 15px;
+
+            @supports (backdrop-filter: blur(40px)) {
+                backdrop-filter: blur(40px);
+                background: linear-gradient(to bottom, var(--cds-ui-01), transparent);
             }
         }
 

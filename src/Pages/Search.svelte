@@ -173,7 +173,7 @@
         // MAJ le profil de recherche choisi
         selectedSearchProfileID = parseInt(idSearchProfile)
 
-        let searchProfile = $listSearchProfiles.filter((spItem) => parseInt(spItem.id) == parseInt(idSearchProfile))[0]
+        let searchProfile = $listSearchProfiles.filter(spItem => parseInt(spItem.id) == parseInt(idSearchProfile))[0]
 
         // Activer la sélection multiple s'il y a plusieurs items dans le profil de recherche
         if (searchProfile.searchEnginesIds.length > 1)

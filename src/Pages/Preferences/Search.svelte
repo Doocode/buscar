@@ -201,14 +201,16 @@
             <RadioButton labelText={radioItem.text} value={radioItem.value} />
         {/each}
     </RadioButtonGroup>
+
+    <br/><br/>
     {#if $actionWhenOpeningSearchPage == "searchProfile"}
+        <div><legend class="bx--label">Le profil de recherche au démarrage :</legend></div>
         <ClickableTile
             class="btnStartup" id="btnSearchProfile"
             on:click={(e) => (modalSearchProfiles = true)}
             title="Définir le profil de recherche du démarrage"
         >
             <div class="data">
-                <legend class="bx--label">Le profil de recherche au démarrage :</legend>
                 <div class="ident">
                     <Icofont icon="{selectedStartupSearchProfile.icon}" size="18" />
                     <p class="name">{selectedStartupSearchProfile.name}</p>
@@ -225,13 +227,13 @@
             </div>
         </ClickableTile>
     {:else if $actionWhenOpeningSearchPage == "searchEngines"}
+        <div><legend class="bx--label">Les moteurs de recherche au démarrage :</legend></div>
         <ClickableTile
             class="btnStartup" id="btnSearchEngine"
             on:click={(e) => (modalSearchEngines = true)}
             title="Définir les moteurs de recherche du démarrage"
         >
             <div class="data">
-                <legend class="bx--label">Les moteurs de recherche au démarrage :</legend>
                 <div class="ident">
                     <Icofont icon="search" size="18" />
                     <p class="name">{selectedStartupSearchEngines.length} item(s)</p>
@@ -394,7 +396,6 @@
     #prefs-search {
         // Vue "Au démarrage"
         :global(.bx--tile--clickable.btnStartup) {
-            margin-top: var(--cds-spacing-06);
             border-radius: 10px;
             align-items: flex-end;
         }
@@ -404,7 +405,8 @@
                 display: inline-flex;
                 flex-flow: column;
                 align-items: flex-start;
-                gap: var(--cds-spacing-03)
+                gap: var(--cds-spacing-03);
+                min-width: 200px;
             }
 
 
