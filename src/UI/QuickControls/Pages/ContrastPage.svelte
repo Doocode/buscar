@@ -1,19 +1,29 @@
 <script>
     // Imports
-    import { contrastMode, ambiances }
+    import { contrastMode, ambiances, customAmbiance,
+        defaultLightMode, defaultDarkMode }
         from "../../../Stores/settings"
     import ControlsPage
         from "../ControlsPage.svelte"
-    import { TileGroup, RadioTile }
+    import { TileGroup, RadioTile, RadioButtonGroup, RadioButton, Link }
         from "carbon-components-svelte"
     import Icofont
         from "../../Icofont.svelte"
 
 
 
+    // Réactivité
+    $: publicAmbiances = $ambiances.filter(a => a.public)
+
+
+
     // Fonctions
-    const onSelect = (e) => {
-        contrastMode.set(e.detail)
+    const onSelectCustomAmbiance = e => customAmbiance.set(e.detail)
+    const onSelectBrowserAmbiance = (isDarkMode, e) => {
+        if (isDarkMode == true)
+            defaultDarkMode.set(e.detail)
+        else if (isDarkMode == false)
+            defaultLightMode.set(e.detail)
     }
 </script>
 
@@ -25,24 +35,87 @@
         on:close
     >
         <div class="page-content">
-            <TileGroup
-                legend="Liste des ambiances"
-                on:select={onSelect}
+            <!-- Le mode de contraste actuel -->
+            <RadioButtonGroup
+                orientation="vertical"
+                legendText="Mode de contraste de l'interface"
+                bind:selected={$contrastMode}
             >
-                <div class="tiles">
-                    {#each $ambiances.filter(a => a.public) as item}
-                        <RadioTile
-                            value={ item.value }
-                            checked={ item.value == $contrastMode }
-                        >
-                            <div class="tile-content">
-                                <Icofont icon={ item.icon } size="24" />
-                                <p class="label">{ item.name }</p>
-                            </div>
-                        </RadioTile>
-                    {/each}
-                </div>
-            </TileGroup>
+                <RadioButton labelText="Système" value="browser" />
+                <RadioButton labelText="Planifié" value="planning" />
+                <RadioButton labelText="Personnalisé" value="custom" />
+            </RadioButtonGroup>
+            <br/><br/>
+
+            <!-- Les réglages du mode de contraste -->
+            {#if $contrastMode == "browser"}
+                <TileGroup
+                    legend="Ambiance claire"
+                    on:select={e => onSelectBrowserAmbiance(false, e)}
+                >
+                    <div class="tiles">
+                        {#each publicAmbiances.filter(a => !a.dark) as item}
+                            <RadioTile
+                                value={ item.value }
+                                checked={ item.value == $defaultLightMode }
+                            >
+                                <div class="tile-content">
+                                    <Icofont icon={ item.icon } size="24" />
+                                    <p class="label">{ item.name }</p>
+                                </div>
+                            </RadioTile>
+                        {/each}
+                    </div>
+                </TileGroup>
+
+                <br/>
+                <TileGroup
+                    legend="Ambiance sombre"
+                    on:select={e => onSelectBrowserAmbiance(true, e)}
+                >
+                    <div class="tiles">
+                        {#each publicAmbiances.filter(a => a.dark) as item}
+                            <RadioTile
+                                value={ item.value }
+                                checked={ item.value == $defaultDarkMode }
+                            >
+                                <div class="tile-content">
+                                    <Icofont icon={ item.icon } size="24" />
+                                    <p class="label">{ item.name }</p>
+                                </div>
+                            </RadioTile>
+                        {/each}
+                    </div>
+                </TileGroup>
+            {:else if $contrastMode == "custom"}
+                <TileGroup
+                    legend="Liste des ambiances"
+                    on:select={onSelectCustomAmbiance}
+                >
+                    <div class="tiles">
+                        {#each publicAmbiances as item}
+                            <RadioTile
+                                value={ item.value }
+                                checked={ item.value == $customAmbiance }
+                            >
+                                <div class="tile-content">
+                                    <Icofont icon={ item.icon } size="24" />
+                                    <p class="label">{ item.name }</p>
+                                </div>
+                            </RadioTile>
+                        {/each}
+                    </div>
+                </TileGroup>
+            {:else if $contrastMode == "planning"}
+                <!--p>Progress ambiances</p>
+                <p>Ambiance actuel</p>
+                <br/><br/-->
+
+                <Link href="/#/preferences/interface">
+                    <Icofont icon="settings" size="16" />
+                    <span class="label">Planifier les ambiances</span>
+                </Link>
+            {/if}
         </div>
     </ControlsPage>
 </main>
@@ -70,6 +143,13 @@
             margin: 0;
             margin-top: var(--cds-spacing-03);
             font-size: 100%;
+        }
+
+        // Liens
+        :global(.bx--link) {
+            display: inline-flex;
+            gap: var(--cds-spacing-03);
+            align-items: center;
         }
     }
 </style>

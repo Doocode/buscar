@@ -58,6 +58,8 @@
         switch($contrastMode) {
             case "browser":
                 return {icon: "screen", name: "Système"}
+            case "planning":
+                return {icon: "clock", name: "Planifié"}
             case "custom":
                 return {icon: "settings", name: "Personnalisé"}
         }
@@ -113,10 +115,13 @@
                         {/each}
                     </div>
 
-                    <div style="padding: var(--cds-spacing-05);">
+                    <div class="bottom-links">
                         <Link href="/#/preferences/quick-settings">
                             <Icofont icon="settings" size="16" />
                             <span class="label">Modifier ce panneau</span>
+                        </Link>
+                        <Link href="/#/preferences" title="Préférences" style="padding: var(--cds-spacing-04); margin: calc(-1 * var(--cds-spacing-04));">
+                            <Icofont icon="config" size="16" />
                         </Link>
                     </div>
                 </ControlsPage>
@@ -164,6 +169,11 @@
         }
 
         // Liens
+        .bottom-links {
+            padding: var(--cds-spacing-05);
+            display: flex;
+            justify-content: space-between;
+        }
         :global(.bx--link) {
             display: inline-flex;
             gap: var(--cds-spacing-03);

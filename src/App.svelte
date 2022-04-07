@@ -1,18 +1,17 @@
-<script lang="ts">
+<script>
 	// Exports
-	export let appname: string;
-	export let appversion: string;
-	export let license: string;
+	export let appname
+	export let appversion
+	export let license
 
 	// Imports
 	// - Packages/modules
 	import Router from 'svelte-spa-router'
 	import { wrap } from 'svelte-spa-router/wrap'
-	import { onDestroy } from 'svelte'
 
 	// - Stores
-	import { contrastMode } from './Stores/settings'
-	import { transparentHeader, pageIcon, pageName } from './Stores/header'
+	import { transparentHeader, pageIcon, pageName }
+		from './Stores/header'
 
 	// - Pages
 	import Header from './UI/Header.svelte'
@@ -23,6 +22,11 @@
 	import Preferences from './Pages/Preferences.svelte'
 	import Help from './Pages/Help.svelte'
 
+	// - Autres
+	import AmbianceLoader from './AmbianceLoader.svelte'
+
+
+
 	// Propriétés
 	// - Propriétés pour la page "A propos"
 	const HELP_PROPS = {
@@ -30,7 +34,6 @@
 		appversion: appversion,
 		license: license,
 	}
-	let currentContrastMode // Contraste de l'interface
 	let routes = { // Routes de l'app
 		'/': Search,
 		'/library/': Library,
@@ -52,28 +55,16 @@
 		}),
 	}
 
-	// Observations
-	const unsub_contrastMode = contrastMode.subscribe(value => {
-		currentContrastMode = value
-	})
 
-	// Lifecycle
-	onDestroy(() => {
-		// Unsubscriptions
-		unsub_contrastMode();
-	})
-
-	// Application du contraste
-	$: document.documentElement.setAttribute("theme", currentContrastMode)
 
 	// Méthodes
-	function onRouteLoading() {
+	const onRouteLoading = () => {
 		// Afficher la barre de titre
 		transparentHeader.set(false)
 		pageIcon.set("file")
 		pageName.set("Page sans nom")
 	}
-	const formatTitle = (title:string) => {
+	const formatTitle = (title) => {
         let appName = "Buscar"
 
         if (title.length > 0 && title != " ")
@@ -89,6 +80,8 @@
 <main>
 	<Header bind:appname={appname} />
 
+	<AmbianceLoader />
+
 	<Router routes={routes}
 		on:routeLoading={onRouteLoading} />
 </main>
@@ -97,6 +90,10 @@
 	main {min-height: 100%;}
 	main :global(.bx--modal-content) {
 		margin-bottom: 0;
+	}
+	// Saisie de nombre
+	:global(.bx--number input[type="number"]) {
+		margin: 0;
 	}
 
 	@media (min-width: 672px) {

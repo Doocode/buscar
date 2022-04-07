@@ -6,16 +6,36 @@ import { writable, readable } from 'svelte/store'
 
 
 // INTERFACE
-// - Contraste de l'interface : "white" | "g10" | "g80" | "g90" | "g100"
-export const contrastMode = writable("g10");
+// - Mode de contraste de l'interface : custom / browser / planning
+export const contrastMode = writable("custom");
 
 // - Ambiances : choix proposés aux utilisateurs
 export const ambiances = readable([
-    { value: "white",   name: "Claire",         icon: "sun",    public: true },
-    { value: "g10",     name: "Lumineuse",      icon: "sun",    public: true },
-    { value: "g80",     name: "Gris clair",     icon: "moon",   public: true },
-    { value: "g90",     name: "Sombre",         icon: "moon",   public: true },
-    { value: "g100",    name: "Très sombre",    icon: "moon",   public: true },
+    { value: "white",   name: "Claire",         icon: "sun",    public: true,   dark: false },
+    { value: "g10",     name: "Lumineuse",      icon: "sun",    public: true,   dark: false },
+    //{ value: "g80",     name: "Gris clair",     icon: "moon",   public: false,  dark: true },
+    { value: "g90",     name: "Sombre",         icon: "moon",   public: true,   dark: true },
+    { value: "g100",    name: "Très sombre",    icon: "moon",   public: true,   dark: true },
+])
+
+// - Ambiance actuelle (pour le mode de contraste "custom")
+export const customAmbiance = writable("g10");
+
+// - Ambiance claire (pour le mode "Automatique")
+export const defaultLightMode = writable("g10");
+
+// - Ambiance sombre (pour le mode "Automatique")
+export const defaultDarkMode = writable("g100");
+
+// - Planning des ambiances
+export const planningAmbiances = createAmbiancePlanning([
+    { id: 1, ambiance: "g10", time: "8:00" },
+    { id: 2, ambiance: "g100", time: "18:00" },
+    /*{ id: 3, ambiance: "g90", time: "6:00" },
+    { id: 4, ambiance: "white", time: "8:30" },
+    { id: 5, ambiance: "g10", time: "15:00" },
+    { id: 6, ambiance: "g90", time: "18:30" },
+    { id: 7, ambiance: "g100", time: "20:00" },*/
 ]);
 export const filterPublicAmbiances = a => a.public
 
@@ -128,6 +148,73 @@ function createQuickControlsList(initial_value) {
                 list[indexB].position = posA
                 return list
             })
+        },
+        reset: () => set(initial_value)
+    };
+}
+
+
+
+// Store spécial pour les ambiances planifiées
+function createAmbiancePlanning(initial_value) {
+    const { subscribe, set, update } = writable(initial_value);
+
+    return {
+        subscribe,
+        addItem: (time, ambiance) => {
+            // Vérifier les arguments
+            let splitTime = time.split(':')
+            if (splitTime.length != 2 || isNaN(splitTime[0]) || isNaN(splitTime[1]))
+                return
+            // TODO: Vérifier si heure/minutes sont valides (h<24 min<60 etc.)
+
+            // Formattage du temps
+            time = parseInt(splitTime[0]) + ":" + parseInt(splitTime[1])
+            if (parseInt(splitTime[1]) == 0)
+                time = parseInt(splitTime[0]) + ":0" + parseInt(splitTime[1])
+
+            // Ajouter dans la liste
+            update(list => [...list, {
+                id: list.at(-1).id + 1,
+                time: time,
+                ambiance: ambiance
+            }])
+        },
+        updateById: (id, values) => {
+            update(list => {
+                // Vérifier que l'id existe
+                let results = list.filter(a => a.id == id)
+                if (results.length != 1)
+                    return list
+
+                // Retrouver l'index
+                let index = list.indexOf(results[0])
+
+                // Mettre à jour les propriétés
+                //  - Heure
+                if (typeof(values.time) === "string") {
+                    // Vérifier l'heure
+                    let splitTime = values.time.split(':')
+                    if (splitTime.length != 2 || isNaN(splitTime[0]) || isNaN(splitTime[1]))
+                        return
+                    // TODO: Vérifier si heure/minutes sont valides (h<24 min<60 etc.)
+        
+                    // Formattage du temps
+                    let time = parseInt(splitTime[0]) + ":" + parseInt(splitTime[1])
+                    if (parseInt(splitTime[1]) == 0)
+                        time = parseInt(splitTime[0]) + ":0" + parseInt(splitTime[1])
+
+                    list[index].time = time
+                }
+                //  - Ambiance
+                if (typeof(values.ambiance) === "string")
+                    list[index].ambiance = values.ambiance
+
+                return list
+            })
+        },
+        deleteById: (id) => {
+            update(list => list.filter(item => parseInt(item.id) !== parseInt(id)))
         },
         reset: () => set(initial_value)
     };

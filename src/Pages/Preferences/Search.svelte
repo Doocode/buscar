@@ -204,11 +204,11 @@
 
     <br/><br/>
     {#if $actionWhenOpeningSearchPage == "searchProfile"}
-        <div><legend class="bx--label">Le profil de recherche au démarrage :</legend></div>
+        <div><legend class="bx--label">Le profil de recherche par défaut</legend></div>
         <ClickableTile
             class="btnStartup" id="btnSearchProfile"
             on:click={(e) => (modalSearchProfiles = true)}
-            title="Définir le profil de recherche du démarrage"
+            title="Définir le profil de recherche par défaut"
         >
             <div class="data">
                 <div class="ident">
@@ -227,11 +227,11 @@
             </div>
         </ClickableTile>
     {:else if $actionWhenOpeningSearchPage == "searchEngines"}
-        <div><legend class="bx--label">Les moteurs de recherche au démarrage :</legend></div>
+        <div><legend class="bx--label">Les moteurs de recherche par défaut</legend></div>
         <ClickableTile
             class="btnStartup" id="btnSearchEngine"
             on:click={(e) => (modalSearchEngines = true)}
-            title="Définir les moteurs de recherche du démarrage"
+            title="Définir les moteurs de recherche par défaut"
         >
             <div class="data">
                 <div class="ident">
@@ -462,11 +462,6 @@
         .indent {
             --value: var(--cds-spacing-06);
             margin-left: var(--value);
-        }
-
-        // Saisie de nombre
-        :global(.bx--number input[type="number"]) {
-            margin: 0;
         }
 
         // Liens "Voir aussi"
