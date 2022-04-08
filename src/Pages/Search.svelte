@@ -18,7 +18,7 @@
 	import { multiSelectionSearchEngines, enableSelectSearchEnginesLimit, 
         enableSearchEngineAlias, actionWhenOpeningSearchPage,
         startupSearchProfileId, startupSearchEnginesIds,
-        selectSearchEnginesLimitValue }
+        selectSearchEnginesLimitValue, openSearchInCurrentPage }
         from '../Stores/settings'
 	import { listSearchEngines, listSearchProfiles }
         from '../Stores/search'
@@ -44,7 +44,6 @@
     let modalSelectSearchProfile = false
     let modalResetSelection = false
     let modalErrorLimitReached = false
-    let openSearchInSamePage
     let innerHeight
 
 
@@ -206,7 +205,7 @@
         // Ouverture des pages
         async.eachSeries(pages, function openPage(url, done) {
             // Ne pas prendre en charge la 1ère page dans cette fonction s'il faut l'ouvrir dans la page actuelle
-            if (pages[0] == url && openSearchInSamePage)
+            if (pages[0] == url && $openSearchInCurrentPage == true)
                 return done()
 
             // Ouvrir l'adresse URL dans une nouvelle page
@@ -216,7 +215,7 @@
             return done()
         }, function finished() {
             // Ouvrir la page restante dans la page actuelle si le paramètre est activé
-            if (openSearchInSamePage)
+            if ($openSearchInCurrentPage == true)
                 window.open(pages[0], "_self") // "_self" => Ouvrir l'adresse URL dans la page actuelle
         })
     }
