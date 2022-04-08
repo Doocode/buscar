@@ -11,8 +11,35 @@
 	<link rel='stylesheet' href='/build/bundle.css'>
 
 	<script defer src='/build/bundle.js'></script>
+
+	<!-- PWA enabled -->
+	<link rel="manifest" href="/manifest.json" />
+	<meta name="description" content="Buscar version PWA" />
+	<meta name="theme-color" content="#2F3BA2" />
+	
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="apple-mobile-web-app-title" content="Buscar PWA" />
+	<link rel="apple-touch-icon" href="/assets/pwa-icons/icon-152x152.png" />
+	
+	<!-- You can remove this is you don't want to make your PWA installable -->
+	<!--script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script-->
+	<script type="module" src="/assets/pwabuilder/pwainstall.js"></script>
 </head>
 
 <body>
+	<noscript>
+		<div>Aie! Vous devez autoriser l'utilisation de Javascript pour charger l'application. Réactualiser la page une fois que c'est fait.</div>
+	</noscript>
+	
+	<script>
+		if ("serviceWorker" in navigator) {
+			window.addEventListener("load", () => {
+				navigator.serviceWorker.register("/service-worker.js").then((reg) => {
+					console.log("Service worker registered.", reg);
+				});
+			});
+		}
+	</script>
 </body>
 </html>
