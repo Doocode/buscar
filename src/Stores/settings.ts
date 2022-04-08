@@ -37,7 +37,6 @@ export const planningAmbiances = createAmbiancePlanning([
     { id: 6, ambiance: "g90", time: "18:30" },
     { id: 7, ambiance: "g100", time: "20:00" },*/
 ]);
-export const filterPublicAmbiances = a => a.public
 
 // - Bouton "Retour" dans l'en-tête
 export const allowHeaderBackButton = writable(false)

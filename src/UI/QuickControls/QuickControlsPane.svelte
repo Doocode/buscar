@@ -2,7 +2,7 @@
     // Imports
     import { allowHeaderBackButton, compactSearchBox, enableSearchEngineAlias,
         enableSelectSearchEnginesLimit, selectSearchEnginesLimitValue,
-        contrastMode, listQuickControls }
+        contrastMode, listQuickControls, customAmbiance, ambiances }
         from "../../Stores/settings"
     import { Link }
         from "carbon-components-svelte"
@@ -61,7 +61,7 @@
             case "planning":
                 return {icon: "clock", name: "Planifié"}
             case "custom":
-                return {icon: "settings", name: "Personnalisé"}
+                return $ambiances.filter(a => a.value == $customAmbiance)[0]
         }
     }
 </script>

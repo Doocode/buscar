@@ -1,21 +1,36 @@
 <script>
     // Imports
-    import { Modal, DataTable, Button, TextInput, Dropdown, OverflowMenu,
-        OverflowMenuItem, NumberInput, Breakpoint }
+    import { Modal, DataTable, Button, TextInput, OverflowMenu, Breakpoint,
+        OverflowMenuItem, NumberInput, Tag }
         from "carbon-components-svelte"
-    import { listSearchProfiles, listSearchEngines } from '../../Stores/search'
-    import { pageName, pageIcon } from '../../Stores/header'
-    import { multiSelectionSearchEngines } from '../../Stores/settings'
-    import { onDestroy } from 'svelte'
-    import Icofont from "../../UI/Icofont.svelte"
-    import SearchEnginesBubbles from "../../UI/SearchEnginesBubbles.svelte"
-    import ModalSearchEnginesSelector from "../../Modals/ModalSearchEnginesSelector.svelte"
+    import { listSearchProfiles, listSearchEngines }
+        from '../../Stores/search'
+    import { pageName, pageIcon }
+        from '../../Stores/header'
+    import { multiSelectionSearchEngines }
+        from '../../Stores/settings'
+    import { onDestroy }
+        from 'svelte'
+    import Icofont
+        from "../../UI/Icofont.svelte"
+    import SearchEnginesBubbles
+        from "../../UI/SearchEnginesBubbles.svelte"
+    import ModalSearchEnginesSelector
+        from "../../Modals/ModalSearchEnginesSelector.svelte"
+    import ModalSelectIcofont
+        from "../../Modals/ModalSelectIcofont.svelte"
+    import { listIcons }
+        from "../../Stores/icofont"
+
+
 
     // MAJ du header
     pageName.set("Profils de recherche")
     pageIcon.set("search")
 
-    // Initialisation
+
+
+    // Propriétés
     let size
     let tableColumns = []
     let tableData = []
@@ -26,88 +41,8 @@
     let sp_icon = ""
     let sp_searchEnginesIds = []
     let sp_orderPresentation = 0
-    let dropdownIconIndex = 0
-    let listIcons = [
-        { value: "agenda", text: "Agenda" },
-        { value: "arrow", text: "Flèche" },
-        { value: "bag", text: "Travail" },
-        { value: "bell", text: "Cloche" },
-        { value: "bin", text: "Déchets" },
-        { value: "blog", text: "Actus" },
-        { value: "bookmark", text: "Marque-page" },
-        { value: "check", text: "Check" },
-        { value: "circle", text: "Rond" },
-        { value: "circles", text: "Bulles" },
-        { value: "clock", text: "Horloge" },
-        { value: "compass", text: "Boussole" },
-        { value: "config", text: "Configuration" },
-        { value: "critical", text: "Critique" },
-        { value: "cross", text: "Croix" },
-        { value: "details", text: "Détails" },
-        { value: "dice", text: "Dés" },
-        { value: "disable", text: "Interdit" },
-        { value: "download", text: "Téléchargement" },
-        { value: "dropdown", text: "Descendre" },
-        { value: "duplicate", text: "Copier" },
-        { value: "expand", text: "Aggrandir" },
-        { value: "experiment", text: "Chimie" },
-        { value: "eye", text: "Vue" },
-        { value: "file", text: "Fichier" },
-        { value: "flag", text: "Drapeau" },
-        { value: "folder", text: "Dossier" },
-        { value: "hide", text: "Masquer" },
-        { value: "home", text: "Maison" },
-        { value: "image", text: "Image" },
-        { value: "info", text: "Information" },
-        { value: "inline_dots", text: "Points alignés" },
-        { value: "input", text: "Entrée" },
-        { value: "joystick", text: "Manette de jeu" },
-        { value: "labo", text: "Plot" },
-        { value: "layers", text: "Calques" },
-        { value: "line", text: "Ligne" },
-        { value: "link", text: "Lien" },
-        { value: "lock", text: "Verrou" },
-        { value: "mail", text: "Mail" },
-        { value: "menu", text: "Menu" },
-        { value: "moon", text: "Lune" },
-        { value: "music", text: "Musique" },
-        { value: "network", text: "Réseau" },
-        { value: "output", text: "Sortie" },
-        { value: "palette", text: "Palette" },
-        { value: "palette_filled", text: "Palette 2" },
-        { value: "pause", text: "Pause" },
-        { value: "pen", text: "Ecrire" },
-        { value: "pie_chart", text: "Camembert" },
-        { value: "pin", text: "Epingler" },
-        { value: "play", text: "Lecture" },
-        { value: "plus", text: "Plus" },
-        { value: "profile", text: "Profil" },
-        { value: "program", text: "Programme" },
-        { value: "project", text: "Boite" },
-        { value: "reload", text: "Relancer" },
-        { value: "rename", text: "Texte" },
-        { value: "screen", text: "Ecran de PC" },
-        { value: "script", text: "Script" },
-        { value: "search", text: "Loupe" },
-        { value: "send", text: "Envoyer" },
-        { value: "settings", text: "Réglages" },
-        { value: "shopping", text: "Shopping" },
-        { value: "slideshow", text: "Présentation" },
-        { value: "smartphone", text: "Smartphone" },
-        { value: "sort", text: "Entonnoir" },
-        { value: "square", text: "Carré" },
-        { value: "squares", text: "Petits carrés" },
-        { value: "star", text: "Etoile" },
-        { value: "stop", text: "Stop" },
-        { value: "sun", text: "Soleil" },
-        { value: "unlock", text: "Déverrouiller" },
-        { value: "unpin", text: "Désépingler" },
-        { value: "upload", text: "Importer" },
-        { value: "warning", text: "Danger" },
-        { value: "web", text: "Web" },
-    ]
-    for (let ii=0; ii<listIcons.length; ii++) // Ajout d'un id aux icônes
-        listIcons[ii].id = ii
+
+
 
     // Flags
     let modalAddItem = false
@@ -115,6 +50,9 @@
     let modalEditItem = false
     let modalDeleteItem = false
     let modalSearchEngines = false
+    let modalIcons = false
+
+
 
     // Observations
     const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
@@ -125,6 +63,8 @@
         tableData = searchProfiles
     })
 
+
+
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
@@ -132,34 +72,21 @@
         unsub_listSearchProfiles()
     })
 
+
+
     // Réactivité
     $: {
         // Affichage responsive
-        tableColumns = [
-            { key: "name", value: "Profil de recherche" },
-        ]
-        switch (size) {
-            case "max":
-            case "xlg":
-            case "lg":
-                tableColumns.push({ key: "searchEnginesIds", value: "Moteurs de recherche" })
-        }
-        switch (size) {
-            case "max":
-            case "xlg":
-            case "lg":
-            case "md":
-                tableColumns.push({ key: "orderPresentation", value: "Ordre d'affichage" })
-        }
+        tableColumns = [{ key: "name", value: "Profil de recherche" }]
+        if (['max', 'xlg', 'lg'].indexOf(size) > -1)
+            tableColumns.push({ key: "searchEnginesIds", value: "Moteurs de recherche" })
+        if (['max', 'xlg', 'lg', 'mg'].indexOf(size) > -1)
+            tableColumns.push({ key: "orderPresentation", value: "Ordre d'affichage" })
         tableColumns.push({ key: "overflow", empty: true })
     }
-    $: sortedIconList = listIcons.sort((a, b) => { // Liste d'icônes triés alphabétiquement
-        if ( a.text < b.text )
-            return -1
-        if ( a.text > b.text )
-            return 1
-        return 0
-    })
+    $: selectedIconName = findSelectedIconName(sp_icon)
+
+
 
     // Méthodes
     function findItemById(id) {
@@ -189,22 +116,6 @@
         }
         return null;
     }
-    function findIconIndex(icon) {
-        let ii // Index de l'icône
-
-        // Recherche dans la liste des icônes
-        for (ii = 0; ii<sortedIconList.length-1; ii++) {
-            // Si l'icône a été retrouvé
-            if (sortedIconList[ii].value == icon)
-                break
-        }
-
-        // Si l'icône n'a pas été retrouvé
-        if (sortedIconList[ii].value != icon)
-            ii = 0
-
-        return ii
-    }
     function closeModals() {
         // Fermer les popups
         modalAddItem = false
@@ -212,15 +123,15 @@
         modalEditItem = false
         modalDeleteItem = false
         modalSearchEngines = false
+        modalIcons = false
 
         // Vider le formulaire
         clearForm()
     }
     function clearForm() {
         // Vider le formulaire
-        dropdownIconIndex = 0
         sp_name = "(Sans nom)"
-        sp_icon = sortedIconList[dropdownIconIndex].value
+        sp_icon = ""
         sp_searchEnginesIds = []
         sp_orderPresentation = 0
     }
@@ -283,7 +194,6 @@
         sp_icon = spItem.icon
         sp_searchEnginesIds = spItem.searchEnginesIds
         sp_orderPresentation = spItem.orderPresentation
-        dropdownIconIndex = findIconIndex(sp_icon)
 
         // Ouvrir la popup
         modalEditItem = true
@@ -316,7 +226,6 @@
         sp_icon = spItem.icon
         sp_searchEnginesIds = spItem.searchEnginesIds
         sp_orderPresentation = spItem.orderPresentation
-        dropdownIconIndex = findIconIndex(sp_icon)
 
         // Ouvrir la popup
         modalAddItem = true
@@ -389,6 +298,16 @@
 
         // Retour des données
         return data
+    }
+    const findSelectedIconName = () => {
+        let results = $listIcons.filter(item => item.value == sp_icon)
+        if (sp_icon == "" || results.length < 1)
+            return "(Non définie)"
+        return results[0].name
+    }
+    const onSubmitIcon = (e) => {
+        modalIcons = false
+        sp_icon = e.detail.value
     }
 </script>
 
@@ -489,16 +408,22 @@
             on:close={closeModals}
             on:submit={createItem}
         >
-            <div class="form-row">
-                <Icofont icon="{sp_icon}" />
-                <Dropdown
-                    titleText="Icône du profil de recherche"
-                    items={sortedIconList}
-                    bind:selectedIndex={dropdownIconIndex}
-                    on:select={(e) => {
-                        sp_icon = e.detail.selectedItem.value
-                    }}
-                />
+            <div class="form-item">
+                <legend class="bx--label">Icône</legend>
+                <div class="row">
+                    {#if sp_icon.length > 0}
+                        <div>
+                            <Icofont icon="{sp_icon}" />
+                        </div>
+                    {/if}
+                    <div class="align-column">
+                        <p class="name">{selectedIconName}</p>
+                        {#if sp_icon.length > 0}
+                            <Tag>{sp_icon}</Tag>
+                        {/if}
+                        <Button kind="tertiary" on:click={() => {modalIcons = true}}>Choisir une icône</Button>
+                    </div>
+                </div>
             </div>
             <br/><br/>
             <TextInput required
@@ -543,16 +468,22 @@
             on:close={closeModals}
             on:submit={updateItem}
         >
-            <div class="form-row">
-                <Icofont icon="{sp_icon}" />
-                <Dropdown
-                    titleText="Icône du profil de recherche"
-                    items={sortedIconList}
-                    bind:selectedIndex={dropdownIconIndex}
-                    on:select={(e) => {
-                        sp_icon = e.detail.selectedItem.value
-                    }}
-                />
+            <div class="form-item">
+                <legend class="bx--label">Icône</legend>
+                <div class="row">
+                    {#if sp_icon.length > 0}
+                        <div>
+                            <Icofont icon="{sp_icon}" />
+                        </div>
+                    {/if}
+                    <div class="align-column">
+                        <p class="name">{selectedIconName}</p>
+                        {#if sp_icon.length > 0}
+                            <Tag>{sp_icon}</Tag>
+                        {/if}
+                        <Button kind="tertiary" on:click={() => {modalIcons = true}}>Choisir une icône</Button>
+                    </div>
+                </div>
             </div>
             <br/><br/>
             <TextInput required
@@ -599,6 +530,12 @@
             bind:open={modalSearchEngines}
             idSelectedSearchEngines={sp_searchEnginesIds}
             on:submit={saveSearchEnginesForSearchProfile} />
+
+        <ModalSelectIcofont
+            value={sp_icon}
+            bind:open={modalIcons}
+            on:submit={onSubmitIcon}
+            on:open={() => sp_icon = sp_icon} />
     </div>
 </main>
 
@@ -684,13 +621,28 @@
         }
 
         // - Modifier l'icône
-        .form-row {
+        .form-item {
             display: flex;
-            align-items: center;
-            gap: 1rem;
+            flex-flow: column;
 
-            :global(.icofont) {font-size: 70px;}
-            :global(.bx--dropdown__wrapper) {flex: 1;}
+            .row {
+                display: flex;
+                align-items: flex-start;
+                justify-content: flex-start;
+                flex-flow: wrap;
+                gap: 1rem;
+            }
+            .align-column {
+                display: flex;
+                flex-flow: column;
+                align-items: flex-start;
+            }
+
+            :global(.icofont) {font-size: 100px;}
+            :global(.bx--btn) {
+                border-radius: 8px;
+                margin-top: var(--cds-spacing-03);
+            }
         }
 
         // - Liste des profils sélectionnés

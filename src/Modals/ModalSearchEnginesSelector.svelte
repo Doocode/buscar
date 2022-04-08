@@ -325,7 +325,7 @@
         :global(.bx--search--xl .bx--search-input),
         :global(.bx--search--xl .bx--search-close) {
             border-radius: var(--border-radius);
-            height: 2.5rem;
+            height: 3rem;
             margin: 0;
         }
         :global(.bx--search--xl .bx--search-close) {
@@ -335,6 +335,7 @@
         // Bouton menu
         :global(.bx--overflow-menu) {
             width: auto;
+            height: 3rem;
             border-radius: var(--border-radius);
         }
         .menu-button {
