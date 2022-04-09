@@ -1,6 +1,6 @@
 <script>
     // Imports
-    import { Modal, DataTable, Button, Tooltip,
+    import { Modal, DataTable, Button, Tooltip, Search,
         OverflowMenu, OverflowMenuItem, Tag,
         Breakpoint, ContentSwitcher, Switch }
         from "carbon-components-svelte"
@@ -8,8 +8,6 @@
         from '../../Stores/search'
     import { pageName, pageIcon }
         from '../../Stores/header'
-    import { onDestroy }
-        from 'svelte'
     import Icofont
         from "../../UI/Icofont.svelte"
     import SearchEngineEditor
@@ -28,14 +26,14 @@
     // Propriétés
     let size // La largeur de l'écran
     let tableColumns = [] // Les colonnes de la vue DataTable
-    let tableData = [] // Les données de la vue DataTable
     let idSelectedItems = [] // Les moteurs sélectionnés (id)
     let indexSelectedItems = [] // Les moteurs sélectionnés (index)
-    let searchEngines = [] // Liste des moteurs de recherche
     let contentIndex = 0 // Index pour le ContentSwitcher (Editeur/Aperçu)
     let zebra = false
     let rowsSelectable = false
     let extendedView = true
+    let searchEnabled = false
+    let searchValue = ""
     let se_id = -1
     let se_name = ""
     let se_query = ""
@@ -54,10 +52,36 @@
 
 
 
-    // Observations
-    const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
-        searchEngines = value;
-        tableData = searchEngines.map((seItem) => {
+    // Réactivité
+    $: doResponsive(size)
+    $: updateSelectedIds(indexSelectedItems)
+    $: tableData = formatTableData($listSearchEngines, searchValue, searchEnabled)
+    $: contentSwitcherDisabled = isFormValid(se_name, se_icon, se_query, se_alias) != true
+
+
+
+    // Méthodes
+    const findItemById = (id) => {
+        // Rechercher l'item dans la liste
+        for (let ii=0; ii<$listSearchEngines.length; ii++) {
+            // Si l'item a été retrouvé
+            if (parseInt($listSearchEngines[ii].id) === parseInt(id))
+                return $listSearchEngines[ii] // Retourner l'item
+        }
+        return null
+    }
+    const findItemIndexById = (id) => {
+        // Rechercher l'item dans la liste
+        for (let ii=0; ii<$listSearchEngines.length; ii++) {
+            // Si l'item a été retrouvé
+            if (parseInt($listSearchEngines[ii].id) === parseInt(id))
+                return ii // Retourner l'index
+        }
+        return -1
+    }
+    const formatTableData = () => {
+        // Formattage des données
+        let data = $listSearchEngines.map((seItem) => {
             return {
                 id: seItem.id,
                 name: seItem.name,
@@ -67,43 +91,29 @@
                 query: seItem.queryUrl,
             }
         })
-    })
 
+        // Filtrer la recherche
+        const searchBarVisible = searchEnabled || ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1
+        if (searchValue.length > 0 && searchBarVisible) {
+            // Vérifie si un string contient les termes recherché
+            const containSearch = str => str.toLowerCase().indexOf(searchValue.toLowerCase()) > -1
 
-
-    // Lifecycle
-    onDestroy(() => {
-        // Unsubscriptions
-        unsub_listSearchEngines()
-    })
-
-
-
-    // Réactivité
-    $: doResponsive(size)
-    $: updateSelectedIds(indexSelectedItems)
-    $: contentSwitcherDisabled = isFormValid(se_name, se_icon, se_query, se_alias) != true
-
-
-
-    // Méthodes
-    const findItemById = (id) => {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<searchEngines.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt(searchEngines[ii].id) === parseInt(id))
-                return searchEngines[ii] // Retourner l'item
+            // Filtres
+            data = data.filter(item => {
+                let searchName = containSearch(item.name)
+                let searchIcon = containSearch(item.icon)
+                let searchQuery = containSearch(item.query)
+                let searchType = containSearch(item.type.name)
+                return searchName || searchIcon || searchQuery || searchType
+            })
         }
-        return null
+
+        return data
     }
-    const findItemIndexById = (id) => {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<searchEngines.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt(searchEngines[ii].id) === parseInt(id))
-                return ii // Retourner l'index
-        }
-        return -1
+    const toggleSearch = () => {
+        searchEnabled = !searchEnabled
+        if (!searchEnabled)
+            searchValue = ""
     }
     const closeModals = () => {
         // Fermer la popup
@@ -131,8 +141,8 @@
             return false
         if (se_query.indexOf("%query%") < 1)
             return false
-        for (let ii=0; ii<searchEngines.length; ii++) {
-            if (se_alias.toLowerCase() === searchEngines[ii].alias.toLowerCase() && se_id !== parseInt(searchEngines[ii].id))
+        for (let ii=0; ii<$listSearchEngines.length; ii++) {
+            if (se_alias.toLowerCase() === $listSearchEngines[ii].alias.toLowerCase() && se_id !== parseInt($listSearchEngines[ii].id))
                 return false
         }
 
@@ -269,23 +279,11 @@
     }
     const doResponsive = () => {
         // Liste des colonnes visibles
-        tableColumns = [
-            { key: "name", value: "Moteur de recherche" },
-        ]
-        switch (size) {
-            case "max":
-            case "xlg":
-            case "lg":
-            case "md":
-                tableColumns.push({ key: "type", value: "Type" })
-                tableColumns.push({ key: "alias", value: "Alias" })
+        tableColumns = [{ key: "name", value: "Moteur de recherche" }]
+        if (['md', 'lg', 'xlg', 'max'].indexOf(size) > -1) {
+            tableColumns.push({ key: "type", value: "Type" })
+            tableColumns.push({ key: "alias", value: "Alias" })
         }
-        /*switch (size) {
-            case "max":
-            case "xlg":
-            case "lg":
-                tableColumns.push({ key: "query", value: "Adresse URL de la requête" })
-        }*/
         tableColumns.push({ key: "overflow", empty: true })
     }
     const updateSelectedIds = () => {
@@ -301,12 +299,23 @@
     <Breakpoint bind:size />
 
     <div class="viewPage" class:extended={extendedView}>
+        {#if ['sm'].indexOf(size) > -1 && searchEnabled}
+            <div class="toolbar">
+                <Search placeholder="Rechercher" bind:value={searchValue} />
+            </div>
+        {/if}
 
         <div class="toolbar">
             <Button title="Ajouter un moteur de recherche" kind="primary" on:click={() => (modalAddItem = true)}>
                 <Icofont icon="plus" size="18" />
                 <span>Nouveau</span>
             </Button>
+
+            {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                <div>
+                    <Search placeholder="Rechercher" bind:value={searchValue} />
+                </div>
+            {/if}
     
             <span class="spacer"></span>
     
@@ -316,6 +325,9 @@
                     <Icofont icon="inline_dots" size="18" />
                 </div>
     
+                {#if ['sm'].indexOf(size) > -1}
+                    <OverflowMenuItem text={'Rechercher'} on:click={() => toggleSearch} />
+                {/if}
                 {#if zebra}
                     <OverflowMenuItem text={'Désactiver "Zebra"'} on:click={() => {zebra=!zebra}} />
                 {:else}
@@ -526,11 +538,12 @@
             <div class="list-se">
                 {#each idSelectedItems as idItem }
                     <div class="se-item">
-                        <img src="{searchEngines[findItemIndexById(idItem)].icon}" alt="Logo de {searchEngines[findItemIndexById(idItem)].name}"/>
+                        <img src="{$listSearchEngines[findItemIndexById(idItem)].icon}"
+                            alt="Logo de {$listSearchEngines[findItemIndexById(idItem)].name}"/>
 
                         <div class="text">
-                            <p class="name">{searchEngines[findItemIndexById(idItem)].name}</p>
-                            <p class="query">{searchEngines[findItemIndexById(idItem)].queryUrl}</p>
+                            <p class="name">{$listSearchEngines[findItemIndexById(idItem)].name}</p>
+                            <p class="query">{$listSearchEngines[findItemIndexById(idItem)].queryUrl}</p>
                         </div>
                     </div>
                 {/each}
@@ -563,10 +576,18 @@
                     margin: var(--cds-spacing-09) auto;
 
                     .toolbar {
+                        --border-radius: 8px;
                         margin-bottom: var(--cds-spacing-04);
+                        gap: var(--cds-spacing-04);
 
                         :global(.bx--btn),
-                        :global(.bx--overflow-menu) {border-radius: 8px;}
+                        :global(.bx--overflow-menu) {border-radius: var(--border-radius);}
+
+                        // Barre de recherche
+                        :global(.bx--search-input) {border-radius: var(--border-radius);}
+                        :global(.bx--search--xl .bx--search-close) {
+                            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+                        }
                     }
 
                     :global(.bx--data-table thead),
@@ -603,6 +624,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
+            transition: all .3s;
 
             // Bouton
             :global(.bx--btn) {
@@ -610,6 +632,9 @@
                 align-items: center;
                 gap: .5rem;
             }
+
+            // Barre de recherche
+            :global(.bx--search-input) {margin: 0;}
 
             // Espacement
             .spacer {flex: 1}
