@@ -26,12 +26,12 @@
     const dispatch = createEventDispatcher() // Pour créer des events
     let searchEngines = [] // Liste des moteurs de recherche
     let sortMenu = [
-        { id: 0, text: "Nom", sort: {on: "name", order: "asc"} },
-        { id: 1, text: "Nom", sort: {on: "name", order: "desc"} },
-        { id: 2, text: "Type", sort: {on: "type", order: "asc"} },
-        { id: 3, text: "Type", sort: {on: "type", order: "desc"} },
-        { id: 4, text: "Sélection", sort: {on: "selected", order: "asc"} },
-        { id: 5, text: "Sélection", sort: {on: "selected", order: "desc"} },
+        { id: 0, text: "Nom (A-Z)", sort: {on: "name", order: "asc"} },
+        { id: 1, text: "Nom (Z-A)", sort: {on: "name", order: "desc"} },
+        { id: 2, text: "Type (9-0)", sort: {on: "type", order: "asc"} },
+        { id: 3, text: "Type (0-9)", sort: {on: "type", order: "desc"} },
+        { id: 4, text: "Sélection (0-1)", sort: {on: "selected", order: "asc"} },
+        { id: 5, text: "Sélection (1-0)", sort: {on: "selected", order: "desc"} },
     ]
     let selectedSortMode = 0 // Mode de tri
     let inputSearchSE = "" // Filter les moteurs de recherche
@@ -213,7 +213,7 @@
             <div class="toolbar">
                 <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
-                        <Icofont icon="sort" size="16" />
+                        <Icofont icon="sort" size="20" />
                         <span class="label">Trier</span>
                         <Icofont icon="dropdown" size="14" />
                     </div>
@@ -224,9 +224,9 @@
                             on:click={() => selectedSortMode = i} >
                             <div class="label">
                                 {#if item.sort.order == "asc"}
-                                    <Icofont icon="arrow_up" size="16" />
+                                    <Icofont icon="arrow_diagonal_1" size="16" />
                                 {:else}
-                                    <Icofont icon="arrow_down" size="16" />
+                                    <Icofont icon="arrow_diagonal_2" size="16" />
                                 {/if}
                                 <span class="text">{item.text}</span>
                             </div>
@@ -236,26 +236,26 @@
                 
                 <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
-                        <Icofont icon="circles" size="16" />
-                        <span class="label">Sélection</span>
+                        <Icofont icon="selection" size="20" />
+                        <span class="label">Sélectionner</span>
                         <Icofont icon="dropdown" size="14" />
                     </div>
     
                     <OverflowMenuItem on:click={selectAll} >
                         <div class="label">
-                            <Icofont icon="squares" size="16" />
+                            <Icofont icon="select_all" size="16" />
                             <span class="text">Tout</span>
                         </div>
                     </OverflowMenuItem>
                     <OverflowMenuItem on:click={unselectAll} >
                         <div class="label">
-                            <Icofont icon="disable" size="16" />
+                            <Icofont icon="squares" size="16" />
                             <span class="text">Aucun</span>
                         </div>
                     </OverflowMenuItem>
                     <OverflowMenuItem on:click={toggleSelection} >
                         <div class="label">
-                            <Icofont icon="reload" size="16" />
+                            <Icofont icon="select_invert" size="16" />
                             <span class="text">Inverser</span>
                         </div>
                     </OverflowMenuItem>

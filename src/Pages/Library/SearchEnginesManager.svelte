@@ -336,7 +336,7 @@
                     {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
                         <span class="label">Autres actions</span>
                     {/if}
-                    <Icofont icon="inline_dots" size="18" />
+                    <Icofont icon="menu_dots" size="22" />
                 </div>
     
                 {#if ['sm'].indexOf(size) > -1}
@@ -383,9 +383,6 @@
                 <Icofont icon="squares" size="18" />
                 <span>Affichage</span>
             </Button-->
-            <!-- ContextMenu -->
-            <!-- TODO: SearchBar -->
-            <!-- count item displayed -->
     
         </div>
 
@@ -709,7 +706,7 @@
 
             // Bouton Menu
             .menu-button {
-                padding: 1rem .9rem;
+                padding: .8rem .9rem;
                 color: var(--cds-text-02);
                 display: inline-flex;
                 align-items: center;

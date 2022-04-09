@@ -30,12 +30,12 @@
     // Propriétés internes
     const dispatch = createEventDispatcher() // Pour créer des events
     let sortMenu = [
-        { id: 0, text: "Nom", sort: {on: "name", order: "asc"} },
-        { id: 1, text: "Nom", sort: {on: "name", order: "desc"} },
+        { id: 0, text: "Nom (A-Z)", sort: {on: "name", order: "asc"} },
+        { id: 1, text: "Nom (Z-A)", sort: {on: "name", order: "desc"} },
         /*{ id: 2, text: "Section", sort: {on: "section", order: "asc"} },
         { id: 3, text: "Section", sort: {on: "section", order: "desc"} },*/
-        { id: 2, text: "Valeur", sort: {on: "value", order: "asc"} },
-        { id: 3, text: "Valeur", sort: {on: "value", order: "desc"} },
+        { id: 2, text: "Valeur (A-Z)", sort: {on: "value", order: "asc"} },
+        { id: 3, text: "Valeur (Z-A)", sort: {on: "value", order: "desc"} },
     ]
     let selectedSortMode = 2 // Mode de tri
     let searchValue = "" // Filter les icônes
@@ -140,7 +140,7 @@
             <div class="toolbar">
                 <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
-                        <Icofont icon="sort" size="16" />
+                        <Icofont icon="sort" size="20" />
                         <span class="label">Trier</span>
                         <Icofont icon="dropdown" size="14" />
                     </div>
@@ -151,9 +151,9 @@
                             on:click={() => selectedSortMode = i} >
                             <div class="label">
                                 {#if item.sort.order == "asc"}
-                                    <Icofont icon="arrow_up" size="16" />
+                                    <Icofont icon="arrow_diagonal_1" size="16" />
                                 {:else}
-                                    <Icofont icon="arrow_down" size="16" />
+                                    <Icofont icon="arrow_diagonal_2" size="16" />
                                 {/if}
                                 <span class="text">{item.text}</span>
                             </div>

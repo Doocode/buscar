@@ -43,8 +43,6 @@
         from './Help/Search.svelte'
     import About
         from './Help/About.svelte'
-    import Icofont
-        from '../UI/Icofont.svelte'
     import PageLinks
         from '../UI/PageLinks.svelte'
 
