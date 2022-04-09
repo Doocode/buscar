@@ -27,10 +27,8 @@
     let size // La largeur de l'écran
     let tableColumns = [] // Les colonnes de la vue DataTable
     let idSelectedItems = [] // Les moteurs sélectionnés (id)
-    let indexSelectedItems = [] // Les moteurs sélectionnés (index)
     let contentIndex = 0 // Index pour le ContentSwitcher (Editeur/Aperçu)
     let zebra = false
-    let rowsSelectable = false
     let extendedView = true
     let searchEnabled = false
     let searchValue = ""
@@ -53,8 +51,7 @@
 
 
     // Réactivité
-    $: doResponsive(size)
-    $: updateSelectedIds(indexSelectedItems)
+    $: doResponsive(size, idSelectedItems)
     $: tableData = formatTableData($listSearchEngines, searchValue, searchEnabled)
     $: contentSwitcherDisabled = isFormValid(se_name, se_icon, se_query, se_alias) != true
 
@@ -191,7 +188,6 @@
             return alert("L'item n'existe pas")
 
         // Remplir le formulaire
-        idSelectedItems = [se.id]
         se_id = se.id
         se_name = se.name
         se_query = se.queryUrl
@@ -212,7 +208,7 @@
 
         // Mettre à jour la liste
         listSearchEngines.updateByIndex(
-            findItemIndexById(idSelectedItems[0]),
+            findItemIndexById(se_id),
             se_name, se_alias, se_icon, se_query, se_type
         )
 
@@ -239,26 +235,32 @@
         modalAddItem = true
     }
     const confirmDeleteItem = (id) => {
-        // Retrouver le moteur de recherche
-        let se = findItemById(id)
+        if (typeof(id) !== "undefined" && !isNaN(id)) {
+            // Retrouver le moteur de recherche
+            let se = findItemById(id)
 
-        // Si l'item n'a pas été retrouvé
-        if (se == null)
-            return alert("L'item n'existe pas")
+            // Si l'item n'a pas été retrouvé
+            if (se == null)
+                return alert("L'item n'existe pas")
 
-        // Enregistrer l'id du moteur
-        idSelectedItems = [id]
+            // Enregistrer l'id du moteur
+            se_id = id
+        }
 
         // Ouvrir la popup
         modalDeleteItem = true
     }
     const deleteSelectedItem = () => {
         // Suppression des élements sélectionnés
-        for (let ii=0; ii<idSelectedItems.length; ii++) 
-            listSearchEngines.deleteById(idSelectedItems[ii])
+        if (se_id > 0)
+            listSearchEngines.deleteById(se_id)
+        else {
+            for (let ii=0; ii<idSelectedItems.length; ii++) 
+                listSearchEngines.deleteById(idSelectedItems[ii])
 
-        // Vider la liste des items sélectionnés (car les items n'existent plus)
-        idSelectedItems = []
+            // Vider la liste des items sélectionnés (car les items n'existent plus)
+            idSelectedItems = []
+        }
 
         // Ferme tous les popups
         closeModals()
@@ -284,14 +286,8 @@
             tableColumns.push({ key: "type", value: "Type" })
             tableColumns.push({ key: "alias", value: "Alias" })
         }
-        tableColumns.push({ key: "overflow", empty: true })
-    }
-    const updateSelectedIds = () => {
-        /*idSelectedItems = []
-        indexSelectedItems.forEach((item, index) => {
-            if (indexSelectedItems.indexOf(index) > -1)
-                idSelectedItems.push(item.id)
-        })*/
+        //if (idSelectedItems.length == 0)
+            tableColumns.push({ key: "overflow", empty: true })
     }
 </script>
 
@@ -299,14 +295,19 @@
     <Breakpoint bind:size />
 
     <div class="viewPage" class:extended={extendedView}>
+        <!-- Barre de recherche sur mobile -->
         {#if ['sm'].indexOf(size) > -1 && searchEnabled}
             <div class="toolbar">
                 <Search placeholder="Rechercher" bind:value={searchValue} />
             </div>
         {/if}
 
+        <!-- Barre d'outils -->
         <div class="toolbar">
-            <Button title="Ajouter un moteur de recherche" kind="primary" on:click={() => (modalAddItem = true)}>
+            <Button kind="primary"
+                title="Ajouter un moteur de recherche"
+                on:click={() => modalAddItem = true}
+            >
                 <Icofont icon="plus" size="18" />
                 <span>Nouveau</span>
             </Button>
@@ -315,36 +316,67 @@
                 <div>
                     <Search placeholder="Rechercher" bind:value={searchValue} />
                 </div>
+
+                {#if idSelectedItems.length > 0}
+                    <Button
+                        kind="danger-tertiary"
+                        title="Supprimer la sélection"
+                        on:click={confirmDeleteItem}
+                    >
+                        <Icofont icon="bin" size="18" />
+                        <span>Supprimer</span>
+                    </Button>
+                {/if}
             {/if}
     
             <span class="spacer"></span>
     
             <OverflowMenu flipped style="width: auto; height: auto;">
                 <div slot="menu" class="menu-button">
-                    <span class="label">Autres actions</span>
+                    {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                        <span class="label">Autres actions</span>
+                    {/if}
                     <Icofont icon="inline_dots" size="18" />
                 </div>
     
                 {#if ['sm'].indexOf(size) > -1}
-                    <OverflowMenuItem text={'Rechercher'} on:click={() => toggleSearch} />
+                    <OverflowMenuItem title="Activer/désactiver la recherche"
+                        on:click={toggleSearch}
+                    >
+                        <div class="label">
+                            <Icofont icon="search" size="16" />
+                            <span class="text">Rechercher</span>
+                        </div>
+                    </OverflowMenuItem>
+
+                    {#if idSelectedItems.length > 0}
+                        <OverflowMenuItem danger
+                            title="Supprimer la sélection"
+                            on:click={confirmDeleteItem}
+                        >
+                            <div class="label">
+                                <Icofont icon="bin" size="16" />
+                                <span class="text">Supprimer</span>
+                            </div>
+                        </OverflowMenuItem>
+                    {/if}
                 {/if}
                 {#if zebra}
-                    <OverflowMenuItem text={'Désactiver "Zebra"'} on:click={() => {zebra=!zebra}} />
+                    <OverflowMenuItem text={'Désactiver "Zebra"'}
+                        on:click={() => {zebra=!zebra}} />
                 {:else}
-                    <OverflowMenuItem text={'Activer "Zebra"'} on:click={() => {zebra=!zebra}} />
+                    <OverflowMenuItem text={'Activer "Zebra"'}
+                        on:click={() => {zebra=!zebra}} />
                 {/if}
                 {#if size != "sm"}
                     {#if extendedView}
-                        <OverflowMenuItem text={"Centrer l'affichage"} on:click={() => {extendedView=!extendedView}} />
+                        <OverflowMenuItem text="Centrer l'affichage"
+                            on:click={() => {extendedView=!extendedView}} />
                     {:else}
-                        <OverflowMenuItem text={"Étendre l'affichage"} on:click={() => {extendedView=!extendedView}} />
+                        <OverflowMenuItem text="Étendre l'affichage"
+                            on:click={() => {extendedView=!extendedView}} />
                     {/if}
                 {/if}
-                <!--{#if rowsSelectable}
-                    <OverflowMenuItem text={'Désactiver la multisélection'} on:click={() => {rowsSelectable=!rowsSelectable}} />
-                {:else}
-                    <OverflowMenuItem text={'Activer la multisélection'} on:click={() => {rowsSelectable=!rowsSelectable}} />
-                {/if}-->
             </OverflowMenu>
     
             <!--Button title="Affichage" kind="ghost">
@@ -358,9 +390,9 @@
         </div>
 
         <DataTable {zebra} sortable
-            selectable={rowsSelectable}
+            selectable={true}
             headers={tableColumns} rows={tableData}
-            bind:selectedRowIds={indexSelectedItems} >
+            bind:selectedRowIds={idSelectedItems} >
 
             <svelte:fragment slot="cell-header" let:header>
                 {header.value}
@@ -389,34 +421,66 @@
                     {#if size == "sm"}
                         <!-- Ne pas afficher de boutons supplémentaire -->
                     {:else if size == "md"}
-                        <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => displayDetails(row.id)}>
+                        <Button kind="ghost"
+                            title="Details '{row.name}'"
+                            on:click={() => displayDetails(row.id)}>
                             <Icofont icon="search" size="18" />
                         </Button>
-                        <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => editItem(row.id)}>
+                        <Button kind="ghost"
+                            title="Modifier '{row.name}'"
+                            on:click={() => editItem(row.id)}>
                             <Icofont icon="pencil" size="18" />
                         </Button>
-                        <Button title="Dupliquer '{row.name}'" kind="ghost" on:click={() => duplicateItem(row.id)}>
+                        <Button kind="ghost"
+                            title="Dupliquer '{row.name}'"
+                            on:click={() => duplicateItem(row.id)}>
                             <Icofont icon="duplicate" size="18" />
                         </Button>
                     {:else}
-                        <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => displayDetails(row.id)}>
+                        <Button kind="ghost"
+                            title="Voir et tester '{row.name}'"
+                            on:click={() => displayDetails(row.id)}>
                             <Icofont icon="search" size="18" />
-                            <span class="text">Aperçu</span>
+                            <span class="text">Details</span>
                         </Button>
-                        <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => editItem(row.id)}>
+                        <Button kind="ghost"
+                            title="Modifier '{row.name}'"
+                            on:click={() => editItem(row.id)}>
                             <Icofont icon="pencil" size="18" />
                         </Button>
-                        <Button title="Dupliquer '{row.name}'" kind="ghost" on:click={() => duplicateItem(row.id)}>
+                        <Button kind="ghost"
+                            title="Dupliquer '{row.name}'"
+                            on:click={() => duplicateItem(row.id)}>
                             <Icofont icon="duplicate" size="18" />
                         </Button>
                     {/if}
                     <OverflowMenu flipped>
                         {#if size == "sm"}
-                            <OverflowMenuItem text="Aperçu" on:click={() => displayDetails(row.id)} />
-                            <OverflowMenuItem text="Modifier" on:click={() => editItem(row.id)} />
-                            <OverflowMenuItem text="Dupliquer" on:click={() => duplicateItem(row.id)} />
+                            <OverflowMenuItem on:click={() => displayDetails(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="eye" size="16" />
+                                    <span class="text">Details</span>
+                                </div>
+                            </OverflowMenuItem>
+                            <OverflowMenuItem on:click={() => editItem(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="pencil" size="16" />
+                                    <span class="text">Modifier</span>
+                                </div>
+                            </OverflowMenuItem>
+                            <OverflowMenuItem on:click={() => duplicateItem(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="duplicate" size="16" />
+                                    <span class="text">Dupliquer</span>
+                                </div>
+                            </OverflowMenuItem>
                         {/if}
-                        <OverflowMenuItem danger text="Supprimer" on:click={() => confirmDeleteItem(row.id)} />
+                        <OverflowMenuItem danger on:click={() => confirmDeleteItem(row.id)} >
+                            <div class="label">
+                                <Icofont icon="bin" size="16" />
+                                <span class="text">Supprimer</span>
+                            </div>
+                        </OverflowMenuItem>
                     </OverflowMenu>
                 {:else}
                     {cell.value}
@@ -532,11 +596,15 @@
             on:close={closeModals}
             on:submit={deleteSelectedItem}
         >
-            <p>Voulez-vous vraiment supprimer {idSelectedItems.length == 1 ? "le moteur de recherche suivant" : "les moteurs de recherche suivants" } ?</p>
+            {#if idSelectedItems.length == 1 || se_id > 0}
+                <p>Voulez-vous vraiment supprimer le moteur de recherche suivant ?</p>
+            {:else if idSelectedItems.length > 1}
+                <p>Voulez-vous vraiment supprimer les moteurs de recherche suivants ?</p>
+            {/if}
             <br/>
 
             <div class="list-se">
-                {#each idSelectedItems as idItem }
+                {#each (se_id > 0 ? [se_id] : idSelectedItems) as idItem }
                     <div class="se-item">
                         <img src="{$listSearchEngines[findItemIndexById(idItem)].icon}"
                             alt="Logo de {$listSearchEngines[findItemIndexById(idItem)].name}"/>
@@ -590,7 +658,7 @@
                         }
                     }
 
-                    :global(.bx--data-table thead),
+                    /*:global(.bx--data-table thead),
                     :global(.bx--data-table thead tr),
                     :global(.bx--data-table--sort th) {
                         background: transparent;
@@ -602,7 +670,7 @@
                     :global(.bx--data-table thead th:last-child) {
                         border-top-right-radius: 10px;
                         background: var(--cds-layer-accent);
-                    }
+                    }*/
                 }
             }
 
@@ -647,6 +715,13 @@
                 align-items: center;
                 gap: var(--cds-spacing-03);
             }
+        }
+            
+        // Bouton menu
+        :global(.bx--overflow-menu div.label) {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--cds-spacing-03);
         }
 
         // Tableau
@@ -744,7 +819,7 @@
                         text-overflow: ellipsis;
                     }
 
-                    .name {font-weight: bold;}
+                    .name {font-weight: bold; padding: 0;}
                 }
             }
         }
