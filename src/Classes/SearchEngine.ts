@@ -23,6 +23,8 @@ export class SearchEngine {
     _type: SearchEngineType
     _queryUrl: string
 
+
+
     // Constructeurs
     constructor(id: number, name: string, alias: string, type: SearchEngineType, icon: string, queryUrl: string) {
         this._id = id

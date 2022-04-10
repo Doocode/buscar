@@ -3,7 +3,7 @@
     import { Modal, DataTable, Button, TextInput, OverflowMenu, Breakpoint,
         OverflowMenuItem, NumberInput, Tag }
         from "carbon-components-svelte"
-    import { listSearchProfiles, listSearchEngines }
+    import { listSearchProfiles }
         from '../../Stores/search'
     import { pageName, pageIcon }
         from '../../Stores/header'
@@ -21,6 +21,8 @@
         from "../../Modals/ModalSelectIcofont.svelte"
     import { listIcons }
         from "../../Stores/icofont"
+    import SearchEnginesManager
+        from '../../Classes/SearchEnginesManager'
 
 
 
@@ -31,11 +33,11 @@
 
 
     // Propriétés
+    const SE_MANAGER = new SearchEnginesManager
     let size
     let tableColumns = []
     let tableData = []
     let idSelectedItems = []
-    let searchEngines
     let searchProfiles
     let sp_name = ""
     let sp_icon = ""
@@ -55,9 +57,6 @@
 
 
     // Observations
-    const unsub_listSearchEngines = listSearchEngines.subscribe(value => {
-        searchEngines = value
-    })
     const unsub_listSearchProfiles = listSearchProfiles.subscribe(value => {
         searchProfiles = value
         tableData = searchProfiles
@@ -68,8 +67,8 @@
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
-        unsub_listSearchEngines()
         unsub_listSearchProfiles()
+        SE_MANAGER.destroy()
     })
 
 
@@ -106,15 +105,6 @@
                 return ii // Retourner l'index
         }
         return -1
-    }
-    function findSearchEngineById(id) {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<searchEngines.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt(searchEngines[ii].id) === parseInt(id))
-                return searchEngines[ii]; // Retourner l'item
-        }
-        return null;
     }
     function closeModals() {
         // Fermer les popups
@@ -288,16 +278,8 @@
         // Mettre à jour le profil de recherche
         updateItem()
     }
-    function getDataForBubbles(listIdSE) { // Liste des id des moteurs de recherche
-        // Initialisation des données à retourner
-        let data = []
-
-        // Remplissage de la liste
-        for (let ii=0; ii<listIdSE.length; ii++)
-            data.push(findSearchEngineById(listIdSE[ii]))
-
-        // Retour des données
-        return data
+    function findSearchEnginesByIds(listIdSE) { // Liste des id des moteurs de recherche
+        return SE_MANAGER.findByListIds(listIdSE)
     }
     const findSelectedIconName = () => {
         let results = $listIcons.filter(item => item.value == sp_icon)
@@ -347,7 +329,7 @@
                 <div class="table-bubbles">
                     {#if row.searchEnginesIds.length > 0}
                         <SearchEnginesBubbles bubbleSize="30px" clickable
-                            searchEngines={getDataForBubbles(row.searchEnginesIds)}
+                            searchEngines={findSearchEnginesByIds(row.searchEnginesIds)}
                             on:click={() => editSearchEnginesForSearchProfile(row.id)} />
                     {:else}
                         (Aucun)
@@ -452,7 +434,7 @@
                         <p class="name">{sp_name}</p>
                         <p class="count">{sp_searchEnginesIds.length} {sp_searchEnginesIds.length > 1 ? "moteurs" : "moteur"} de recherche</p>
                         <SearchEnginesBubbles fontSize="14px"
-                            searchEngines={getDataForBubbles(sp_searchEnginesIds)} />
+                            searchEngines={findSearchEnginesByIds(sp_searchEnginesIds)} />
                     </div>
                 </div>
             {/if}
@@ -518,7 +500,7 @@
                             <p class="name">{searchProfiles[findItemIndexById(idItem)].name}</p>
                             <p class="count">{searchProfiles[findItemIndexById(idItem)].searchEnginesIds.length} {searchProfiles[findItemIndexById(idItem)].searchEnginesIds.length > 1 ? "moteurs" : "moteur"} de recherche</p>
                             <SearchEnginesBubbles fontSize="14px"
-                                searchEngines={getDataForBubbles(searchProfiles[findItemIndexById(idItem)].searchEnginesIds)} />
+                                searchEngines={findSearchEnginesByIds(searchProfiles[findItemIndexById(idItem)].searchEnginesIds)} />
                         </div>
                     </div>
                 {/each}

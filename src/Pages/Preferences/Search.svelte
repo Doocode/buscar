@@ -7,7 +7,7 @@
         selectSearchEnginesLimitValue, actionWhenOpeningSearchPage,
         startupSearchProfileId, startupSearchEnginesIds } 
         from '../../Stores/settings'
-    import { listSearchProfiles, listSearchEngines }
+    import { listSearchProfiles }
         from '../../Stores/search'
     import { Breadcrumb, BreadcrumbItem, Toggle, Link, DataTable, Modal, Checkbox,
         Grid, Row, Column, TextInput, OverflowMenu, OverflowMenuItem, Breakpoint,
@@ -23,6 +23,10 @@
         from '../../UI/Icofont.svelte'
     import { pageName, pageIcon }
         from '../../Stores/header'
+    import SearchEnginesManager
+        from '../../Classes/SearchEnginesManager'
+    import { onDestroy }
+        from 'svelte'
 
 
 
@@ -40,7 +44,7 @@
     $: isAliasValid = checkAlias(currentAliasValue, currentAliasId)
     $: tableAliasHead = filterTableAliasHead(size)
     $: selectedStartupSearchProfile = findSearchProfile($startupSearchProfileId)
-    $: selectedStartupSearchEngines = findSearchEngines($startupSearchEnginesIds)
+    $: selectedStartupSearchEngines = SE_MANAGER.findByListIds($startupSearchEnginesIds)
 
 
 
@@ -61,6 +65,7 @@
         {value: "searchEngines", text: "Sélectionner des moteurs de recherche spéciques"},
         {value: "nothing", text: "Ne rien faire"},
     ]
+    const SE_MANAGER = new SearchEnginesManager()
     let modalSearchProfiles = false // Popup pour choisir un profil de recherche
     let modalSearchEngines = false // Popup pour choisir des moteurs de recherche
     let modalAliasEditor = false // Popup pour modifier le prefixe d'un alias
@@ -69,6 +74,11 @@
     let currentAliasValue = ""
     let invalidAliasMessage = "" // Message d'erreur pour corriger le prefixe des alias
     let size // Taille de l'écran
+
+
+
+    // Lifecycle
+    onDestroy(() => SE_MANAGER.destroy)
 
 
 
@@ -154,23 +164,14 @@
     }
     const findSearchProfile = () => {
         // Rechercher le profil de recherche correspondant
-        let results = $listSearchProfiles.filter(
-            item => item.id == $startupSearchProfileId
-        )
+        const results = $listSearchProfiles
+            .filter(item => item.id == $startupSearchProfileId)
 
         // Rechercher les moteurs de recherche
-        results[0].searchEngines = $listSearchEngines.filter(
-            item => results[0].searchEnginesIds.indexOf(item.id) > -1
-        )
+        results[0].searchEngines = SE_MANAGER.findByListIds(results[0].searchEnginesIds)
 
         // Retourner le 1er item (= l'unique resultat)
         return results[0]
-    }
-    const findSearchEngines = () => {
-        // Rechercher les moteurs de recherche correspondants
-        return $listSearchEngines.filter(
-            item => $startupSearchEnginesIds.indexOf(item.id) > -1
-        )
     }
 </script>
 
@@ -230,7 +231,7 @@
         <div><legend class="bx--label">Les moteurs de recherche par défaut</legend></div>
         <ClickableTile
             class="btnStartup" id="btnSearchEngine"
-            on:click={(e) => (modalSearchEngines = true)}
+            on:click={e => modalSearchEngines = true}
             title="Définir les moteurs de recherche par défaut"
         >
             <div class="data">
@@ -362,7 +363,7 @@
             primaryButtonText="Valider"
             secondaryButtonText="Annuler"
             primaryButtonDisabled={!isAliasValid}
-            on:click:button--secondary={() => (modalAliasEditor = false)}
+            on:click:button--secondary={() => modalAliasEditor = false}
             on:open
             on:close
             on:submit={updateAlias}
@@ -381,12 +382,12 @@
         <ModalSearchEnginesSelector
             bind:open={modalSearchEngines}
             bind:idSelectedSearchEngines={$startupSearchEnginesIds}
-            on:submit={() => (modalSearchEngines = false)} />
+            on:submit={() => modalSearchEngines = false} />
 
         <ModalSearchProfileSelector
             bind:open={modalSearchProfiles}
             bind:selectedID={$startupSearchProfileId}
-            on:submit={() => (modalSearchProfiles = false)} />
+            on:submit={() => modalSearchProfiles = false} />
     </div>
 </main>
 

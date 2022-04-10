@@ -1,7 +1,7 @@
 <script>
     // Imports
     import { Modal, DataTable, Button, Tooltip, Search,
-        OverflowMenu, OverflowMenuItem, Tag,
+        OverflowMenu, OverflowMenuItem, Tag, InlineNotification,
         Breakpoint, ContentSwitcher, Switch }
         from "carbon-components-svelte"
     import { listSearchEngines } 
@@ -14,6 +14,10 @@
         from "./SearchEngine/Editor.svelte"
     import SearchEnginePreview
         from "./SearchEngine/Preview.svelte"
+    import SearchEnginesManager
+        from "../../Classes/SearchEnginesManager"
+    import { onDestroy }
+        from "svelte"
 
 
 
@@ -24,9 +28,11 @@
 
 
     // Propriétés
+    const MANAGER = new SearchEnginesManager
     let size // La largeur de l'écran
     let tableColumns = [] // Les colonnes de la vue DataTable
     let idSelectedItems = [] // Les moteurs sélectionnés (id)
+    let listMessages = [] // Liste des notifications
     let contentIndex = 0 // Index pour le ContentSwitcher (Editeur/Aperçu)
     let zebra = false
     let extendedView = true
@@ -57,25 +63,11 @@
 
 
 
+    onDestroy(() => MANAGER.destroy())
+
+
+
     // Méthodes
-    const findItemById = (id) => {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<$listSearchEngines.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt($listSearchEngines[ii].id) === parseInt(id))
-                return $listSearchEngines[ii] // Retourner l'item
-        }
-        return null
-    }
-    const findItemIndexById = (id) => {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<$listSearchEngines.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt($listSearchEngines[ii].id) === parseInt(id))
-                return ii // Retourner l'index
-        }
-        return -1
-    }
     const formatTableData = () => {
         // Formattage des données
         let data = $listSearchEngines.map((seItem) => {
@@ -138,18 +130,15 @@
             return false
         if (se_query.indexOf("%query%") < 1)
             return false
-        for (let ii=0; ii<$listSearchEngines.length; ii++) {
-            if (se_alias.toLowerCase() === $listSearchEngines[ii].alias.toLowerCase() && se_id !== parseInt($listSearchEngines[ii].id))
-                return false
-        }
+        if (!MANAGER.isAliasUnique(se_id, se_alias))
+            return false
 
         // Les données saisies sont correctes => true
         return true
     }
     const createItem = () => {
         // Vérifier si les données du formulaire sont corrects
-        let isValid = isFormValid()
-        if (!isValid) {
+        if (!isFormValid()) {
             modalErrorValues = true
             return
         }
@@ -160,9 +149,9 @@
         // Fermer la popup et vider le formulaire
         closeModals()
     }
-    const displayDetails = (id) => {
+    const displayDetails = id => {
         // Rechercher le moteur de recherche
-        let se = findItemById(id)
+        const se = MANAGER.findById(id)
 
         // Avorter si le moteur de recherche n'existe pas
         if (se == null)
@@ -179,9 +168,9 @@
         // Afficher la popup de détails
         modalPreviewItem = true
     }
-    const editItem = (id) => {
+    const editItem = id => {
         // Retrouver le moteur de recherche
-        let se = findItemById(id)
+        const se = MANAGER.findById(id)
 
         // Si l'item n'a pas été retrouvé
         if (se == null)
@@ -200,24 +189,20 @@
     }
     const updateItem = () => {
         // Vérifier si les données du formulaire sont corrects
-        let isValid = isFormValid()
-        if (!isValid) {
+        if (!isFormValid()) {
             modalErrorValues = true
             return
         }
 
         // Mettre à jour la liste
-        listSearchEngines.updateByIndex(
-            findItemIndexById(se_id),
-            se_name, se_alias, se_icon, se_query, se_type
-        )
+        MANAGER.updateById(se_id, se_name, se_alias, se_icon, se_query, se_type)
 
         // Fermer les popups
         closeModals()
     }
-    const duplicateItem = (id) => {
+    const duplicateItem = id => {
         // Retrouver le moteur de recherche
-        let se = findItemById(id)
+        const se = MANAGER.findById(id)
 
         // Si l'item n'a pas été retrouvé
         if (se == null)
@@ -234,10 +219,10 @@
         // Ouvrir la popup
         modalAddItem = true
     }
-    const confirmDeleteItem = (id) => {
+    const confirmDeleteItem = id => {
         if (typeof(id) !== "undefined" && !isNaN(id)) {
             // Retrouver le moteur de recherche
-            let se = findItemById(id)
+            const se = MANAGER.findById(id)
 
             // Si l'item n'a pas été retrouvé
             if (se == null)
@@ -250,13 +235,13 @@
         // Ouvrir la popup
         modalDeleteItem = true
     }
-    const deleteSelectedItem = () => {
+    const deleteSelectedItems = () => {
         // Suppression des élements sélectionnés
         if (se_id > 0)
-            listSearchEngines.deleteById(se_id)
+            MANAGER.deleteById(se_id)
         else {
             for (let ii=0; ii<idSelectedItems.length; ii++) 
-                listSearchEngines.deleteById(idSelectedItems[ii])
+                MANAGER.deleteById(idSelectedItems[ii])
 
             // Vider la liste des items sélectionnés (car les items n'existent plus)
             idSelectedItems = []
@@ -289,6 +274,46 @@
         //if (idSelectedItems.length == 0)
             tableColumns.push({ key: "overflow", empty: true })
     }
+    const defineAsStartupItems = () => {
+        MANAGER.setListAsStartup(idSelectedItems)
+        listMessages.push({
+            kind: 'success', title: 'Enregistrement réussie',
+            subtitle: "La sélection a été définie comme moteurs de recherche de démarrage"
+        })
+        listMessages = listMessages
+    }
+    const selectItem = (id) => {
+        if (isItemSelected(id))
+            idSelectedItems = idSelectedItems.filter(item => parseInt(item) !== parseInt(id))
+        else
+            idSelectedItems = [...idSelectedItems, parseInt(id)]
+    }
+    const clearSelection = () => idSelectedItems = []
+    const selectAll = () => {
+        let listIds = []
+        $listSearchEngines.forEach(item => listIds.push(parseInt(item.id)))
+        idSelectedItems = listIds
+    }
+    const invertSelection = () => {
+        let listIds = []
+        $listSearchEngines.forEach(item => {
+            if (!isItemSelected(item.id))
+                listIds.push(parseInt(item.id))
+        })
+        idSelectedItems = listIds
+    }
+    const selectOnlyFilteredItems = () => {
+        let listIds = []
+        tableData.forEach(item => listIds.push(parseInt(item.id)))
+        idSelectedItems = listIds
+    }
+    const addFilteredItemsToSelection = () => {
+        tableData.forEach(item => {
+            if (!isItemSelected(item.id))
+                selectItem(item.id)
+        })
+    }
+    const isItemSelected = id => idSelectedItems.indexOf(parseInt(id)) >= 0
 </script>
 
 <main class="wsManager">
@@ -316,25 +341,104 @@
                 <div>
                     <Search placeholder="Rechercher" bind:value={searchValue} />
                 </div>
-
-                {#if idSelectedItems.length > 0}
-                    <Button
-                        kind="danger-tertiary"
-                        title="Supprimer la sélection"
-                        on:click={confirmDeleteItem}
-                    >
-                        <Icofont icon="bin" size="18" />
-                        <span>Supprimer</span>
-                    </Button>
-                {/if}
             {/if}
     
             <span class="spacer"></span>
+
+            <OverflowMenu flipped style="width: auto; height: auto;">
+                <div slot="menu" class="menu-button">
+                    <Icofont icon="select_all" size="22" />
+                    {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                        {#if idSelectedItems.length > 0}
+                            <span class="label">Sélection ({idSelectedItems.length})</span>
+                        {:else}
+                            <span class="label">Sélection</span>
+                        {/if}
+                    {/if}
+                    <Icofont icon="dropdown" size="14" />
+                </div>
+
+                {#if idSelectedItems.length > 0}
+                    <OverflowMenuItem
+                        title="Définir comme moteurs de recherche par défaut"
+                        on:click={defineAsStartupItems}
+                    >
+                        <div class="label">
+                            <Icofont icon="upload" size="18" />
+                            <span class="text">Définir comme sélection au démarrage</span>
+                        </div>
+                    </OverflowMenuItem>
+
+                    <OverflowMenuItem danger
+                        title="Supprimer la sélection"
+                        on:click={confirmDeleteItem}
+                        style="margin-bottom: 1rem"
+                    >
+                        <div class="label">
+                            <Icofont icon="bin" size="18" />
+                            <span class="text">Supprimer la sélection</span>
+                        </div>
+                    </OverflowMenuItem>
+                {/if}
+
+                {#if searchValue.length > 0 && $listSearchEngines.length != tableData.length}
+                    <OverflowMenuItem
+                        title="Sélectionner uniquement les éléments filtrés"
+                        on:click={selectOnlyFilteredItems}
+                    >
+                        <div class="label">
+                            <Icofont icon="filter" size="18" />
+                            <span class="text">Sélectionner uniquement les éléments filtrés</span>
+                        </div>
+                    </OverflowMenuItem>
+
+                    <OverflowMenuItem
+                        title="Ajouter les éléments filtrés à la sélection"
+                        on:click={addFilteredItemsToSelection}
+                        style="margin-bottom: 1rem"
+                    >
+                        <div class="label">
+                            <Icofont icon="plus" size="18" />
+                            <span class="text">Ajouter les éléments filtrés à la sélection</span>
+                        </div>
+                    </OverflowMenuItem>
+                {/if}
+
+                <OverflowMenuItem
+                    title="Tout sélectionner"
+                    on:click={selectAll}
+                >
+                    <div class="label">
+                        <Icofont icon="select_all" size="18" />
+                        <span class="text">Tout sélectionner</span>
+                    </div>
+                </OverflowMenuItem>
+
+                <OverflowMenuItem
+                    title="Ne rien sélectionner"
+                    on:click={clearSelection}
+                >
+                    <div class="label">
+                        <Icofont icon="disable" size="18" />
+                        <span class="text">Ne rien sélectionner</span>
+                    </div>
+                </OverflowMenuItem>
+
+                <OverflowMenuItem
+                    title="Inverser la sélection"
+                    on:click={invertSelection}
+                >
+                    <div class="label">
+                        <Icofont icon="select_invert" size="18" />
+                        <span class="text">Inverser la sélection</span>
+                    </div>
+                </OverflowMenuItem>
+            </OverflowMenu>
     
             <OverflowMenu flipped style="width: auto; height: auto;">
                 <div slot="menu" class="menu-button">
-                    {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
-                        <span class="label">Autres actions</span>
+                    {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                        <span class="label">Menu</span>
                     {/if}
                     <Icofont icon="menu_dots" size="22" />
                 </div>
@@ -348,18 +452,6 @@
                             <span class="text">Rechercher</span>
                         </div>
                     </OverflowMenuItem>
-
-                    {#if idSelectedItems.length > 0}
-                        <OverflowMenuItem danger
-                            title="Supprimer la sélection"
-                            on:click={confirmDeleteItem}
-                        >
-                            <div class="label">
-                                <Icofont icon="bin" size="16" />
-                                <span class="text">Supprimer</span>
-                            </div>
-                        </OverflowMenuItem>
-                    {/if}
                 {/if}
                 {#if zebra}
                     <OverflowMenuItem text={'Désactiver "Zebra"'}
@@ -379,12 +471,15 @@
                 {/if}
             </OverflowMenu>
     
-            <!--Button title="Affichage" kind="ghost">
-                <Icofont icon="squares" size="18" />
-                <span>Affichage</span>
-            </Button-->
-    
         </div>
+
+        {#if listMessages.length > 0}
+            <div>
+                {#each listMessages as msg}
+                    <InlineNotification lowContrast {...msg} />
+                {/each}
+            </div>
+        {/if}
 
         <DataTable {zebra} sortable
             selectable={true}
@@ -397,7 +492,7 @@
     
             <svelte:fragment slot="cell" let:row let:cell>
                 {#if cell.key === "name"}
-                    <div class="name" on:click={() => displayDetails(row.id)}>
+                    <div class="name" on:click={() => selectItem(row.id)}>
                         <img src="{row.icon}" alt="Logo de {row.name}"/>
                         <span class="text">{row.name}</span>
                     </div>
@@ -437,7 +532,7 @@
                         <Button kind="ghost"
                             title="Voir et tester '{row.name}'"
                             on:click={() => displayDetails(row.id)}>
-                            <Icofont icon="search" size="18" />
+                            <Icofont icon="info" size="18" />
                             <span class="text">Details</span>
                         </Button>
                         <Button kind="ghost"
@@ -591,7 +686,7 @@
             secondaryButtonText="Annuler"
             on:click:button--secondary={closeModals}
             on:close={closeModals}
-            on:submit={deleteSelectedItem}
+            on:submit={deleteSelectedItems}
         >
             {#if idSelectedItems.length == 1 || se_id > 0}
                 <p>Voulez-vous vraiment supprimer le moteur de recherche suivant ?</p>
@@ -603,12 +698,12 @@
             <div class="list-se">
                 {#each (se_id > 0 ? [se_id] : idSelectedItems) as idItem }
                     <div class="se-item">
-                        <img src="{$listSearchEngines[findItemIndexById(idItem)].icon}"
-                            alt="Logo de {$listSearchEngines[findItemIndexById(idItem)].name}"/>
+                        <img src="{MANAGER.findById(idItem).icon}"
+                            alt="Logo de {MANAGER.findById(idItem).name}"/>
 
                         <div class="text">
-                            <p class="name">{$listSearchEngines[findItemIndexById(idItem)].name}</p>
-                            <p class="query">{$listSearchEngines[findItemIndexById(idItem)].queryUrl}</p>
+                            <p class="name">{MANAGER.findById(idItem).name}</p>
+                            <p class="query">{MANAGER.findById(idItem).queryUrl}</p>
                         </div>
                     </div>
                 {/each}
@@ -720,6 +815,17 @@
             align-items: center;
             gap: var(--cds-spacing-03);
         }
+        :global(.bx--overflow-menu-options) {
+            width: 250px;
+        }
+        :global(.bx--overflow-menu-options li) {
+            height: 3.5rem;
+        }
+        :global(.bx--overflow-menu-options button) {
+            flex: 1;
+            max-width: initial;
+            height: 3.5rem;
+        }
 
         // Tableau
         :global(.bx--data-table-container) {
@@ -816,7 +922,11 @@
                         text-overflow: ellipsis;
                     }
 
-                    .name {font-weight: bold; padding: 0;}
+                    .name {
+                        font-weight: bold;
+                        padding: 0;
+                        cursor: default;
+                    }
                 }
             }
         }
