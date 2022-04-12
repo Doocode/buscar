@@ -1,0 +1,133 @@
+<script>
+    // Exports
+    /**
+     * Le nom du moteur de recherche
+     * @type {string}
+     */
+    export let name = "(Sans nom)"
+    
+    /**
+     * L'adresse URL de l'icône du moteur de recherche
+     * @type {string}
+     */
+    export let icon = ""
+    
+    /**
+     * Les moteurs de recherche
+     * @type {[]}
+     */
+    export let searchEnginesIds = []
+    
+    /**
+     * L'ordre d'affichage
+     * @type {number}
+     */
+    export let orderPresentation = 0
+
+
+
+    // Imports
+    import { listSearchEngines } 
+        from '../../../Stores/search'
+    import Icofont
+        from '../../../UI/Icofont.svelte'
+
+
+
+    // Réactivité
+    $: dataForBubbles = $listSearchEngines
+        .filter(item => searchEnginesIds.indexOf(parseInt(item.id)) > -1)
+</script>
+
+<main class="sp-preview">
+    <div class="ident">
+        <legend class="bx--label">Profil de recherche</legend>
+        <div class="title">
+            <Icofont {icon} size="18" />
+            <p>{name}</p>
+        </div>
+    </div>
+
+    <div class="searchEngines">
+        <legend class="bx--label">Moteurs de recherche</legend>
+        {#if dataForBubbles.length > 0}
+            <div class="list-se">
+                {#each dataForBubbles as item}
+                    <div class="se-item">
+                        <img src="{item.icon}"
+                            alt="Logo de {item.name}"/>
+
+                        <div class="text">
+                            <p class="name">{item.name}</p>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        {:else}
+            <div class="empty-box">
+                <Icofont icon="warning" size="18" />
+                <p>Non défini</p>
+            </div>
+        {/if}
+    </div>
+</main>
+
+<style lang="scss">
+    .sp-preview {
+        // Section Identité
+        .ident {
+            // Nom et icône
+            .title {
+                display: flex;
+                align-items: center;
+                gap: var(--cds-spacing-03);
+            }
+        }
+
+
+
+        // Section "Moteurs de recherche"
+        .searchEngines {
+            margin-top: var(--cds-spacing-08);
+        }
+        // - Vue sans moteurs de recherche
+        .empty-box {
+            display: flex;
+            align-items: center;
+            gap: var(--cds-spacing-03);
+        }
+        // - Vue avec moteurs de recherche
+        .list-se {
+            display: flex;
+            flex-flow: column;
+            gap: var(--cds-spacing-03);
+            --icon-size: 28px;
+
+            // Item
+            .se-item {
+                display: flex;
+                align-items: center;
+                justify-items: flex-start;
+                gap: var(--cds-spacing-03);
+            }
+            // Logo
+            img {
+                width: var(--icon-size);
+                height: var(--icon-size);
+                border-radius: var(--icon-size);
+                box-shadow: 0 0 0 1px rgba(127, 127, 127, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: var(--font-size);
+                text-align: center;
+            }
+            // Nom
+            p.name {
+                padding: 0;
+                margin: 0;
+                font-size: 100%;
+            }
+        }
+    }
+</style>

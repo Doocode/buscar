@@ -1,8 +1,9 @@
 <script>
     // Imports
-    import { Modal, DataTable, Button, TextInput, OverflowMenu, Breakpoint,
-        OverflowMenuItem, NumberInput, Tag }
-        from "carbon-components-svelte"
+    import { Modal, DataTable, Button, OverflowMenu, Breakpoint,
+        OverflowMenuItem, Search, InlineNotification,
+        ContentSwitcher, Switch, Tooltip }
+        from 'carbon-components-svelte'
     import { listSearchProfiles }
         from '../../Stores/search'
     import { pageName, pageIcon }
@@ -12,17 +13,21 @@
     import { onDestroy }
         from 'svelte'
     import Icofont
-        from "../../UI/Icofont.svelte"
+        from '../../UI/Icofont.svelte'
     import SearchEnginesBubbles
-        from "../../UI/SearchEnginesBubbles.svelte"
+        from '../../UI/SearchEnginesBubbles.svelte'
     import ModalSearchEnginesSelector
-        from "../../Modals/ModalSearchEnginesSelector.svelte"
+        from '../../Modals/ModalSearchEnginesSelector.svelte'
     import ModalSelectIcofont
-        from "../../Modals/ModalSelectIcofont.svelte"
-    import { listIcons }
-        from "../../Stores/icofont"
+        from '../../Modals/ModalSelectIcofont.svelte'
     import SearchEnginesManager
         from '../../Classes/SearchEnginesManager'
+    import SearchProfilesManager
+        from '../../Classes/SearchProfilesManager'
+    import SearchProfileEditor
+        from './SearchProfile/Editor.svelte'
+    import SearchProfilePreview
+        from './SearchProfile/Preview.svelte'
 
 
 
@@ -34,11 +39,17 @@
 
     // Propriétés
     const SE_MANAGER = new SearchEnginesManager
+    const SP_MANAGER = new SearchProfilesManager
     let size
     let tableColumns = []
-    let tableData = []
-    let idSelectedItems = []
-    let searchProfiles
+    let idSelectedItems = [] // Les profils de recherche sélectionnés (id)
+    let listMessages = [] // Liste des notifications
+    let contentIndex = 0 // Index pour le ContentSwitcher (Editeur/Aperçu)
+    let zebra = false
+    let extendedView = true
+    let searchEnabled = true
+    let searchValue = ""
+    let sp_id = -1
     let sp_name = ""
     let sp_icon = ""
     let sp_searchEnginesIds = []
@@ -56,94 +67,114 @@
 
 
 
-    // Observations
-    const unsub_listSearchProfiles = listSearchProfiles.subscribe(value => {
-        searchProfiles = value
-        tableData = searchProfiles
-    })
-
-
-
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
-        unsub_listSearchProfiles()
         SE_MANAGER.destroy()
+        SP_MANAGER.destroy()
     })
 
 
 
     // Réactivité
-    $: {
-        // Affichage responsive
-        tableColumns = [{ key: "name", value: "Profil de recherche" }]
-        if (['max', 'xlg', 'lg'].indexOf(size) > -1)
-            tableColumns.push({ key: "searchEnginesIds", value: "Moteurs de recherche" })
-        if (['max', 'xlg', 'lg', 'mg'].indexOf(size) > -1)
-            tableColumns.push({ key: "orderPresentation", value: "Ordre d'affichage" })
-        tableColumns.push({ key: "overflow", empty: true })
-    }
-    $: selectedIconName = findSelectedIconName(sp_icon)
+    $: doResponsive(size)
+    $: tableData = formatTableData($listSearchProfiles, searchValue, searchEnabled)
+    $: contentSwitcherDisabled = isFormValid(sp_name, sp_icon, sp_searchEnginesIds, sp_orderPresentation) != true
 
 
 
     // Méthodes
-    function findItemById(id) {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<searchProfiles.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt(searchProfiles[ii].id) === parseInt(id))
-                return searchProfiles[ii] // Retourner l'item
+    const formatTableData = () => {
+        // Formattage des données
+        let data = $listSearchProfiles.map(item => {
+            return {
+                id: item.id,
+                name: item.name,
+                icon: item.icon,
+                searchEnginesIds: item.searchEnginesIds,
+                orderPresentation: item.orderPresentation,
+            }
+        })
+
+        // Filtrer la recherche
+        const searchBarVisible = searchEnabled || ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1
+        if (searchValue.length > 0 && searchBarVisible) {
+            // Vérifie si un string contient les termes recherché
+            const containSearch = str => str.toLowerCase().indexOf(searchValue.toLowerCase()) > -1
+
+            // Filtres
+            data = data.filter(item => {
+                const searchName = containSearch(item.name)
+                const searchIcon = containSearch(item.icon)
+                // TODO: Chercher dans les moteurs aussi
+                return searchName || searchIcon
+            })
         }
-        return null
+
+        return data
     }
-    function findItemIndexById(id) {
-        // Rechercher l'item dans la liste
-        for (let ii=0; ii<searchProfiles.length; ii++) {
-            // Si l'item a été retrouvé
-            if (parseInt(searchProfiles[ii].id) === parseInt(id))
-                return ii // Retourner l'index
-        }
-        return -1
+    const toggleSearch = () => {
+        searchEnabled = !searchEnabled
+        if (!searchEnabled)
+            searchValue = ""
     }
-    function closeModals() {
+    const closeModals = () => {
         // Fermer les popups
-        modalAddItem = false
         modalPreviewItem = false
-        modalEditItem = false
         modalDeleteItem = false
-        modalSearchEngines = false
         modalIcons = false
+        // Si une des popup d'edition est ouverte
+        if (modalAddItem || modalEditItem) {
+            // Et que celle des moteurs est ouverte
+            if (modalSearchEngines)
+                return modalSearchEngines = false
+        }
+        modalAddItem = false
+        modalEditItem = false
+        modalSearchEngines = false
 
         // Vider le formulaire
         clearForm()
     }
-    function clearForm() {
+    const clearForm = () => {
         // Vider le formulaire
+        sp_id = -1
         sp_name = "(Sans nom)"
         sp_icon = ""
         sp_searchEnginesIds = []
         sp_orderPresentation = 0
     }
-    function validateForm() {
-        if (sp_name.length < 1) {
+    const validateForm = () => {
+        if (sp_name.length < 1)
             return "Vous devez donner un nom au profil de recherche"
-        }
-        if (sp_icon.length < 1) {
+        if (sp_icon.length < 1)
             return "Vous devez attribuer une icône au profil de recherche"
-        }
-        /*if (sp_searchEnginesIds.length < 1) {
-            return "Vous devez sélectionner au moins un moteur de recherche"
-        }*/
+        /*if (sp_searchEnginesIds.length < 1)
+            return "Vous devez sélectionner au moins un moteur de recherche"*/
         /*if (sp_orderPresentation < 1)
             return "Vous ne pouvez pas entrer de nombre inferieur à 1"*/
+        // TODO: Valider positionNumber
 
         // Les données saisies sont correctes
         return true
     }
-    function createItem() {
+    const isFormValid = () => {
+        if (sp_name.length < 1)
+            return false
+        if (sp_icon.length < 1)
+            return false
+        /*if (sp_searchEnginesIds.length < 1)
+            return "Vous devez sélectionner au moins un moteur de recherche"*/
+        /*if (sp_orderPresentation < 1)
+            return "Vous ne pouvez pas entrer de nombre inferieur à 1"*/
+        // TODO: Valider positionNumber
+
+        // Les données saisies sont correctes => true
+        return true
+    }
+    const createItem = () => {
         // Vérifier que les données du formulaire sont corrects
-        let validate = validateForm()
+        const validate = validateForm()
         if (validate != true)
             return alert(validate)
 
@@ -153,232 +184,452 @@
         // Fermer la popup et vider le formulaire
         closeModals()
     }
-    function displayDetails(id) {
+    const displayDetails = id => {
         // Rechercher le moteur de recherche
-        let spItem = findItemById(id)
+        const item = SP_MANAGER.findById(id)
 
         // Avorter si le moteur de recherche n'existe pas
-        if (spItem == null)
+        if (item == null)
             return alert("Le moteur de recherche n'existe pas")
 
         // Récupération et attribution des champs
-        sp_name = spItem.name
-        sp_icon = spItem.icon
-        sp_searchEnginesIds = spItem.searchEnginesIds
-        sp_orderPresentation = spItem.orderPresentation
+        sp_id = item.id
+        sp_name = item.name
+        sp_icon = item.icon
+        sp_searchEnginesIds = item.searchEnginesIds
+        sp_orderPresentation = item.orderPresentation
 
         // Afficher la popup de détails
         modalPreviewItem = true
     }
-    function editItem(id) {
+    const editItem = id => {
         // Retrouver le moteur de recherche
-        let spItem = findItemById(id)
+        const item = SP_MANAGER.findById(id)
 
         // Si l'item n'a pas été retrouvé
-        if (spItem == null)
+        if (item == null)
             return alert("L'item n'existe pas")
 
         // Remplir le formulaire
-        idSelectedItems = [spItem.id]
-        sp_name = spItem.name
-        sp_icon = spItem.icon
-        sp_searchEnginesIds = spItem.searchEnginesIds
-        sp_orderPresentation = spItem.orderPresentation
+        sp_id = item.id
+        sp_name = item.name
+        sp_icon = item.icon
+        sp_searchEnginesIds = item.searchEnginesIds
+        sp_orderPresentation = item.orderPresentation
 
         // Ouvrir la popup
         modalEditItem = true
     }
-    function updateItem() {
+    const updateItem = e => {
         // Vérifie que les données du formulaire sont corrects
-        let validate = validateForm()
+        const validate = validateForm()
         if (validate != true)
             return alert(validate)
 
         // Mettre à jour la liste
-        listSearchProfiles.updateByIndex(
-            findItemIndexById(idSelectedItems[0]),
-            sp_name, sp_icon, sp_searchEnginesIds, sp_orderPresentation
-        )
+        SP_MANAGER.updateById(sp_id, sp_name, sp_icon, sp_searchEnginesIds, sp_orderPresentation)
 
         // Fermer les popups
         closeModals()
     }
-    function duplicateItem(id) {
+    const duplicateItem = id => {
         // Retrouver le moteur de recherche
-        let spItem = findItemById(id)
+        const item = SP_MANAGER.findById(id)
 
         // Si l'item n'a pas été retrouvé
-        if (spItem == null)
+        if (item == null)
             return alert("L'item n'existe pas")
 
         // Remplir le formulaire
-        sp_name = spItem.name + " (2)"
-        sp_icon = spItem.icon
-        sp_searchEnginesIds = spItem.searchEnginesIds
-        sp_orderPresentation = spItem.orderPresentation
+        sp_name = item.name + " (2)"
+        sp_icon = item.icon
+        sp_searchEnginesIds = item.searchEnginesIds
+        sp_orderPresentation = item.orderPresentation
 
         // Ouvrir la popup
         modalAddItem = true
     }
-    function confirmDeleteItem(id) {
-        // Retrouver le profil de recherche
-        let spItem = findItemById(id)
+    const confirmDeleteItem = id => {
+        if (typeof(id) !== "undefined" && !isNaN(id)) {
+            // Retrouver le moteur de recherche
+            const item = SP_MANAGER.findById(id)
 
-        // Si l'item n'a pas été retrouvé
-        if (spItem == null)
-            return alert("L'item n'existe pas")
+            // Si l'item n'a pas été retrouvé
+            if (item == null)
+                return alert("L'item n'existe pas")
 
-        // Enregistrer l'id du profil
-        idSelectedItems = [id]
+            // Enregistrer l'id du moteur
+            sp_id = parseInt(id)
+        }
 
         // Ouvrir la popup
         modalDeleteItem = true
     }
-    function deleteSelectedItem() {
+    const deleteSelectedItem = () => {
         // Suppression des élements sélectionnés
-        for (let ii=0; ii<idSelectedItems.length; ii++) {
-            listSearchProfiles.deleteById(idSelectedItems[ii])
-        }
+        if (sp_id > 0)
+            SP_MANAGER.deleteById(sp_id)
+        else {
+            idSelectedItems.forEach(id => SP_MANAGER.deleteById(id))
 
-        // Vider la liste des items sélectionnés (car les items n'existent plus)
-        idSelectedItems = []
+            // Vider la liste des items sélectionnés (car les items n'existent plus)
+            idSelectedItems = []
+        }
 
         // Ferme tous les popups
         closeModals()
     }
-    function editSearchEnginesForSearchProfile(id) {
+    const editSearchEnginesForSearchProfile = id => {
         // Fermer les popups
         closeModals()
 
         // Retrouver le moteur de recherche
-        let spItem = findItemById(id)
+        const item = SP_MANAGER.findById(id)
 
         // Si l'item n'a pas été retrouvé
-        if (spItem == null)
+        if (item == null)
             return alert("L'item n'existe pas")
 
         // Activer la selection multiple de moteur de recherche
-        if (spItem.searchEnginesIds.length > 1)
+        if (item.searchEnginesIds.length > 1)
             multiSelectionSearchEngines.set(true)
 
         // Remplir le formulaire : pour MAJ dans la base
-        idSelectedItems = [spItem.id]
-        sp_name = spItem.name
-        sp_icon = spItem.icon
-        sp_searchEnginesIds = spItem.searchEnginesIds
-        sp_orderPresentation = spItem.orderPresentation
+        sp_id = item.id
+        sp_name = item.name
+        sp_icon = item.icon
+        sp_searchEnginesIds = item.searchEnginesIds
+        sp_orderPresentation = item.orderPresentation
 
         // Ouvrir la popup
         modalSearchEngines = true
     }
-    function saveSearchEnginesForSearchProfile(e) {
+    const saveSearchEnginesForSearchProfile = e => {
         // Récupérer les id des moteurs sélectionnés
         sp_searchEnginesIds = e.detail.selectedIds
 
         // Mettre à jour le profil de recherche
         updateItem()
     }
-    function findSearchEnginesByIds(listIdSE) { // Liste des id des moteurs de recherche
-        return SE_MANAGER.findByListIds(listIdSE)
-    }
-    const findSelectedIconName = () => {
-        let results = $listIcons.filter(item => item.value == sp_icon)
-        if (sp_icon == "" || results.length < 1)
-            return "(Non définie)"
-        return results[0].name
-    }
-    const onSubmitIcon = (e) => {
+    const findSearchEnginesByIds = listIds => SE_MANAGER.findByListIds(listIds)
+    const onSubmitIcon = e => {
         modalIcons = false
         sp_icon = e.detail.value
     }
+    const doResponsive = () => {
+        // Affichage responsive
+        tableColumns = [{ key: "name", value: "Profil de recherche" }]
+        if (['max', 'xlg', 'lg'].indexOf(size) > -1)
+            tableColumns.push({ key: "searchEnginesIds", value: "Moteurs de recherche" })
+        if (['max', 'xlg', 'lg', 'mg'].indexOf(size) > -1)
+            tableColumns.push({ key: "orderPresentation", value: "Ordre d'affichage" })
+        tableColumns.push({ key: "overflow", empty: true })
+    }
+    const defineAsStartup = id => {
+        const item = SP_MANAGER.findById(id)
+
+        if (item != null) {
+            SP_MANAGER.setItemAsStartup(id)
+            listMessages.push({
+                kind: 'success', title: 'Mise à jour réussie',
+                subtitle: "Le profil de recherche \""+item.name+"\" a été défini comme profil de recherche de démarrage"
+            })
+            listMessages = listMessages
+        }
+    }
+    const selectItem = id => {
+        if (isItemSelected(id))
+            idSelectedItems = idSelectedItems.filter(item => parseInt(item) !== parseInt(id))
+        else
+            idSelectedItems = [...idSelectedItems, parseInt(id)]
+    }
+    const clearSelection = () => idSelectedItems = []
+    const selectAll = () => {
+        let listIds = []
+        $listSearchProfiles.forEach(item => listIds.push(parseInt(item.id)))
+        idSelectedItems = listIds
+    }
+    const invertSelection = () => {
+        let listIds = []
+        $listSearchProfiles.forEach(item => {
+            if (!isItemSelected(item.id))
+                listIds.push(parseInt(item.id))
+        })
+        idSelectedItems = listIds
+    }
+    const selectOnlyFilteredItems = () => {
+        let listIds = []
+        tableData.forEach(item => listIds.push(parseInt(item.id)))
+        idSelectedItems = listIds
+    }
+    const addFilteredItemsToSelection = () => {
+        tableData.forEach(item => {
+            if (!isItemSelected(item.id))
+                selectItem(item.id)
+        })
+    }
+    const isItemSelected = id => idSelectedItems.indexOf(parseInt(id)) >= 0
 </script>
 
 <main class="spManager">
     <Breakpoint bind:size />
 
-    <div class="toolbar">
+    <div class="viewPage" class:extended={extendedView}>
+        <!-- Barre de recherche sur mobile -->
+        {#if ['sm'].indexOf(size) > -1 && searchEnabled}
+            <div class="toolbar">
+                <Search placeholder="Rechercher" bind:value={searchValue} />
+            </div>
+        {/if}
 
-        <Button title="Ajouter un profil de recherche" kind="primary" on:click={() => {modalAddItem = true; clearForm()}}>
-            <Icofont icon="plus" size="18" />
-            <span>Nouveau</span>
-        </Button>
+        <!-- Barre d'outils -->
+        <div class="toolbar">
 
-        <span class="spacer"></span>
+            <Button title="Ajouter un profil de recherche" kind="primary" on:click={() => {modalAddItem = true; clearForm()}}>
+                <Icofont icon="plus" size="18" />
+                <span>Nouveau</span>
+            </Button>
 
-        <!--Button title="Affichage" kind="ghost">
-            <Icofont icon="squares" size="18" />
-            <span>Affichage</span>
-        </Button-->
-        <!-- ContextMenu -->
-
-    </div>
-
-    <DataTable sortable headers={tableColumns} rows={tableData}>
-
-        <svelte:fragment slot="cell-header" let:header>
-            {header.value}
-        </svelte:fragment>
-
-        <svelte:fragment slot="cell" let:row let:cell>
-            {#if cell.key === "name"}
-                <div class="name">
-                    <Icofont icon="{row.icon}" size="22" />
-                    <span class="text">{row.name}</span>
-                </div>
-            {:else if cell.key === "searchEnginesIds"}
-                <div class="table-bubbles">
-                    {#if row.searchEnginesIds.length > 0}
-                        <SearchEnginesBubbles bubbleSize="30px" clickable
-                            searchEngines={findSearchEnginesByIds(row.searchEnginesIds)}
-                            on:click={() => editSearchEnginesForSearchProfile(row.id)} />
-                    {:else}
-                        (Aucun)
-                    {/if}
-                </div>
-            {:else if cell.key === "orderPresentation"}
-                <p class="number">
-                    {row.orderPresentation}
-                </p>
-            {:else if cell.key === "overflow"}
-                {#if size == "sm"}
-                    <!-- Ne pas afficher de boutons supplémentaire -->
-                {:else if size == "md"}
-                    <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
-                        <Icofont icon="search" size="18" />
-                    </Button>
-                    <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
-                        <Icofont icon="settings" size="18" />
-                    </Button>
-                    <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
-                        <Icofont icon="circles" size="18" />
-                    </Button>
-                {:else}
-                    <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
-                        <Icofont icon="search" size="18" />
-                        <span class="text">Aperçu</span>
-                    </Button>
-                    <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
-                        <Icofont icon="settings" size="18" />
-                    </Button>
-                    <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
-                        <Icofont icon="circles" size="18" />
-                    </Button>
-                {/if}
-                <OverflowMenu flipped>
-                    {#if size == "sm"}
-                        <OverflowMenuItem text="Aperçu" on:click={() => {displayDetails(row.id)}} />
-                        <OverflowMenuItem text="Modifier" on:click={() => {editItem(row.id)}} />
-                        <OverflowMenuItem text="Moteurs de recherche" on:click={() => {editSearchEnginesForSearchProfile(row.id)}} />
-                    {/if}
-                    <OverflowMenuItem text="Dupliquer" on:click={() => {duplicateItem(row.id)}} />
-                    <OverflowMenuItem danger text="Supprimer" on:click={() => {confirmDeleteItem(row.id)}} />
-                </OverflowMenu>
-            {:else}
-                {cell.value}
+            {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                <div><Search placeholder="Rechercher" bind:value={searchValue} /></div>
             {/if}
-        </svelte:fragment>
 
-    </DataTable>
+            <span class="spacer"></span>
+
+            <OverflowMenu flipped style="width: auto; height: auto;">
+                <div slot="menu" class="menu-button">
+                    <Icofont icon="select_all" size="22" />
+                    {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                        {#if idSelectedItems.length > 0}
+                            <span class="label">Sélection ({idSelectedItems.length})</span>
+                        {:else}
+                            <span class="label">Sélection</span>
+                        {/if}
+                    {/if}
+                    <Icofont icon="dropdown" size="14" />
+                </div>
+
+                {#if idSelectedItems.length > 0}
+                    <OverflowMenuItem danger
+                        title="Supprimer la sélection"
+                        on:click={confirmDeleteItem}
+                        style="margin-bottom: 1rem"
+                    >
+                        <div class="label">
+                            <Icofont icon="bin" size="18" />
+                            <span class="text">Supprimer la sélection</span>
+                        </div>
+                    </OverflowMenuItem>
+                {/if}
+
+                {#if searchValue.length > 0 && $listSearchProfiles.length != tableData.length}
+                    <OverflowMenuItem
+                        title="Sélectionner uniquement les éléments filtrés"
+                        on:click={selectOnlyFilteredItems}
+                    >
+                        <div class="label">
+                            <Icofont icon="filter" size="18" />
+                            <span class="text">Sélectionner uniquement les éléments filtrés</span>
+                        </div>
+                    </OverflowMenuItem>
+
+                    <OverflowMenuItem
+                        title="Ajouter les éléments filtrés à la sélection"
+                        on:click={addFilteredItemsToSelection}
+                        style="margin-bottom: 1rem"
+                    >
+                        <div class="label">
+                            <Icofont icon="plus" size="18" />
+                            <span class="text">Ajouter les éléments filtrés à la sélection</span>
+                        </div>
+                    </OverflowMenuItem>
+                {/if}
+
+                <OverflowMenuItem
+                    title="Tout sélectionner"
+                    on:click={selectAll}
+                >
+                    <div class="label">
+                        <Icofont icon="select_all" size="18" />
+                        <span class="text">Tout sélectionner</span>
+                    </div>
+                </OverflowMenuItem>
+
+                <OverflowMenuItem
+                    title="Ne rien sélectionner"
+                    on:click={clearSelection}
+                >
+                    <div class="label">
+                        <Icofont icon="disable" size="18" />
+                        <span class="text">Ne rien sélectionner</span>
+                    </div>
+                </OverflowMenuItem>
+
+                <OverflowMenuItem
+                    title="Inverser la sélection"
+                    on:click={invertSelection}
+                >
+                    <div class="label">
+                        <Icofont icon="select_invert" size="18" />
+                        <span class="text">Inverser la sélection</span>
+                    </div>
+                </OverflowMenuItem>
+            </OverflowMenu>
+            
+            <OverflowMenu flipped style="width: auto; height: auto;">
+                <div slot="menu" class="menu-button">
+                    {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                        <span class="label">Menu</span>
+                    {/if}
+                    <Icofont icon="menu_dots" size="22" />
+                </div>
+    
+                {#if ['sm'].indexOf(size) > -1}
+                    <OverflowMenuItem title="Activer/désactiver la recherche"
+                        on:click={toggleSearch}
+                    >
+                        <div class="label">
+                            {#if searchEnabled}
+                                <Icofont icon="hide" size="16" />
+                                <span class="text">Masquer la barre de recherche</span>
+                            {:else}
+                                <Icofont icon="search" size="16" />
+                                <span class="text">Rechercher</span>
+                            {/if}
+                        </div>
+                    </OverflowMenuItem>
+                {/if}
+                {#if zebra}
+                    <OverflowMenuItem text={'Désactiver "Zebra"'}
+                        on:click={() => {zebra=!zebra}} />
+                {:else}
+                    <OverflowMenuItem text={'Activer "Zebra"'}
+                        on:click={() => {zebra=!zebra}} />
+                {/if}
+                {#if size != "sm"}
+                    {#if extendedView}
+                        <OverflowMenuItem text="Centrer l'affichage"
+                            on:click={() => {extendedView=!extendedView}} />
+                    {:else}
+                        <OverflowMenuItem text="Étendre l'affichage"
+                            on:click={() => {extendedView=!extendedView}} />
+                    {/if}
+                {/if}
+            </OverflowMenu>
+
+        </div>
+
+        <!-- Liste des messages -->
+        {#if listMessages.length > 0}
+            <div>
+                {#each listMessages as msg}
+                    <InlineNotification lowContrast {...msg} />
+                {/each}
+            </div>
+        {/if}
+
+        <DataTable sortable selectable={true} {zebra}
+            headers={tableColumns} rows={tableData}
+            bind:selectedRowIds={idSelectedItems} >
+
+            <svelte:fragment slot="cell-header" let:header>
+                {header.value}
+            </svelte:fragment>
+
+            <svelte:fragment slot="cell" let:row let:cell>
+                {#if cell.key === "name"}
+                    <div class="name clickable" on:click={() => selectItem(row.id)}>
+                        <Icofont icon="{row.icon}" size="22" />
+                        <span class="text">{row.name}</span>
+                    </div>
+                {:else if cell.key === "searchEnginesIds"}
+                    <div class="table-bubbles">
+                        {#if row.searchEnginesIds.length > 0}
+                            <SearchEnginesBubbles bubbleSize="30px" clickable
+                                searchEngines={findSearchEnginesByIds(row.searchEnginesIds)}
+                                on:click={() => editSearchEnginesForSearchProfile(row.id)} />
+                        {:else}
+                            (Aucun)
+                        {/if}
+                    </div>
+                {:else if cell.key === "orderPresentation"}
+                    <p class="number">
+                        {row.orderPresentation}
+                    </p>
+                {:else if cell.key === "overflow"}
+                    {#if size == "sm"}
+                        <!-- Ne pas afficher de boutons supplémentaire -->
+                    {:else if size == "md"}
+                        <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
+                            <Icofont icon="info" size="18" />
+                        </Button>
+                        <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
+                            <Icofont icon="pencil" size="18" />
+                        </Button>
+                        <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
+                            <Icofont icon="circles" size="18" />
+                        </Button>
+                    {:else}
+                        <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
+                            <Icofont icon="info" size="18" />
+                            <span class="text">Détails</span>
+                        </Button>
+                        <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
+                            <Icofont icon="pencil" size="18" />
+                        </Button>
+                        <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
+                            <Icofont icon="circles" size="18" />
+                        </Button>
+                    {/if}
+                    <OverflowMenu flipped>
+                        {#if size == "sm"}
+                            <OverflowMenuItem on:click={() => displayDetails(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="eye" size="16" />
+                                    <span class="text">Détails</span>
+                                </div>
+                            </OverflowMenuItem>
+                            <OverflowMenuItem on:click={() => editItem(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="pencil" size="16" />
+                                    <span class="text">Modifier</span>
+                                </div>
+                            </OverflowMenuItem>
+                            <OverflowMenuItem on:click={() => editSearchEnginesForSearchProfile(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="circles" size="16" />
+                                    <span class="text">Gérer les moteurs de recherche</span>
+                                </div>
+                            </OverflowMenuItem>
+                        {/if}
+                        <OverflowMenuItem on:click={() => defineAsStartup(row.id)} >
+                            <div class="label">
+                                <Icofont icon="upload" size="16" />
+                                <span class="text">Définir comme sélection au démarrage</span>
+                            </div>
+                        </OverflowMenuItem>
+                        <OverflowMenuItem on:click={() => duplicateItem(row.id)} >
+                            <div class="label">
+                                <Icofont icon="duplicate" size="16" />
+                                <span class="text">Dupliquer</span>
+                            </div>
+                        </OverflowMenuItem>
+                        {#if idSelectedItems.length == 0}
+                            <OverflowMenuItem danger on:click={() => confirmDeleteItem(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="bin" size="16" />
+                                    <span class="text">Supprimer</span>
+                                </div>
+                            </OverflowMenuItem>
+                        {/if}
+                    </OverflowMenu>
+                {:else}
+                    {cell.value}
+                {/if}
+            </svelte:fragment>
+
+        </DataTable>
+    </div>
 
     <div class="modals">
         <Modal
@@ -386,37 +637,37 @@
             modalHeading="Créer un profil de recherche"
             primaryButtonText="Créer"
             secondaryButtonText="Annuler"
+            bind:primaryButtonDisabled={contentSwitcherDisabled}
             on:click:button--secondary={closeModals}
             on:close={closeModals}
             on:submit={createItem}
         >
-            <div class="form-item">
-                <legend class="bx--label">Icône</legend>
-                <div class="row">
-                    {#if sp_icon.length > 0}
-                        <div>
-                            <Icofont icon="{sp_icon}" />
-                        </div>
-                    {/if}
-                    <div class="align-column">
-                        <p class="name">{selectedIconName}</p>
-                        {#if sp_icon.length > 0}
-                            <Tag>{sp_icon}</Tag>
-                        {/if}
-                        <Button kind="tertiary" on:click={() => {modalIcons = true}}>Choisir une icône</Button>
-                    </div>
-                </div>
-            </div>
-            <br/><br/>
-            <TextInput required
-                labelText="Nom du profil de recherche"
-                bind:value={sp_name}
-                placeholder="Lorem ipsum" />
-            <br/><br/>
-            <NumberInput required
-                label="Ordre d'affichage"
-                bind:value={sp_orderPresentation} />
-            <br /><br />
+            <ContentSwitcher bind:selectedIndex={contentIndex}>
+                <Switch text="Edition" disabled={contentSwitcherDisabled} />
+                <Switch text="Aperçu" disabled={contentSwitcherDisabled} />
+            </ContentSwitcher>
+            <br/>
+            {#if contentSwitcherDisabled}
+                <Tooltip triggerText="Mode Aperçu désactivé" align="center">
+                    <p>Le mode "Aperçu" est désactivé car le formulaire
+                        n'est pas correctement renseigné.</p>
+                </Tooltip>
+            {/if}
+            <br/>
+
+            {#if contentIndex == 0}
+                <SearchProfileEditor
+                    bind:id={sp_id} bind:name={sp_name} bind:icon={sp_icon}
+                    bind:searchEnginesIds={sp_searchEnginesIds}
+                    bind:orderPresentation={sp_orderPresentation}
+                    on:requestSearchEngines={() => modalSearchEngines = true}
+                    on:requestIcon={() => modalIcons = true} />
+            {:else}
+                <SearchProfilePreview
+                    bind:name={sp_name} bind:icon={sp_icon}
+                    bind:searchEnginesIds={sp_searchEnginesIds}
+                    bind:orderPresentation={sp_orderPresentation} />
+            {/if}
         </Modal>
 
         <Modal
@@ -428,15 +679,10 @@
             on:submit={closeModals}
         >
             {#if modalPreviewItem}
-                <div class="preview">
-                    <Icofont icon={sp_icon} size="100" />
-                    <div class="content">
-                        <p class="name">{sp_name}</p>
-                        <p class="count">{sp_searchEnginesIds.length} {sp_searchEnginesIds.length > 1 ? "moteurs" : "moteur"} de recherche</p>
-                        <SearchEnginesBubbles fontSize="14px"
-                            searchEngines={findSearchEnginesByIds(sp_searchEnginesIds)} />
-                    </div>
-                </div>
+                <SearchProfilePreview
+                    bind:name={sp_name} bind:icon={sp_icon}
+                    bind:searchEnginesIds={sp_searchEnginesIds}
+                    bind:orderPresentation={sp_orderPresentation} />
             {/if}
             <br /><br />
         </Modal>
@@ -446,61 +692,66 @@
             modalHeading="Modifier le profil de recherche"
             primaryButtonText="Enregistrer"
             secondaryButtonText="Annuler"
+            bind:primaryButtonDisabled={contentSwitcherDisabled}
             on:click:button--secondary={closeModals}
             on:close={closeModals}
             on:submit={updateItem}
         >
-            <div class="form-item">
-                <legend class="bx--label">Icône</legend>
-                <div class="row">
-                    {#if sp_icon.length > 0}
-                        <div>
-                            <Icofont icon="{sp_icon}" />
-                        </div>
-                    {/if}
-                    <div class="align-column">
-                        <p class="name">{selectedIconName}</p>
-                        {#if sp_icon.length > 0}
-                            <Tag>{sp_icon}</Tag>
-                        {/if}
-                        <Button kind="tertiary" on:click={() => {modalIcons = true}}>Choisir une icône</Button>
-                    </div>
-                </div>
-            </div>
-            <br/><br/>
-            <TextInput required
-                labelText="Nom du profil de recherche"
-                bind:value={sp_name}
-                placeholder="Lorem ipsum" />
-            <br/><br/>
-            <NumberInput required
-                label="Ordre d'affichage"
-                bind:value={sp_orderPresentation} />
-            <br /><br />
+            <ContentSwitcher bind:selectedIndex={contentIndex}>
+                <Switch text="Edition" disabled={contentSwitcherDisabled} />
+                <Switch text="Aperçu" disabled={contentSwitcherDisabled} />
+            </ContentSwitcher>
+            <br/>
+            {#if contentSwitcherDisabled}
+                <Tooltip triggerText="Mode Aperçu désactivé" align="center">
+                    <p>Le mode "Aperçu" est désactivé car le formulaire
+                        n'est pas correctement renseigné.</p>
+                </Tooltip>
+            {/if}
+            <br/>
+
+            {#if contentIndex == 0}
+                <SearchProfileEditor
+                    bind:id={sp_id} bind:name={sp_name} bind:icon={sp_icon}
+                    bind:searchEnginesIds={sp_searchEnginesIds}
+                    bind:orderPresentation={sp_orderPresentation}
+                    on:requestSearchEngines={() => modalSearchEngines = true}
+                    on:requestIcon={() => modalIcons = true} />
+            {:else}
+                <SearchProfilePreview
+                    bind:name={sp_name} bind:icon={sp_icon}
+                    bind:searchEnginesIds={sp_searchEnginesIds}
+                    bind:orderPresentation={sp_orderPresentation} />
+                <br /><br />
+            {/if}
         </Modal>
 
         <Modal
             bind:open={modalDeleteItem} danger
-            modalHeading="Supprimer {idSelectedItems.length == 1 ? "un profil" : "des profils" } de recherche"
+            modalHeading="Supprimer {(sp_id > 0 ? [sp_id] : idSelectedItems).length == 1 ? "un profil" : "des profils" } de recherche"
             primaryButtonText="Supprimer"
             secondaryButtonText="Annuler"
             on:click:button--secondary={closeModals}
             on:close={closeModals}
             on:submit={deleteSelectedItem}
         >
-            <p>Voulez-vous vraiment supprimer {idSelectedItems.length == 1 ? "le profil de recherche suivant" : "les profils de recherche suivants" } ?</p>
+            {#if idSelectedItems.length == 1 || sp_id > 0}
+                <p>Voulez-vous vraiment supprimer le profil de recherche suivant ?</p>
+            {:else if idSelectedItems.length > 1}
+                <p>Voulez-vous vraiment supprimer les profils de recherche suivants ?</p>
+            {/if}
             <br/>
 
             <div class="list-sp">
-                {#each idSelectedItems as idItem }
+                {#each (sp_id > 0 ? [sp_id] : idSelectedItems) as idItem }
                     <div class="sp-item">
-                        <Icofont icon={searchProfiles[findItemIndexById(idItem)].icon} size="50" />
+                        <Icofont icon={SP_MANAGER.findById(idItem).icon} size="50" />
 
                         <div class="text">
-                            <p class="name">{searchProfiles[findItemIndexById(idItem)].name}</p>
-                            <p class="count">{searchProfiles[findItemIndexById(idItem)].searchEnginesIds.length} {searchProfiles[findItemIndexById(idItem)].searchEnginesIds.length > 1 ? "moteurs" : "moteur"} de recherche</p>
+                            <p class="name">{SP_MANAGER.findById(idItem).name}</p>
+                            <p class="count">{SP_MANAGER.findById(idItem).searchEnginesIds.length} {SP_MANAGER.findById(idItem).searchEnginesIds.length > 1 ? "moteurs" : "moteur"} de recherche</p>
                             <SearchEnginesBubbles fontSize="14px"
-                                searchEngines={findSearchEnginesByIds(searchProfiles[findItemIndexById(idItem)].searchEnginesIds)} />
+                                searchEngines={findSearchEnginesByIds(SP_MANAGER.findById(idItem).searchEnginesIds)} />
                         </div>
                     </div>
                 {/each}
@@ -523,18 +774,90 @@
 
 <style lang="scss">
     main.spManager {
+        // Affichage
+        .viewPage {
+            --width: 640px;
+            max-width: 100%;
+            transition: all .3s;
+
+            @media (min-width: 672px) { // width > sm
+                &:not(.extended) {
+                    max-width: var(--width);
+                    margin: var(--cds-spacing-09) auto;
+
+                    .toolbar {
+                        --border-radius: 8px;
+                        margin-bottom: var(--cds-spacing-04);
+                        gap: var(--cds-spacing-04);
+
+                        :global(.bx--btn),
+                        :global(.bx--overflow-menu) {border-radius: var(--border-radius);}
+
+                        // Barre de recherche
+                        :global(.bx--search-input) {border-radius: var(--border-radius);}
+                        :global(.bx--search--xl .bx--search-close) {
+                            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+                        }
+                    }
+
+                    /*:global(.bx--data-table thead),
+                    :global(.bx--data-table thead tr),
+                    :global(.bx--data-table--sort th) {
+                        background: transparent;
+                    }
+
+                    :global(.bx--data-table thead th:first-child .bx--table-sort) {
+                        border-top-left-radius: 10px;
+                    }
+                    :global(.bx--data-table thead th:last-child) {
+                        border-top-right-radius: 10px;
+                        background: var(--cds-layer-accent);
+                    }*/
+                }
+            }
+
+            @media (min-width: 1056px) { // width > md
+                & {--width: 1000px;}
+            }
+
+            @media (min-width: 1312px) { // width > lg
+                & {--width: 1300px;}
+            }
+
+            @media (min-width: 1584px) { // width > xlg
+                & {--width: 1550px;}
+            }
+        }
+
+        // Barre d'outils
         .toolbar {
             display: flex;
             align-items: center;
             justify-content: flex-start;
+            transition: all .3s;
+            background: var(--cds-ui-background);
 
+            // Bouton
             :global(.bx--btn) {
                 justify-content: center;
                 align-items: center;
                 gap: .5rem;
             }
 
+            // Barre de recherche
+            :global(.bx--search-input) {margin: 0;}
+
+            // Espacement
             .spacer {flex: 1}
+
+            // Bouton Menu
+            .menu-button {
+                padding: .8rem .9rem;
+                color: var(--cds-text-02);
+                display: inline-flex;
+                align-items: center;
+                gap: var(--cds-spacing-03);
+            }
         }
 
         // Tableau
@@ -575,57 +898,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
+
+            &.clickable {
+                cursor: pointer;
+                padding: 10px 0;
+            }
         }
         .number {font-size: 1.2em;}
 
         // Popups
-        // - Aperçu
-        .preview {
-            --icon-size: 120px;
-
-            display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            padding: 1rem;
-            gap: 1rem;
-
-            .content {
-                display: flex;
-                flex-flow: column;
-                align-items: flex-start;
-                gap: 5px;
-            }
-
-            p {padding: 0}
-
-            .name {font-size: 2em}
-            .count {margin-bottom: 10px}
-        }
-
-        // - Modifier l'icône
-        .form-item {
-            display: flex;
-            flex-flow: column;
-
-            .row {
-                display: flex;
-                align-items: flex-start;
-                justify-content: flex-start;
-                flex-flow: wrap;
-                gap: 1rem;
-            }
-            .align-column {
-                display: flex;
-                flex-flow: column;
-                align-items: flex-start;
-            }
-
-            :global(.icofont) {font-size: 100px;}
-            :global(.bx--btn) {
-                border-radius: 8px;
-                margin-top: var(--cds-spacing-03);
-            }
-        }
 
         // - Liste des profils sélectionnés
         .list-sp {
