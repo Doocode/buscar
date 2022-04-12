@@ -99,7 +99,7 @@
 
 
     // Méthodes
-    const confirmChangeSearchEngines = (e) => {
+    const confirmChangeSearchEngines = e => {
         // Masquer la popup
         modalSelectSearchEngines = false
 
@@ -161,14 +161,14 @@
         if ($enableSelectSearchEnginesLimit && limitSelectionReached)
             updateSelectedSearchProfile()
     }
-    const confirmChangeSearchProfile = (e) => {
+    const confirmChangeSearchProfile = e => {
         // MAJ l'historique
         selectSearchProfileById(e.detail.selectedId)
 
         // Masquer la popup
         modalSelectSearchProfile = false
     }
-    const selectSearchProfileById = (idSearchProfile) => {
+    const selectSearchProfileById = idSearchProfile => {
         // MAJ le profil de recherche choisi
         selectedSearchProfileID = parseInt(idSearchProfile)
 
@@ -190,7 +190,7 @@
 
         modalResetSelection = false // Fermer la popup
     }
-    const executeQuery = (e) => {
+    const executeQuery = e => {
         // Liste des pages à ouvrir
         let pages = e.detail.urls
 
@@ -233,14 +233,7 @@
                 break
         }
     }
-    const sortSearchEngines = (a, b) => {
-        if ( a.name < b.name )
-            return -1
-        if ( a.name > b.name )
-            return 1
-        return 0
-    }
-    const addSearchEngineToSelection = (e) => {
+    const addSearchEngineToSelection = e => {
         // Le moteur de recherche à ajouter
         let searchEngine = e.detail.searchEngine
 
@@ -256,7 +249,7 @@
             // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
         }
     }
-    const removeSearchEngineToSelection = (e) => {
+    const removeSearchEngineToSelection = e => {
         // Le moteur de recherche à retirer
         let searchEngine = e.detail.searchEngine
 
@@ -273,7 +266,7 @@
             // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
         }
     }
-    const replaceSearchEngineToSelection = (e) => {
+    const replaceSearchEngineToSelection = e => {
         // Le moteur de recherche à sélectionner
         let searchEngine = e.detail.searchEngine
 
@@ -286,7 +279,7 @@
 
         // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
     }
-    const onUpdateQuery = (e) => { // Mettre à jour la requete
+    const onUpdateQuery = e => { // Mettre à jour la requete
         searchBox.changeValue(e.detail.query)
     }
     const onPageMount = () => {

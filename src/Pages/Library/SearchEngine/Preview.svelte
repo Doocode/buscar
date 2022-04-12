@@ -204,10 +204,11 @@
 
     @media (max-width: 672px) { // width < lg
         .se-preview {
-            align-items: center;
+            align-items: initial;
 
-            .details {
-                align-items: center;
+            .details .query {
+                flex-flow: column;
+                align-items: flex-start;
             }
         }
     }

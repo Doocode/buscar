@@ -214,8 +214,10 @@
                 <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
                         <Icofont icon="sort" size="20" />
-                        <span class="label">Trier</span>
-                        <Icofont icon="dropdown" size="14" />
+                        {#if ["sm"].indexOf(size) < 0}
+                            <span class="label">Trier</span>
+                            <Icofont icon="dropdown" size="14" />
+                        {/if}
                     </div>
     
                     {#each sortMenu as item, i}
@@ -237,8 +239,10 @@
                 <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
                         <Icofont icon="selection" size="20" />
-                        <span class="label">Sélectionner</span>
-                        <Icofont icon="dropdown" size="14" />
+                        {#if ["sm"].indexOf(size) < 0}
+                            <span class="label">Sélectionner</span>
+                            <Icofont icon="dropdown" size="14" />
+                        {/if}
                     </div>
     
                     <OverflowMenuItem on:click={selectAll} >
@@ -341,11 +345,6 @@
         .menu-button {
             padding: 1rem .9rem;
             color: var(--cds-text-02);
-            display: inline-flex;
-            align-items: center;
-            gap: var(--cds-spacing-03);
-        }
-        div.label {
             display: inline-flex;
             align-items: center;
             gap: var(--cds-spacing-03);

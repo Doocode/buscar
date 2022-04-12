@@ -36,7 +36,7 @@
     let contentIndex = 0 // Index pour le ContentSwitcher (Editeur/Aperçu)
     let zebra = false
     let extendedView = true
-    let searchEnabled = false
+    let searchEnabled = true
     let searchValue = ""
     let se_id = -1
     let se_name = ""
@@ -70,14 +70,14 @@
     // Méthodes
     const formatTableData = () => {
         // Formattage des données
-        let data = $listSearchEngines.map((seItem) => {
+        let data = $listSearchEngines.map(item => {
             return {
-                id: seItem.id,
-                name: seItem.name,
-                type: seItem.type,
-                icon: seItem.icon,
-                alias: seItem.alias,
-                query: seItem.queryUrl,
+                id: item.id,
+                name: item.name,
+                type: item.type,
+                icon: item.icon,
+                alias: item.alias,
+                query: item.queryUrl,
             }
         })
 
@@ -89,10 +89,10 @@
 
             // Filtres
             data = data.filter(item => {
-                let searchName = containSearch(item.name)
-                let searchIcon = containSearch(item.icon)
-                let searchQuery = containSearch(item.query)
-                let searchType = containSearch(item.type.name)
+                const searchName = containSearch(item.name)
+                const searchIcon = containSearch(item.icon)
+                const searchQuery = containSearch(item.query)
+                const searchType = containSearch(item.type.name)
                 return searchName || searchIcon || searchQuery || searchType
             })
         }
@@ -240,8 +240,7 @@
         if (se_id > 0)
             MANAGER.deleteById(se_id)
         else {
-            for (let ii=0; ii<idSelectedItems.length; ii++) 
-                MANAGER.deleteById(idSelectedItems[ii])
+            idSelectedItems.forEach(id => MANAGER.deleteById(id))
 
             // Vider la liste des items sélectionnés (car les items n'existent plus)
             idSelectedItems = []
@@ -277,7 +276,7 @@
     const defineAsStartupItems = () => {
         MANAGER.setListAsStartup(idSelectedItems)
         listMessages.push({
-            kind: 'success', title: 'Enregistrement réussie',
+            kind: 'success', title: 'Mise à jour réussie',
             subtitle: "La sélection a été définie comme moteurs de recherche de démarrage"
         })
         listMessages = listMessages
@@ -338,9 +337,7 @@
             </Button>
 
             {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
-                <div>
-                    <Search placeholder="Rechercher" bind:value={searchValue} />
-                </div>
+                <div><Search placeholder="Rechercher" bind:value={searchValue} /></div>
             {/if}
     
             <span class="spacer"></span>
@@ -448,8 +445,13 @@
                         on:click={toggleSearch}
                     >
                         <div class="label">
-                            <Icofont icon="search" size="16" />
-                            <span class="text">Rechercher</span>
+                            {#if searchEnabled}
+                                <Icofont icon="hide" size="16" />
+                                <span class="text">Masquer la barre de recherche</span>
+                            {:else}
+                                <Icofont icon="search" size="16" />
+                                <span class="text">Rechercher</span>
+                            {/if}
                         </div>
                     </OverflowMenuItem>
                 {/if}
@@ -473,6 +475,7 @@
     
         </div>
 
+        <!-- Liste des messages -->
         {#if listMessages.length > 0}
             <div>
                 {#each listMessages as msg}
@@ -514,9 +517,9 @@
                         <!-- Ne pas afficher de boutons supplémentaire -->
                     {:else if size == "md"}
                         <Button kind="ghost"
-                            title="Details '{row.name}'"
+                            title="Détails '{row.name}'"
                             on:click={() => displayDetails(row.id)}>
-                            <Icofont icon="search" size="18" />
+                            <Icofont icon="info" size="18" />
                         </Button>
                         <Button kind="ghost"
                             title="Modifier '{row.name}'"
@@ -533,7 +536,7 @@
                             title="Voir et tester '{row.name}'"
                             on:click={() => displayDetails(row.id)}>
                             <Icofont icon="info" size="18" />
-                            <span class="text">Details</span>
+                            <span class="text">Détails</span>
                         </Button>
                         <Button kind="ghost"
                             title="Modifier '{row.name}'"
@@ -551,7 +554,7 @@
                             <OverflowMenuItem on:click={() => displayDetails(row.id)} >
                                 <div class="label">
                                     <Icofont icon="eye" size="16" />
-                                    <span class="text">Details</span>
+                                    <span class="text">Détails</span>
                                 </div>
                             </OverflowMenuItem>
                             <OverflowMenuItem on:click={() => editItem(row.id)} >
@@ -567,12 +570,14 @@
                                 </div>
                             </OverflowMenuItem>
                         {/if}
-                        <OverflowMenuItem danger on:click={() => confirmDeleteItem(row.id)} >
-                            <div class="label">
-                                <Icofont icon="bin" size="16" />
-                                <span class="text">Supprimer</span>
-                            </div>
-                        </OverflowMenuItem>
+                        {#if idSelectedItems.length == 0}
+                            <OverflowMenuItem danger on:click={() => confirmDeleteItem(row.id)} >
+                                <div class="label">
+                                    <Icofont icon="bin" size="16" />
+                                    <span class="text">Supprimer</span>
+                                </div>
+                            </OverflowMenuItem>
+                        {/if}
                     </OverflowMenu>
                 {:else}
                     {cell.value}
@@ -681,7 +686,7 @@
 
         <Modal
             bind:open={modalDeleteItem} danger
-            modalHeading="Supprimer {idSelectedItems.length == 1 ? "un moteur" : "des moteurs" } de recherche"
+            modalHeading="Supprimer {(se_id > 0 ? [se_id] : idSelectedItems).length == 1 ? "un moteur" : "des moteurs" } de recherche"
             primaryButtonText="Supprimer"
             secondaryButtonText="Annuler"
             on:click:button--secondary={closeModals}
@@ -785,6 +790,7 @@
             align-items: center;
             justify-content: flex-start;
             transition: all .3s;
+            background: var(--cds-ui-background);
 
             // Bouton
             :global(.bx--btn) {
@@ -807,24 +813,6 @@
                 align-items: center;
                 gap: var(--cds-spacing-03);
             }
-        }
-            
-        // Bouton menu
-        :global(.bx--overflow-menu div.label) {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--cds-spacing-03);
-        }
-        :global(.bx--overflow-menu-options) {
-            width: 250px;
-        }
-        :global(.bx--overflow-menu-options li) {
-            height: 3.5rem;
-        }
-        :global(.bx--overflow-menu-options button) {
-            flex: 1;
-            max-width: initial;
-            height: 3.5rem;
         }
 
         // Tableau

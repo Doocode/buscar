@@ -85,9 +85,9 @@
     // Méthodes
     const generateAliasRows = () => {
         return [
-            {id: 0, prefix: $aliasAddSearchEngine, description: "Sélectionner un moteur de recherche", enabled: $enableAliasAddSearchEngine},
-            {id: 1, prefix: $aliasRemoveSearchEngine, description: "Retirer un moteur de recherche de la sélection", enabled: $enableAliasRemoveSearchEngine},
-            {id: 2, prefix: $aliasReplaceSearchEngine, description: "Remplacer les moteurs de recherche sélectionnés", enabled: $enableAliasReplaceSearchEngine},
+            {id: 0, prefix: $aliasAddSearchEngine, description: "Ajouter un moteur de recherche", enabled: $enableAliasAddSearchEngine},
+            {id: 1, prefix: $aliasRemoveSearchEngine, description: "Retirer un moteur de recherche", enabled: $enableAliasRemoveSearchEngine},
+            {id: 2, prefix: $aliasReplaceSearchEngine, description: "Remplacer la sélection actuelle", enabled: $enableAliasReplaceSearchEngine},
         ]
     }
     const checkAlias = () => {
@@ -290,7 +290,9 @@
                     <OverflowMenu flipped style="width: auto;">
                         <div slot="menu" class="menu-button">
                             <Icofont icon="settings" size="16" />
-                            <span class="label">Options</span>
+                            {#if size != "sm"}
+                                <span class="label">Options</span>
+                            {/if}
                         </div>
                         <OverflowMenuItem text="Modifier" on:click={() => {openAliasEditor(row.id)}} />
                         {#if row.enabled}
