@@ -91,9 +91,31 @@
 	main :global(.bx--modal-content) {
 		margin-bottom: 0;
 	}
-	// Saisie de nombre
-	:global(.bx--number input[type="number"]) {
-		margin: 0;
+
+	main {
+		// NumberInput
+		:global(.bx--number input[type="number"]) {
+			margin: 0;
+		}
+				
+		// Bouton menu
+		:global(.bx--overflow-menu div.label) {
+			display: inline-flex;
+			align-items: center;
+			gap: var(--cds-spacing-03);
+		}
+		:global(.bx--overflow-menu-options) {
+			width: 250px;
+		}
+		:global(.bx--overflow-menu-options li) {
+			height: 3.5rem;
+		}
+		:global(.bx--overflow-menu-options button),
+		:global(.bx--overflow-menu-options a) {
+			flex: 1;
+			max-width: initial;
+			height: 3.5rem;
+		}
 	}
 
 	@media (min-width: 672px) {

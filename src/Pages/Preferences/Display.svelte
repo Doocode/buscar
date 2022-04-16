@@ -1,7 +1,8 @@
 <script>
     // Imports
     import { contrastMode, customAmbiance, defaultLightMode, defaultDarkMode,
-        ambiances, planningAmbiances, allowHeaderBackButton, compactSearchBox } 
+        ambiances, planningAmbiances, allowHeaderBackButton, compactSearchBox,
+        allowHeaderHomeButton } 
         from '../../Stores/settings'
     import { Breadcrumb, BreadcrumbItem, Toggle, Grid, Row, Column, Button,
         TileGroup, RadioTile, RadioButtonGroup, RadioButton, Modal, NumberInput,
@@ -127,7 +128,7 @@
         edit_planningAmbiance = ambiance
         modalPlanningTiles = true
     }
-    const deletePlanningItem = (id) => {
+    const deletePlanningItem = id => {
         if (edit_planningId > 0) {
             // Envoi des modifs
             planningAmbiances.deleteById(edit_planningId)
@@ -306,6 +307,16 @@
                     labelA="Non" labelB="Oui" />
             </Column>
             <Column>
+                <Toggle labelText="Afficher le bouton 'Accueil' en haut"
+                    bind:toggled={$allowHeaderHomeButton}
+                    labelA="Non" labelB="Oui" />
+            </Column>
+        </Row>
+    </Grid>
+    <br/><br/>
+    <Grid style="max-width: 510px; margin: 0; padding: 0;">
+        <Row>
+            <Column>
                 <Toggle labelText="Barre de recherche compacte"
                     bind:toggled={$compactSearchBox}
                     labelA="Non" labelB="Oui" />
@@ -447,6 +458,7 @@
                 margin-top: var(--cds-spacing-03);
             }
         }
+
         // Boutons
         :global(.bx--btn.format) {
             padding: var(--cds-spacing-04);
@@ -473,7 +485,11 @@
                 margin-top: var(--cds-spacing-04);
             }
         }
+        :global(.bx--modal-content .bx--grid) {
+            padding: 0 1rem;
+        }
 
+        // Actions
         .actions {
             display: flex;
             flex-flow: wrap;

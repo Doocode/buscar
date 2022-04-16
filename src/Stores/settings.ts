@@ -39,7 +39,10 @@ export const planningAmbiances = createAmbiancePlanning([
 ]);
 
 // - Bouton "Retour" dans l'en-tête
-export const allowHeaderBackButton = writable(false)
+export const allowHeaderBackButton = writable(true)
+
+// - Bouton "Accueil" dans l'en-tête
+export const allowHeaderHomeButton = writable(true)
 
 
 
@@ -167,7 +170,7 @@ function createAmbiancePlanning(initial_value) {
                 return
             // TODO: Vérifier si heure/minutes sont valides (h<24 min<60 etc.)
 
-            // Formattage du temps
+            // Formatage du temps
             time = parseInt(splitTime[0]) + ":" + parseInt(splitTime[1])
             if (parseInt(splitTime[1]) == 0)
                 time = parseInt(splitTime[0]) + ":0" + parseInt(splitTime[1])
@@ -198,7 +201,7 @@ function createAmbiancePlanning(initial_value) {
                         return
                     // TODO: Vérifier si heure/minutes sont valides (h<24 min<60 etc.)
         
-                    // Formattage du temps
+                    // Formatage du temps
                     let time = parseInt(splitTime[0]) + ":" + parseInt(splitTime[1])
                     if (parseInt(splitTime[1]) == 0)
                         time = parseInt(splitTime[0]) + ":0" + parseInt(splitTime[1])

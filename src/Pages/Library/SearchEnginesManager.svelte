@@ -69,7 +69,7 @@
 
     // Méthodes
     const formatTableData = () => {
-        // Formattage des données
+        // Formatage des données
         let data = $listSearchEngines.map(item => {
             return {
                 id: item.id,

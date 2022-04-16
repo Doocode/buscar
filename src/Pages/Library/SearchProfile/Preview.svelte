@@ -17,12 +17,6 @@
      * @type {[]}
      */
     export let searchEnginesIds = []
-    
-    /**
-     * L'ordre d'affichage
-     * @type {number}
-     */
-    export let orderPresentation = 0
 
 
 

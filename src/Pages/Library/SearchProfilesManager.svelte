@@ -85,7 +85,7 @@
 
     // Méthodes
     const formatTableData = () => {
-        // Formattage des données
+        // Formatage des données
         let data = $listSearchProfiles.map(item => {
             return {
                 id: item.id,

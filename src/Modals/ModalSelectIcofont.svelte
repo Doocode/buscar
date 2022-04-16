@@ -17,11 +17,11 @@
     // Imports
     import { Modal, RadioTile, TileGroup, Breakpoint, Search, Tag,
         OverflowMenu, OverflowMenuItem }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
     import { createEventDispatcher }
         from 'svelte'
     import Icofont
-        from "../UI/Icofont.svelte"
+        from '../UI/Icofont.svelte'
     import { listIcons }
         from '../Stores/icofont'
 

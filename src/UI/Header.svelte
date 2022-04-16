@@ -5,7 +5,7 @@
 
 
     // Imports
-    import { pop, location }
+    import { pop, location, push }
         from 'svelte-spa-router'
     import { Button, Link }
         from "carbon-components-svelte"
@@ -15,7 +15,7 @@
         from 'svelte/transition' // Liste des transitions : https://svelte.dev/docs#run-time-svelte-transition
     import Icofont
         from './Icofont.svelte'
-    import { allowHeaderBackButton }
+    import { allowHeaderBackButton, allowHeaderHomeButton }
         from '../Stores/settings'
     import { pageName, pageIcon, transparentHeader }
         from '../Stores/header'
@@ -40,6 +40,7 @@
 
     // Réactivité
     $: canGoBack = $location != "/"
+    $: canGoHome = $location != "/"
 
 
 
@@ -72,20 +73,30 @@
     <div class="left">
         {#if canGoBack && $allowHeaderBackButton}
             <span in:fade out:whoosh>
-                <Button kind="tertiary" class="btn-back" title="Retour vers la page précédente" on:click={goBack}>
+                <Button kind="ghost" class="btn-back" title="Retour vers la page précédente" on:click={goBack}>
                     <Icofont icon="arrow_left" size="20" />
                 </Button>
             </span>
         {/if}
-        
+
+        {#if canGoHome && $allowHeaderHomeButton}
+            <span>
+                <Button kind="ghost" class="btn-home" title="Page d'accueil" on:click={() => push('/')}>
+                    <Icofont icon="home" size="20" />
+                </Button>
+            </span>
+        {/if}
+
         <Button kind="ghost" title="Menu de navigation" on:click={toggleLeftMenu}>
             <Icofont icon="menu" size="20" />
         </Button>
     </div>
+
     <div class="center">
         <Icofont icon="{$pageIcon}" />
         <h1>{$pageName}</h1>
     </div>
+
     <div class="right">
         <Button kind="ghost" title="Réglages rapides" on:click={toggleRightMenu} >
             <Icofont icon="settings" size="20" />
@@ -189,7 +200,9 @@
             min-height: auto;
         }
 
-        :global(.btn-back) {border-radius: 50px;}
+        /*:global(.btn-back),
+        :global(.btn-home)
+        {border-radius: 50px;}*/
 
         > .left, > .right, > .center {display: flex;}
 

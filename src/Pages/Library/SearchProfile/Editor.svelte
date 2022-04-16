@@ -222,10 +222,5 @@
                 gap: var(--cds-spacing-03);
             }
         }
-
-        .input-look {
-            background: var(--cds-field-02);
-            border-bottom: 1px solid var(--cds-ui-04);
-        }
     }
 </style>

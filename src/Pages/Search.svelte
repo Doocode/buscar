@@ -280,6 +280,7 @@
         // TODO: Afficher une notification : https://carbon-components-svelte.onrender.com/components/ToastNotification#hidden-close-button
     }
     const onUpdateQuery = e => { // Mettre à jour la requete
+        queryInput = e.detail.query
         searchBox.changeValue(e.detail.query)
     }
     const onPageMount = () => {
@@ -350,7 +351,7 @@
             on:askSearchEngines={() => modalSelectSearchEngines = true}
             searchEngines={searchEngines.filter(seItem => seItem.selected)}
             placeholder="Tapez votre requête ici"
-            clickableBubbles="true" />
+            clickableBubbles={true} />
     </div>
 
     <div class="bottomToolbar">

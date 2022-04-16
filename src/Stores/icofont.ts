@@ -1,4 +1,4 @@
-// Store pour les paramètres
+// Store pour les icônes
 
 // Imports
 import { readable } from 'svelte/store'
