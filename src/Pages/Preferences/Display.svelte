@@ -2,7 +2,7 @@
     // Imports
     import { contrastMode, customAmbiance, defaultLightMode, defaultDarkMode,
         ambiances, planningAmbiances, allowHeaderBackButton, compactSearchBox,
-        allowHeaderHomeButton } 
+        backgroundType, backgroundColor, backgroundImage, allowHeaderHomeButton } 
         from '../../Stores/settings'
     import { Breadcrumb, BreadcrumbItem, Toggle, Grid, Row, Column, Button,
         TileGroup, RadioTile, RadioButtonGroup, RadioButton, Modal, NumberInput,
@@ -12,6 +12,8 @@
         from '../../Stores/header'
     import PlanningAmbiances
         from '../../UI/PlanningAmbiances.svelte'
+    import ModalSelectBgImage
+        from '../../Modals/ModalSelectBgImage.svelte'
     import Icofont
         from '../../UI/Icofont.svelte'
 
@@ -30,11 +32,14 @@
         {title: TITLE_PAGE, url: "/#/preferences/interface", current: true},
     ]
     let modalPlanningTiles = false
+    let modalBgImageSelect = false
+    let bgColorInput // Sélecteur de couleur
     let focusTime = ""
     let edit_planningId = 0
     let edit_planningTimeH = 0
     let edit_planningTimeM = 0
     let edit_planningAmbiance = ""
+    let edit_bgImage = ""
 
 
 
@@ -42,6 +47,7 @@
     $: publicAmbiances = $ambiances.filter(item => item.public)
     $: planningAccordion = formatPlanningAmbiances($planningAmbiances, focusTime, edit_planningTimeH, edit_planningTimeM)
     $: startTimePlannedAmbiance = findCurrentPlannedAmbiance(planningAccordion) // TODO: Ajouter un timer pour MAJ l'affichage
+    $: {edit_bgImage = $backgroundImage}
 
 
 
@@ -199,6 +205,10 @@
 
         return timeToFocus
     }
+    const onSelectBgImage = e => {
+        $backgroundImage = e.detail.value
+        modalBgImageSelect = false
+    }
 </script>
 
 <main id="prefs-display" class="prefs-section">
@@ -265,12 +275,12 @@
             planning={$planningAmbiances} />
         <br/>
         <div class="actions">
-            <Button kind="primary" class="format"
+            <Button kind="tertiary" class="format"
                 on:click={() => modalPlanningTiles = true} >
                 <Icofont icon="agenda" size="18" />
                 <p class="label">Modifier le planning des ambiances</p>
             </Button>
-            <Button kind="secondary" class="format" on:click={scheduleAmbiance} >
+            <Button kind="tertiary" class="format" on:click={scheduleAmbiance} >
                 <Icofont icon="plus" size="18" />
                 <p class="label">Planifier une ambiance</p>
             </Button>
@@ -293,6 +303,56 @@
                     </RadioTile>
                 {/each}
             </TileGroup>
+        </div>
+    {/if}
+
+
+
+    <h3 class="format">Fond d'écran</h3>
+    <RadioButtonGroup
+        legendText="Type de fond d'écran"
+        bind:selected={$backgroundType}
+    >
+        <RadioButton labelText="Basique" value="neutral" />
+        <RadioButton labelText="Couleur" value="color" />
+        <!--<RadioButton labelText="Dégradé" value="gradient" />-->
+        <RadioButton labelText="Image" value="image" />
+        <!--<RadioButton labelText="Diaporama" value="slideshow" />-->
+    </RadioButtonGroup>
+    <br/>
+
+    {#if $backgroundType == "color"}
+        <div style="display: flex; flex-flow: wrap; align-items: center; gap: var(--cds-spacing-02);">
+            <div class="color-view" style="--value: {$backgroundColor}"
+                on:click={() => bgColorInput.click()} >
+                <input type="color"
+                    bind:this={bgColorInput}
+                    bind:value={$backgroundColor} />
+            </div>
+            <div class="actions" style="flex: 1">
+                <Button kind="tertiary" class="format"
+                    on:click={() => bgColorInput.click()} >
+                    <Icofont icon="palette" size="18" />
+                    <p class="label">Choisir une couleur</p>
+                </Button>
+            </div>
+        </div>
+    {:else if $backgroundType == "image"}
+        <div style="display: flex; flex-flow: wrap; align-items: end; gap: var(--cds-spacing-02);">
+            <img class="image-view" src={$backgroundImage}
+                on:click={() => modalBgImageSelect = true} />
+            <div class="actions" style="flex: 1; flex-flow: column; align-items: flex-start;">
+                <Button kind="tertiary" class="format"
+                    on:click={() => modalBgImageSelect = true} >
+                    <Icofont icon="folder_close" size="18" />
+                    <p class="label">Choisir une image</p>
+                </Button>
+                <Button kind="tertiary" class="format"
+                    on:click={() => modalBgImageSelect = true} >
+                    <Icofont icon="settings" size="18" />
+                    <p class="label">Réglages et filtres sur l'image</p>
+                </Button>
+            </div>
         </div>
     {/if}
 
@@ -431,6 +491,12 @@
         {/if}
         <br/>
     </Modal>
+
+    <ModalSelectBgImage
+        bind:open={modalBgImageSelect}
+        bind:value={edit_bgImage}
+        on:submit={onSelectBgImage} />
+
 </main>
 
 <style lang="scss">
@@ -496,8 +562,24 @@
             gap: var(--cds-spacing-02);
         }
 
-        :global(.bx--modal-content .bx--grid) {
-            padding: 0 1rem;
+        .color-view {
+            --value: #00aaff;
+
+            width: 47px;
+            height: 47px;
+            border-radius: 50px;
+            background-color: var(--value);
+            cursor: pointer;
+
+            input {display: none;}
+        }
+
+        .image-view {
+            max-width: 300px;
+            max-height: 400px;
+            border-radius: 10px;
+            background-color: rgb(127,127,127);
+            cursor: pointer;
         }
     }
 

@@ -42,8 +42,8 @@
     const getTiles = () => {
         // Trier et filtrer les tuiles
         return $listQuickControls
-            .sort((a, b) => (a.position - b.position)) // Trié les tuiles selon leurs positions
-            .filter((a) => (a.visible)) // Filtrer les tuiles visibles
+            .sort((a, b) => a.position - b.position) // Trié les tuiles selon leurs positions
+            .filter(a => a.visible) // Filtrer les tuiles visibles
     }
     const close = () => {
         dispatch('close')
@@ -182,10 +182,10 @@
     }
 
     @supports (backdrop-filter: blur(40px)) {
-        :root[theme=white] {--quick-access-bg: #e0e0e099;}
-        :root[theme=g10] {--quick-access-bg: #e0e0e099;}
-        :root[theme=g80] {--quick-access-bg: #6f6f6f99;}
-        :root[theme=g90] {--quick-access-bg: #52525299;}
-        :root[theme=g100] {--quick-access-bg: #39393999;}
+        :root[theme=white]  {--quick-access-bg: #e0e0e0aa;}
+        :root[theme=g10]    {--quick-access-bg: #e0e0e0aa;}
+        :root[theme=g80]    {--quick-access-bg: #6f6f6faa;}
+        :root[theme=g90]    {--quick-access-bg: #525252aa;}
+        :root[theme=g100]   {--quick-access-bg: #393939aa;}
     }
 </style>

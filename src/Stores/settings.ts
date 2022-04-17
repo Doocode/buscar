@@ -44,6 +44,15 @@ export const allowHeaderBackButton = writable(true)
 // - Bouton "Accueil" dans l'en-tête
 export const allowHeaderHomeButton = writable(true)
 
+// - Arrière plan : neutral / color / gradient / image / slideshow
+export const backgroundType = writable("neutral");
+
+// - Couleur de l'arrière plan
+export const backgroundColor = writable("#0ababa")
+
+// - Couleur de l'arrière plan
+export const backgroundImage = writable("https://www.doocode.xyz/res/img/backgrounds/DCG33.png")
+
 
 
 // RECHERCHE

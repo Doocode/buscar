@@ -40,17 +40,17 @@
 
     // Imports
     import { Button, TextInput, FluidForm }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
     import { compactSearchBox }
         from '../Stores/settings'
     import SearchEnginesBubbles
         from "./SearchEnginesBubbles.svelte"
     import Icofont
-        from "../UI/Icofont.svelte"
+        from '../UI/Icofont.svelte'
     import { createEventDispatcher }
         from 'svelte'
     import async
-        from "async"
+        from 'async'
 
 
 
@@ -61,9 +61,7 @@
 
     // Méthodes
     // - askSearchEngines : Proposer de choisir un ou des moteurs de recherche
-    const askSearchEngines = () => {
-		dispatch('askSearchEngines')
-    }
+    const askSearchEngines = () => dispatch('askSearchEngines')
     // - submit : Lancer la requête
     const submit = () => {
         // Initialisation de la liste des urls
@@ -88,7 +86,7 @@
         })
     }
     // - onKeyUp : Lorsqu'une touche pressée est relachée
-    const onKeyUp = (e) => {
+    const onKeyUp = e => {
         if (e.keyCode == 13) // Touche Entrée
             submit()
         return true
@@ -98,7 +96,7 @@
         if (clickableBubbles)
             return askSearchEngines()
     }
-    export const changeValue = (v) => {
+    export const changeValue = v => {
         value = v
     }
 </script>
@@ -121,7 +119,8 @@
         {/if}
 
         <TextInput size="xl" placeholder={ placeholder }
-            on:keyup={ onKeyUp } bind:value={ value } />
+            role="searchbox" autocomplete="false"
+            on:keyup={ onKeyUp } bind:value />
 
         {#if submitVisible}
             <Button on:click={ submit } title="Lancer la recherche">
@@ -141,7 +140,7 @@
                 </div>
             {/if}
 
-            <TextInput
+            <TextInput role="searchbox" autocomplete="false"
                 labelText={ label } placeholder={ placeholder }
                 on:keyup={ onKeyUp } bind:value={ value } />
 

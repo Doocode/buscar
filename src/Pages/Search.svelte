@@ -18,7 +18,8 @@
 	import { multiSelectionSearchEngines, enableSelectSearchEnginesLimit, 
         enableSearchEngineAlias, actionWhenOpeningSearchPage,
         startupSearchProfileId, startupSearchEnginesIds,
-        selectSearchEnginesLimitValue, openSearchInCurrentPage }
+        selectSearchEnginesLimitValue, openSearchInCurrentPage,
+        backgroundType }
         from '../Stores/settings'
 	import { listSearchEngines, listSearchProfiles }
         from '../Stores/search'
@@ -57,6 +58,7 @@
     // Moteurs de recherche
     let searchEngines = [] // Liste des moteurs de recherche
     let selectedSearchEnginesIDs = [] // Liste des moteurs de recherche sélectionnés
+    $: enableBgMask = $transparentHeader == true && $backgroundType != "neutral"
     $: {
         // Initialisation
         selectedSearchEnginesIDs = []
@@ -319,7 +321,7 @@
     class:expand={size == "expand"}
     style="--height: {innerHeight}px"
 >
-    <nav class="nav-searchProfile">
+    <nav class="nav-searchProfile" class:bgMask={enableBgMask}>
         {#each $listSearchProfiles.slice(0, maxSearchProfilesInNavbar) as sp}
             {#if parseInt(selectedSearchProfileID) === parseInt(sp.id)}
                 <Link class="current" on:click={() => {selectSearchProfileById(sp.id)}}>
@@ -354,7 +356,7 @@
             clickableBubbles={true} />
     </div>
 
-    <div class="bottomToolbar">
+    <div class="bottomToolbar" class:bgMask={enableBgMask}>
         <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchEngines = true}>
             <Icofont icon="circles" />
             <span class="text">Moteurs de recherche</span>
@@ -422,6 +424,40 @@
 </div>
 
 <style lang="scss">
+    :global(html[theme=white]) main#searchPage {
+        --mask-bg-color: #ffffffaa;
+    }
+    :global(html[theme=g10]) main#searchPage {
+        --mask-bg-color: #f4f4f4aa;
+    }
+    :global(html[theme=g80]) main#searchPage {
+        --mask-bg-color: #262626aa;
+    }
+    :global(html[theme=g90]) main#searchPage {
+        --mask-bg-color: #262626aa;
+    }
+    :global(html[theme=g100]) main#searchPage {
+        --mask-bg-color: #161616aa;
+    }
+
+    @supports (backdrop-filter: blur(20px)) {
+        :global(html[theme=white]) main#searchPage {
+            --mask-bg-color: #ffffff66;
+        }
+        :global(html[theme=g10]) main#searchPage {
+            --mask-bg-color: #f4f4f466;
+        }
+        :global(html[theme=g80]) main#searchPage {
+            --mask-bg-color: #26262666;
+        }
+        :global(html[theme=g90]) main#searchPage {
+            --mask-bg-color: #26262666;
+        }
+        :global(html[theme=g100]) main#searchPage {
+            --mask-bg-color: #16161666;
+        }
+    }
+
     main#searchPage {
         margin-top: -92px;
         padding: 10px;
@@ -445,7 +481,9 @@
 
     // Profils de recherche (liens en haut de l'écran)
     .nav-searchProfile {
-        padding: 27px 91px;
+        margin: -10px;
+        padding: 37px 101px;
+        padding-bottom: 17px;
         display: flex;
         flex-flow: wrap;
         gap: 20px 30px;
@@ -473,12 +511,64 @@
         padding: 10px;
 
         .spacer {flex: 1;}
-        :global(button) {
+        :global(.bx--btn) {
             border-radius: 10px;
             display: inline-flex;
             align-items: center;
         }
         :global(.icofont) {font-size: 16px;}
+
+        &.bgMask {
+            margin: -10px;
+            padding: 10px;
+        }
+    }
+    
+    .bgMask {
+        background-color: var(--mask-bg-color);
+
+        @supports (backdrop-filter: blur(20px)) {
+            backdrop-filter: blur(20px);
+        }
+
+        :global(.bx--btn) {
+            border-radius: 10px;
+            color: var(--cds-text-01);
+        }
+
+        &.nav-searchProfile {
+            // Lien
+            :global(.bx--link) {
+                color: var(--cds-text-01);
+                position: relative;
+            }
+            // Lien survolé
+            :global(.bx--link.current),
+            :global(.bx--link:hover) {
+                text-decoration: none;
+            }
+            // Soulignage des liens
+            :global(.bx--link)::after {
+                content: '';
+                display: block;
+                height: 2px;
+                border-radius: 5px;
+                background: var(--cds-text-01);
+                position: absolute;
+                margin: auto;
+                left: 0;
+                right: 0;
+                bottom: -8px;
+                opacity: 0;
+                transition: all .2s;
+            }
+            :global(.bx--link:hover)::after {
+                opacity: .3;
+            }
+            :global(.bx--link.current)::after {
+                opacity: 1;
+            }
+        }
     }
 
     // Barre de recherche
@@ -492,20 +582,25 @@
     }
 
     @media (max-width: 672px) {
+        // Profils de recherche
+        .nav-searchProfile {
+            padding: 15px 18px;
+            justify-content: flex-start;
+        }
+
         // Composant
         main#searchPage {
             margin: 0;
 
             // En plein écran
             &.expand {
-                height: calc(var(--height) - 52px); // 52px = hauteur du header 
-            }
-        }
+                height: calc(var(--height));
+                margin-top: -52px; // 52px = hauteur du header
 
-        // Profils de recherche
-        .nav-searchProfile {
-            padding: 8px;
-            justify-content: flex-start;
+                .nav-searchProfile {
+                    padding-top: 60px;
+                }
+            }
         }
 
         // Barre d'outils en bas

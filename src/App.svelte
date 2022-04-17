@@ -24,6 +24,7 @@
 
 	// - Autres
 	import AmbianceLoader from './AmbianceLoader.svelte'
+	import Wallpaper from './UI/Wallpaper.svelte'
 
 
 
@@ -78,12 +79,14 @@
 </svelte:head>
 
 <main>
-	<Header bind:appname={appname} />
-
 	<AmbianceLoader />
 
-	<Router routes={routes}
-		on:routeLoading={onRouteLoading} />
+	<Wallpaper>
+		<Header bind:appname={appname} />
+		
+		<Router routes={routes}
+			on:routeLoading={onRouteLoading} />
+	</Wallpaper>
 </main>
 
 <style lang="scss">
