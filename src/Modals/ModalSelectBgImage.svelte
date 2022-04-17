@@ -7,7 +7,7 @@
     export let open = false // Flag pour afficher la popup
     
     /**
-     * L'image choisie
+     * L'id de l'image choisie
      * @type {string}
      */
     export let value = ""
@@ -63,10 +63,10 @@
     // Méthodes
     const confirmSelection = () => {
         // Récupérer les images sélectionnés
-        const results = $listBgImgs.filter(item => item.url == value)
+        const results = $listBgImgs.filter(item => parseInt(item.id) == parseInt(value))
         let choice = ""
         if (results.length > 0)
-            choice = results[0].url
+            choice = results[0].id
         
         // Signaler la confirmation
         dispatch('submit', {
@@ -171,7 +171,7 @@
                     {/each}
                 </OverflowMenu>
                 
-                <OverflowMenu flipped>
+                <!--<OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
                         <Icofont icon="menu_dots" size="20" />
                         <Icofont icon="dropdown" size="14" />
@@ -184,7 +184,7 @@
                             <span class="text">Gérer les fonds d'écran</span>
                         </div>
                     </OverflowMenuItem>
-                </OverflowMenu>
+                </OverflowMenu>-->
             </div>
         </div>
 
@@ -205,7 +205,7 @@
                 <TileGroup legend={label4PC} on:select={e => value = e.detail}>
                     <div class="bgs-items" role="group" aria-label={label4PC}>
                         {#each sortedBgs4PC as item}
-                            <RadioTile value="{item.url}" checked={item.url == value} >
+                            <RadioTile value="{item.id}" checked={parseInt(item.id) == parseInt(value)} >
                                 <img src={item.url} alt={item.name} />
                                 <p>{item.name}</p>
                             </RadioTile>
@@ -223,7 +223,7 @@
                 <TileGroup legend={label4Mobile} on:select={e => value = e.detail}>
                     <div class="bgs-items" role="group" aria-label={label4Mobile}>
                         {#each sortedBgs4Mobile as item}
-                            <RadioTile value="{item.url}" checked={item.url == value} >
+                            <RadioTile value="{item.id}" checked={parseInt(item.id) == parseInt(value)} >
                                 <img src={item.url} alt={item.name} />
                                 <p>{item.name}</p>
                             </RadioTile>

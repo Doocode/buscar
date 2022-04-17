@@ -7,9 +7,11 @@
     import { Breadcrumb, BreadcrumbItem, Toggle, Grid, Row, Column, Button,
         TileGroup, RadioTile, RadioButtonGroup, RadioButton, Modal, NumberInput,
         ExpandableTile }
-        from "carbon-components-svelte";
+        from 'carbon-components-svelte'
     import { pageName, pageIcon }
         from '../../Stores/header'
+    import { listBgImgs }
+        from '../../Stores/bgImages'
     import PlanningAmbiances
         from '../../UI/PlanningAmbiances.svelte'
     import ModalSelectBgImage
@@ -47,7 +49,7 @@
     $: publicAmbiances = $ambiances.filter(item => item.public)
     $: planningAccordion = formatPlanningAmbiances($planningAmbiances, focusTime, edit_planningTimeH, edit_planningTimeM)
     $: startTimePlannedAmbiance = findCurrentPlannedAmbiance(planningAccordion) // TODO: Ajouter un timer pour MAJ l'affichage
-    $: {edit_bgImage = $backgroundImage}
+    $: bgUrl = findBgImgById($backgroundImage) != null ? findBgImgById($backgroundImage).url : ""
 
 
 
@@ -205,8 +207,14 @@
 
         return timeToFocus
     }
+    const findBgImgById = id => {
+        const results = $listBgImgs.filter(item => item.id == id)
+        if (results == null || results.length == 0)
+            return null
+        return results[0]
+    }
     const onSelectBgImage = e => {
-        $backgroundImage = e.detail.value
+        backgroundImage.set(e.detail.value)
         modalBgImageSelect = false
     }
 </script>
@@ -339,7 +347,7 @@
         </div>
     {:else if $backgroundType == "image"}
         <div style="display: flex; flex-flow: wrap; align-items: end; gap: var(--cds-spacing-02);">
-            <img class="image-view" src={$backgroundImage}
+            <img class="image-view" src={bgUrl}
                 on:click={() => modalBgImageSelect = true} />
             <div class="actions" style="flex: 1; flex-flow: column; align-items: flex-start;">
                 <Button kind="tertiary" class="format"
@@ -347,11 +355,11 @@
                     <Icofont icon="folder_close" size="18" />
                     <p class="label">Choisir une image</p>
                 </Button>
-                <Button kind="tertiary" class="format"
+                <!--<Button kind="tertiary" class="format"
                     on:click={() => modalBgImageSelect = true} >
                     <Icofont icon="settings" size="18" />
                     <p class="label">Réglages et filtres sur l'image</p>
-                </Button>
+                </Button>-->
             </div>
         </div>
     {/if}

@@ -51,7 +51,7 @@ export const backgroundType = writable("neutral");
 export const backgroundColor = writable("#0ababa")
 
 // - Couleur de l'arrière plan
-export const backgroundImage = writable("https://www.doocode.xyz/res/img/backgrounds/DCG33.png")
+export const backgroundImage = writable(1)
 
 
 

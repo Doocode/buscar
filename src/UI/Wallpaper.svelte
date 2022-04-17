@@ -2,13 +2,29 @@
     // Imports
     import { backgroundType, backgroundColor, backgroundImage }
         from '../Stores/settings'
+    import { listBgImgs }
+        from '../Stores/bgImages'
     import { transparentHeader }
         from '../Stores/header'
+    import BgImagesManager
+        from '../Classes/BgImagesManager'
+    import { onDestroy }
+        from 'svelte'
+
+
+
+    // Propriétés
+    const BG_MNG = new BgImagesManager()
 
 
 
     // Réactivité
-    $: css = formatStyleArgs($backgroundType, $backgroundColor, $backgroundImage)
+    $: css = formatStyleArgs($backgroundType, $backgroundColor, $backgroundImage, $listBgImgs)
+
+
+
+    // Lifecycle
+    onDestroy(e => DB_MNG.destroy)
 
 
 
@@ -22,7 +38,9 @@
                 props["--bg-color"] = $backgroundColor;
                 break;
             case "image":
-                props["--bg-image-url"] = 'url("' + $backgroundImage + '")';
+                const bg = BG_MNG.findById($backgroundImage)
+                const url = bg != null ? bg.url : ""
+                props["--bg-image-url"] = 'url("' + url + '")';
                 break;
         }
 

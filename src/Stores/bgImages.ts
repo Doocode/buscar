@@ -2,7 +2,7 @@
 
 // Imports
 import { readable } from 'svelte/store'
-import { BackgroundImage, BackgroundImageType } from '../Classes/BackgroundImage'
+import { BackgroundImage, BackgroundImageType, storeBgImgList } from '../Classes/BackgroundImage'
 
 
 
@@ -16,7 +16,7 @@ export const BackgroundImageTypes = {
 
 // Liste des icônes
 let bgId = 1
-export const listBgImgs = readable([
+export const listBgImgs = storeBgImgList([
     new BackgroundImage(bgId++, "Poisson dans l'eau",
         "https://www.doocode.xyz/res/img/backgrounds/DCG6.png", [
         BackgroundImageTypes.pc

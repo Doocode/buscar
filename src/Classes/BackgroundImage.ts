@@ -1,3 +1,8 @@
+// Imports
+import { writable } from 'svelte/store'
+
+
+
 // Représente le type de fond d'écran
 export class BackgroundImageType {
     readonly id: number
@@ -76,4 +81,31 @@ export class BackgroundImage {
     set url(value: string) {
         this._url = value
     }
+}
+
+
+
+// Store pour les fonds d'écran
+export function storeBgImgList(initial_value) {
+    const { subscribe, set, update } = writable(initial_value);
+
+    return {
+        subscribe,
+        add: (name, url, type) => { // Ajouter un élément
+            update(list => [
+                ...list,
+                new BackgroundImage(parseInt(list.at(-1).id) + 1, name, url, type)
+            ]);
+        },
+        updateByIndex: (index, name, url, type) => { // Mettre à jour un item
+            update(list => {
+                list[index] = new BackgroundImage(list[index].id, name, url, type)
+                return list
+            });
+        },
+        deleteById: (id) => { // Supprimer un élément en utilisant son id
+            update(list => list.filter(item => parseInt(item.id) !== parseInt(id)))
+        },
+        reset: () => set(initial_value)
+    };
 }
