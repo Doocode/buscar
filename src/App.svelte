@@ -19,6 +19,7 @@
 	import Library from './Pages/Library.svelte'
 	import SearchEnginesManager from './Pages/Library/SearchEnginesManager.svelte'
 	import SearchProfilesManager from './Pages/Library/SearchProfilesManager.svelte'
+	import BackgroundImagesManager from './Pages/Library/BackgroundImagesManager.svelte'
 	import Preferences from './Pages/Preferences.svelte'
 	import Help from './Pages/Help.svelte'
 
@@ -40,10 +41,12 @@
 		'/library/': Library,
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,
+		'/library/background-images': BackgroundImagesManager,
 
 		// Préférences
 		'/preferences': Preferences,
 		'/preferences/:section': Preferences,
+		'/preferences/:section/*': Preferences,
 		
 		// Aide
 		'/help': wrap({
@@ -125,14 +128,14 @@
 		:global(.bx--modal-container) {
 			border-radius: 10px;
 			:global(.bx--modal-close) {border-top-right-radius: 10px;}
-			:global(.bx--modal-footer) {
+			/*:global(.bx--modal-footer) {
 				padding: var(--cds-spacing-05);
 				background: var(--cds-skeleton-01);
 				gap: 5px;
 				height: auto;
 
 				:global(.bx--btn) {border-radius: 7px;}
-			}
+			}*/
 		}
 	}
 </style>

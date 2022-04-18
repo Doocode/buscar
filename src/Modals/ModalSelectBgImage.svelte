@@ -171,20 +171,20 @@
                     {/each}
                 </OverflowMenu>
                 
-                <!--<OverflowMenu flipped>
+                <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
                         <Icofont icon="menu_dots" size="20" />
                         <Icofont icon="dropdown" size="14" />
                     </div>
     
                     <OverflowMenuItem
-                        href="/#/preferences/interface/backgrounds">
+                        href="/#/library/background-images">
                         <div class="label">
                             <Icofont icon="settings" size="16" />
                             <span class="text">Gérer les fonds d'écran</span>
                         </div>
                     </OverflowMenuItem>
-                </OverflowMenu>-->
+                </OverflowMenu>
             </div>
         </div>
 

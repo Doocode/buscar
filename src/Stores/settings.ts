@@ -7,7 +7,7 @@ import { writable, readable } from 'svelte/store'
 
 // INTERFACE
 // - Mode de contraste de l'interface : custom / browser / planning
-export const contrastMode = writable("custom");
+export const contrastMode = writable("browser");
 
 // - Ambiances : choix proposés aux utilisateurs
 export const ambiances = readable([

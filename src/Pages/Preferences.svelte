@@ -82,7 +82,7 @@
             }
         }
     }
-    const isCurrentPage = (page) => {
+    const isCurrentPage = page => {
         // Si la section est définie dans l'url
         if (params.section !== null) {
             // Vérifier si la section actuelle correspond à la page
@@ -92,7 +92,7 @@
         // Sinon vérifier si le lien correspond à la page de recherche
         return false
     }
-    const isSectionValid = (section) => {
+    const isSectionValid = section => {
         // Vérifier si la section fait partie des routes définies sans compter les routes '*' et '/'
         let routes = Object.keys(ROUTES)
 
@@ -162,7 +162,7 @@
     }
 </script>
 
-<Breakpoint bind:size={size} />
+<Breakpoint bind:size />
 
 <main class="preferences">
     {#if isNavMenuVisible}

@@ -9,7 +9,7 @@ import { BackgroundImage, BackgroundImageType, storeBgImgList } from '../Classes
 // Types de fond d'écran
 export const BackgroundImageTypes = {
     pc: new BackgroundImageType(1, "Taille standard", "screen"),
-    smartphone: new BackgroundImageType(1, "Smartphone", "smartphone"),
+    smartphone: new BackgroundImageType(2, "Smartphone", "smartphone"),
 }
 
 

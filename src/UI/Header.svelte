@@ -156,6 +156,10 @@
                     <Icofont icon="search" />
                     <span class="label">Profils de recherche</span>
                 </Link>
+                <Link href="/#/library/background-images" size="lg">
+                    <Icofont icon="image" />
+                    <span class="label">Fonds d'écran</span>
+                </Link>
 
                 <span class="blank-space"></span>
 
