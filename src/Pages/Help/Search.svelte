@@ -3,9 +3,11 @@
     import { aliasAddSearchEngine, aliasRemoveSearchEngine, aliasReplaceSearchEngine } 
         from '../../Stores/settings'
     import { Breadcrumb, BreadcrumbItem, Link, CodeSnippet }
-        from "carbon-components-svelte";
+        from 'carbon-components-svelte'
     import { pageName, pageIcon }
         from '../../Stores/header'
+    import { fade }
+        from 'svelte/transition'
 
 
 
@@ -24,7 +26,7 @@
     const copiedToClipboard = "Texte copié dans le presse-papier"
 </script>
 
-<main class="help-section">
+<main class="help-section" in:fade={{duration: 200}}>
     <h2>{TITLE_PAGE}</h2>
     {#if BREADCRUMBS.length > 0}
         <Breadcrumb noTrailingSlash>

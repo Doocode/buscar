@@ -41,6 +41,8 @@
         from 'svelte-spa-router'
     import Search
         from './Help/Search.svelte'
+    import Preferences
+        from './Help/Preferences.svelte'
     import About
         from './Help/About.svelte'
     import PageLinks
@@ -57,6 +59,7 @@
     }
     const ROUTES = {
         '/search': Search,
+        '/preferences': Preferences,
         '/about': wrap({
             component: About,
             props: ROUTE_PROPS_ABOUT

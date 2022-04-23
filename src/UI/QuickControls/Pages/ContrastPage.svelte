@@ -2,13 +2,15 @@
     // Imports
     import { contrastMode, ambiances, customAmbiance,
         defaultLightMode, defaultDarkMode }
-        from "../../../Stores/settings"
+        from '../../../Stores/settings'
     import ControlsPage
-        from "../ControlsPage.svelte"
+        from '../ControlsPage.svelte'
     import { TileGroup, RadioTile, RadioButtonGroup, RadioButton, Link }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
     import Icofont
-        from "../../Icofont.svelte"
+        from '../../Icofont.svelte'
+	import { slide }
+        from 'svelte/transition'
 
 
 
@@ -49,72 +51,78 @@
 
             <!-- Les réglages du mode de contraste -->
             {#if $contrastMode == "browser"}
-                <TileGroup
-                    legend="Ambiance claire"
-                    on:select={e => onSelectBrowserAmbiance(false, e)}
-                >
-                    <div class="tiles">
-                        {#each publicAmbiances.filter(a => !a.dark) as item}
-                            <RadioTile
-                                value={ item.value }
-                                checked={ item.value == $defaultLightMode }
-                            >
-                                <div class="tile-content">
-                                    <Icofont icon={ item.icon } size="24" />
-                                    <p class="label">{ item.name }</p>
-                                </div>
-                            </RadioTile>
-                        {/each}
-                    </div>
-                </TileGroup>
-
-                <br/>
-                <TileGroup
-                    legend="Ambiance sombre"
-                    on:select={e => onSelectBrowserAmbiance(true, e)}
-                >
-                    <div class="tiles">
-                        {#each publicAmbiances.filter(a => a.dark) as item}
-                            <RadioTile
-                                value={ item.value }
-                                checked={ item.value == $defaultDarkMode }
-                            >
-                                <div class="tile-content">
-                                    <Icofont icon={ item.icon } size="24" />
-                                    <p class="label">{ item.name }</p>
-                                </div>
-                            </RadioTile>
-                        {/each}
-                    </div>
-                </TileGroup>
+                <div transition:slide>
+                    <TileGroup
+                        legend="Ambiance claire"
+                        on:select={e => onSelectBrowserAmbiance(false, e)}
+                    >
+                        <div class="tiles">
+                            {#each publicAmbiances.filter(a => !a.dark) as item}
+                                <RadioTile
+                                    value={ item.value }
+                                    checked={ item.value == $defaultLightMode }
+                                >
+                                    <div class="tile-content">
+                                        <Icofont icon={ item.icon } size="24" />
+                                        <p class="label">{ item.name }</p>
+                                    </div>
+                                </RadioTile>
+                            {/each}
+                        </div>
+                    </TileGroup>
+    
+                    <br/>
+                    <TileGroup
+                        legend="Ambiance sombre"
+                        on:select={e => onSelectBrowserAmbiance(true, e)}
+                    >
+                        <div class="tiles">
+                            {#each publicAmbiances.filter(a => a.dark) as item}
+                                <RadioTile
+                                    value={ item.value }
+                                    checked={ item.value == $defaultDarkMode }
+                                >
+                                    <div class="tile-content">
+                                        <Icofont icon={ item.icon } size="24" />
+                                        <p class="label">{ item.name }</p>
+                                    </div>
+                                </RadioTile>
+                            {/each}
+                        </div>
+                    </TileGroup>
+                </div>
             {:else if $contrastMode == "custom"}
-                <TileGroup
-                    legend="Liste des ambiances"
-                    on:select={onSelectCustomAmbiance}
-                >
-                    <div class="tiles">
-                        {#each publicAmbiances as item}
-                            <RadioTile
-                                value={ item.value }
-                                checked={ item.value == $customAmbiance }
-                            >
-                                <div class="tile-content">
-                                    <Icofont icon={ item.icon } size="24" />
-                                    <p class="label">{ item.name }</p>
-                                </div>
-                            </RadioTile>
-                        {/each}
-                    </div>
-                </TileGroup>
+                <div transition:slide>
+                    <TileGroup
+                        legend="Liste des ambiances"
+                        on:select={onSelectCustomAmbiance}
+                    >
+                        <div class="tiles">
+                            {#each publicAmbiances as item}
+                                <RadioTile
+                                    value={ item.value }
+                                    checked={ item.value == $customAmbiance }
+                                >
+                                    <div class="tile-content">
+                                        <Icofont icon={ item.icon } size="24" />
+                                        <p class="label">{ item.name }</p>
+                                    </div>
+                                </RadioTile>
+                            {/each}
+                        </div>
+                    </TileGroup>
+                </div>
             {:else if $contrastMode == "planning"}
-                <!--p>Progress ambiances</p>
-                <p>Ambiance actuel</p>
-                <br/><br/-->
-
-                <Link href="/#/preferences/interface">
-                    <Icofont icon="settings" size="16" />
-                    <span class="label">Planifier les ambiances</span>
-                </Link>
+                <div transition:slide>
+                    <!--p>Progress ambiances</p>
+                    <p>Ambiance actuel</p>
+                    <br/><br/-->
+    
+                    <Link href="/#/preferences/interface">
+                        <Icofont icon="settings" size="16" />
+                        <span class="label">Planifier les ambiances</span>
+                    </Link>
+                </div>
             {/if}
         </div>
     </ControlsPage>

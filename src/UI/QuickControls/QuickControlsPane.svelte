@@ -20,6 +20,8 @@
         from "./ControlsPage.svelte"
     import OutClick
         from 'svelte-outclick'
+	import { slide }
+        from 'svelte/transition'
 
 
 
@@ -69,7 +71,7 @@
 <main>
     <OutClick on:outclick={close} >
         {#if currentPage == ROUTES.home}
-            <div class="controls-pane">
+            <div class="controls-pane" transition:slide>
                 <ControlsPage
                     title="Réglages rapides" icon="settings"
                     backButtonVisible="false"
@@ -127,7 +129,7 @@
                 </ControlsPage>
             </div>
         {:else}
-            <div class="controls-pages">
+            <div class="controls-pages" transition:slide>
                 {#if currentPage == ROUTES.ambiances}
                     <ContrastPage on:close={close} on:backRequest={goHome} />
                 {/if}
