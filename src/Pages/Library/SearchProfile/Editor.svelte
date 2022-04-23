@@ -95,8 +95,9 @@
     }
 </script>
 
+<Breakpoint bind:size />
+
 <main class="sp-editor">
-    <Breakpoint bind:size />
 
     <TextInput
         labelText="Nom du profil de recherche"
@@ -104,7 +105,10 @@
         invalidText={errorNameMessage}
         invalid={errorNameMessage.length > 0}
         bind:value={name} />
-    <br/><br/>
+
+    <NumberInput required
+        label="Ordre d'affichage"
+        bind:value={orderPresentation} />
 
     <div class="form-item">
         <legend class="bx--label">Icône du profil de recherche</legend>
@@ -122,7 +126,9 @@
             </div>
 
             <div class="align-row" style="align-items: flex-end">
-                <Button kind="tertiary" on:click={sendRequestIcon}>
+                <Button kind="tertiary"
+                    title="Associer une icône"
+                    on:click={sendRequestIcon}>
                     <div class="label">
                         {#if ['sm'].indexOf(size) < 0}
                             <span class="text">Associer une icône</span>
@@ -140,12 +146,11 @@
             </div>
         {/if}
     </div>
-    <br/><br/>
 
     <div class="form-item">
         <legend class="bx--label">Moteurs de recherche</legend>
         <div class="row space-between">
-            <div class="align-row" style="flex: 1;">
+            <div class="align-row" style="flex: 1; margin: 6px 0;">
                 {#if searchEnginesIds.length > 0}
                     <SearchEnginesBubbles searchEngines={dataForBubbles} />
                 {:else}
@@ -154,7 +159,9 @@
             </div>
 
             <div class="align-row" style="align-items: flex-end">
-                <Button kind="tertiary" on:click={sendRequestSearchEngines}>
+                <Button kind="tertiary"
+                    title="Définir les moteurs de recherche"
+                    on:click={sendRequestSearchEngines}>
                     <div class="label">
                         {#if ['sm'].indexOf(size) < 0}
                             <span class="text">Définir les moteurs de recherche</span>
@@ -165,16 +172,20 @@
             </div>
         </div>
     </div>
-    <br/><br/>
 
-    <NumberInput required
-        label="Ordre d'affichage"
-        bind:value={orderPresentation} />
-    <br/><br/>
 </main>
 
 <style lang="scss">
     .sp-editor {
+        display: grid;
+        gap: var(--cds-spacing-08);
+        padding-bottom: var(--cds-spacing-08);
+        grid-template-columns: 1fr;
+
+        @media (min-width: 672px) { // width > md
+            grid-template-columns: 1fr 1fr;
+        }
+
         // Modifier l'icône
         .form-item {
             display: flex;

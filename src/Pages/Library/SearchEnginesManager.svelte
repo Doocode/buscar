@@ -553,7 +553,7 @@
                         {#if size == "sm"}
                             <OverflowMenuItem on:click={() => displayDetails(row.id)} >
                                 <div class="label">
-                                    <Icofont icon="eye" size="16" />
+                                    <Icofont icon="info" size="16" />
                                     <span class="text">Détails</span>
                                 </div>
                             </OverflowMenuItem>

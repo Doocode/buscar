@@ -25,6 +25,8 @@
         from '../../../Stores/search'
     import Icofont
         from '../../../UI/Icofont.svelte'
+    import SearchEnginesBubbles
+        from '../../../UI/SearchEnginesBubbles.svelte'
 
 
 
@@ -35,10 +37,13 @@
 
 <main class="sp-preview">
     <div class="ident">
-        <legend class="bx--label">Profil de recherche</legend>
         <div class="title">
-            <Icofont {icon} size="18" />
-            <p>{name}</p>
+            <Icofont {icon} size="24" />
+            <span>{name}</span>
+        </div>
+        <div>
+            <SearchEnginesBubbles searchEngines={dataForBubbles}
+                bubbleSize="64px" fontSize="22px" collapse />
         </div>
     </div>
 
@@ -74,7 +79,11 @@
             .title {
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 gap: var(--cds-spacing-03);
+                margin-bottom: var(--cds-spacing-05);
+
+                span {font-size: 18px;}
             }
         }
 
@@ -93,8 +102,8 @@
         // - Vue avec moteurs de recherche
         .list-se {
             display: flex;
-            flex-flow: column;
-            gap: var(--cds-spacing-03);
+            flex-flow: wrap;
+            gap: var(--cds-spacing-05);
             --icon-size: 28px;
 
             // Item
