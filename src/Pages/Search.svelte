@@ -10,11 +10,11 @@
 
     // Imports
     import ModalSearchEnginesSelector
-        from "../Modals/ModalSearchEnginesSelector.svelte"
+        from '../Modals/ModalSearchEnginesSelector.svelte'
     import ModalSearchProfileSelector
-        from "../Modals/ModalSearchProfileSelector.svelte"
+        from '../Modals/ModalSearchProfileSelector.svelte'
     import { Button, Modal, Link }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
 	import { multiSelectionSearchEngines, enableSelectSearchEnginesLimit, 
         enableSearchEngineAlias, actionWhenOpeningSearchPage,
         startupSearchProfileId, startupSearchEnginesIds,
@@ -25,10 +25,10 @@
         from '../Stores/search'
     import { pageName, pageIcon, transparentHeader }
         from '../Stores/header'
-    import SearchBox from "../UI/SearchBox.svelte"
-    import Icofont from "../UI/Icofont.svelte"
-    import AliasChecker from "../AliasChecker.svelte"
-    import async from "async"
+    import SearchBox from '../UI/SearchBox.svelte'
+    import Icofont from '../UI/Icofont.svelte'
+    import AliasChecker from '../AliasChecker.svelte'
+    import async from 'async'
     import { onDestroy, onMount } from 'svelte'
 
 

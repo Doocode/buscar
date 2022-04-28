@@ -1,8 +1,34 @@
 // Store pour les images de fond d'écran
 
 // Imports
-import { readable } from 'svelte/store'
-import { BackgroundImage, BackgroundImageType, storeBgImgList } from '../Classes/BackgroundImage'
+import { readable, writable }
+    from 'svelte/store'
+import { BackgroundImage, BackgroundImageType, storeBgImgList }
+    from '../Classes/BackgroundImage'
+
+
+
+// Paramètres
+// - Position de l'image d'arrière plan
+export const bgPositionKeywordX = writable('center')
+export const bgPositionKeywordY = writable('center')
+export const bgShiftFlagX = writable(false)
+export const bgShiftFlagY = writable(false)
+export const bgShiftValueX = writable(0)
+export const bgShiftValueY = writable(0)
+export const bgShiftUnitX = writable('px')
+export const bgShiftUnitY = writable('px')
+
+// - Taille de l'image d'arrière plan
+export const bgSizeKeyword = writable('cover')
+export const bgWidthValue = writable(50)
+export const bgHeightValue = writable(50)
+export const bgWidthUnit = writable('%')
+export const bgHeightUnit = writable('%')
+export const bgHeightValueEnabled = writable(false)
+
+// - Répéter l'image d'arrière plan
+export const bgRepeat = writable('repeat')
 
 
 

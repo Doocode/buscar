@@ -18,6 +18,10 @@
         from '../../Modals/ModalSelectBgImage.svelte'
     import Icofont
         from '../../UI/Icofont.svelte'
+    import { fade, slide }
+        from 'svelte/transition'
+    import { push }
+        from 'svelte-spa-router'
 
 
 
@@ -219,7 +223,8 @@
     }
 </script>
 
-<main id="prefs-display" class="prefs-section">
+<main id="prefs-display" class="prefs-section"
+     in:fade={{duration: 200}}>
     <h2>{TITLE_PAGE}</h2>
     {#if BREADCRUMBS.length > 0}
         <Breadcrumb noTrailingSlash>
@@ -248,58 +253,61 @@
     <br/>
 
     {#if $contrastMode == "browser"}
-        <div class="ambianceTiles">
-            <TileGroup
-                legend="Ambiance claire"
-                on:select={(e) => onBrowserAmbianceSelected(false, e)}
-            >
-                {#each publicAmbiances.filter((item) => !item.dark) as ambiance}
-                    <RadioTile value={ambiance.value} checked={$defaultLightMode == ambiance.value} >
-                        <Icofont icon={ambiance.icon} size="22" />
-                        <span class="text">{ambiance.name}</span>
-                    </RadioTile>
-                {/each}
-            </TileGroup>
-        </div>
-        <br/>
-        <div class="ambianceTiles">
-            <TileGroup
-                legend="Ambiance sombre"
-                on:select={(e) => onBrowserAmbianceSelected(true, e)}
-            >
-                {#each publicAmbiances.filter((item) => item.dark) as ambiance}
-                    <RadioTile value={ambiance.value} checked={$defaultDarkMode == ambiance.value} >
-                        <Icofont icon={ambiance.icon} size="22" />
-                        <span class="text">{ambiance.name}</span>
-                    </RadioTile>
-                {/each}
-            </TileGroup>
+        <div transition:slide|local>
+            <div class="ambianceTiles">
+                <TileGroup
+                    legend="Ambiance claire"
+                    on:select={(e) => onBrowserAmbianceSelected(false, e)}
+                >
+                    {#each publicAmbiances.filter((item) => !item.dark) as ambiance}
+                        <RadioTile value={ambiance.value} checked={$defaultLightMode == ambiance.value} >
+                            <Icofont icon={ambiance.icon} size="22" />
+                            <span class="text">{ambiance.name}</span>
+                        </RadioTile>
+                    {/each}
+                </TileGroup>
+            </div>
+            <br/>
+            <div class="ambianceTiles">
+                <TileGroup
+                    legend="Ambiance sombre"
+                    on:select={(e) => onBrowserAmbianceSelected(true, e)}
+                >
+                    {#each publicAmbiances.filter((item) => item.dark) as ambiance}
+                        <RadioTile value={ambiance.value} checked={$defaultDarkMode == ambiance.value} >
+                            <Icofont icon={ambiance.icon} size="22" />
+                            <span class="text">{ambiance.name}</span>
+                        </RadioTile>
+                    {/each}
+                </TileGroup>
+            </div>
         </div>
     {:else if $contrastMode == "planning"}
-        <!-- Barre de progression du planning -->
-        <PlanningAmbiances
-            currentTime={startTimePlannedAmbiance}
-            label="Planification des ambiances"
-            planning={$planningAmbiances} />
-        <br/>
-        <div class="actions">
-            <Button kind="tertiary" class="format"
-                on:click={() => modalPlanningTiles = true} >
-                <Icofont icon="agenda" size="18" />
-                <p class="label">Modifier le planning des ambiances</p>
-            </Button>
-            <Button kind="tertiary" class="format" on:click={scheduleAmbiance} >
-                <Icofont icon="plus" size="18" />
-                <p class="label">Planifier une ambiance</p>
-            </Button>
-            <Button kind="tertiary" class="format" on:click={editCurrentScheduledAmbiance}>
-                <Icofont icon="settings" size="18" />
-                <p class="label">Changer l'ambiance actuelle</p>
-            </Button>
+        <div transition:slide|local>
+            <!-- Barre de progression du planning -->
+            <PlanningAmbiances
+                currentTime={startTimePlannedAmbiance}
+                label="Planification des ambiances"
+                planning={$planningAmbiances} />
+            <br/>
+            <div class="actions">
+                <Button kind="tertiary" class="format"
+                    on:click={() => modalPlanningTiles = true} >
+                    <Icofont icon="agenda" size="18" />
+                    <p class="label">Modifier le planning des ambiances</p>
+                </Button>
+                <Button kind="tertiary" class="format" on:click={scheduleAmbiance} >
+                    <Icofont icon="plus" size="18" />
+                    <p class="label">Planifier une ambiance</p>
+                </Button>
+                <Button kind="tertiary" class="format" on:click={editCurrentScheduledAmbiance}>
+                    <Icofont icon="settings" size="18" />
+                    <p class="label">Changer l'ambiance actuelle</p>
+                </Button>
+            </div>
         </div>
-
     {:else if $contrastMode == "custom"}
-        <div class="ambianceTiles">
+        <div class="ambianceTiles" transition:slide|local>
             <TileGroup
                 legend="Ambiance de l'interface"
                 on:select={onCustomAmbianceSelected}
@@ -330,7 +338,7 @@
     <br/>
 
     {#if $backgroundType == "color"}
-        <div style="display: flex; flex-flow: wrap; align-items: center; gap: var(--cds-spacing-02);">
+        <div transition:slide|local style="display: flex; flex-flow: wrap; align-items: center; gap: var(--cds-spacing-02);">
             <div class="color-view" style="--value: {$backgroundColor}"
                 on:click={() => bgColorInput.click()} >
                 <input type="color"
@@ -346,7 +354,7 @@
             </div>
         </div>
     {:else if $backgroundType == "image"}
-        <div style="display: flex; flex-flow: wrap; align-items: end; gap: var(--cds-spacing-02);">
+        <div transition:slide|local style="display: flex; flex-flow: wrap; align-items: end; gap: var(--cds-spacing-02);">
             <img class="image-view" src={bgUrl}
                 on:click={() => modalBgImageSelect = true} />
             <div class="actions" style="flex: 1; flex-flow: column; align-items: flex-start;">
@@ -355,11 +363,11 @@
                     <Icofont icon="folder_close" size="18" />
                     <p class="label">Choisir une image</p>
                 </Button>
-                <!--<Button kind="tertiary" class="format"
-                    on:click={() => modalBgImageSelect = true} >
+                <Button kind="tertiary" class="format"
+                    on:click={() => push('/preferences/interface/background-image')} >
                     <Icofont icon="settings" size="18" />
-                    <p class="label">Réglages et filtres sur l'image</p>
-                </Button>-->
+                    <p class="label">Réglages <!--et filtres--> sur l'image</p>
+                </Button>
             </div>
         </div>
     {/if}

@@ -20,6 +20,7 @@
 	import SearchEnginesManager from './Pages/Library/SearchEnginesManager.svelte'
 	import SearchProfilesManager from './Pages/Library/SearchProfilesManager.svelte'
 	import BackgroundImagesManager from './Pages/Library/BackgroundImagesManager.svelte'
+	import BackgroundImage from './Pages/Preferences/BackgroundImage.svelte'
 	import Preferences from './Pages/Preferences.svelte'
 	import Help from './Pages/Help.svelte'
 
@@ -45,6 +46,7 @@
 
 		// Préférences
 		'/preferences': Preferences,
+		'/preferences/interface/background-image': BackgroundImage,
 		'/preferences/:section': Preferences,
 		'/preferences/:section/*': Preferences,
 		

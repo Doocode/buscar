@@ -2,7 +2,10 @@
     // Imports
     import { backgroundType, backgroundColor, backgroundImage }
         from '../Stores/settings'
-    import { listBgImgs }
+    import { listBgImgs, bgRepeat, bgSizeKeyword, bgWidthValue,
+        bgWidthUnit, bgHeightValueEnabled, bgHeightValue, bgHeightUnit,
+        bgPositionKeywordX, bgPositionKeywordY, bgShiftFlagX, bgShiftFlagY,
+        bgShiftValueX, bgShiftValueY, bgShiftUnitX, bgShiftUnitY }
         from '../Stores/bgImages'
     import { transparentHeader }
         from '../Stores/header'
@@ -10,6 +13,8 @@
         from '../Classes/BgImagesManager'
     import { onDestroy }
         from 'svelte'
+    import { BackgroundImageStyle }
+        from '../Classes/BackgroundImageStyle'
 
 
 
@@ -19,7 +24,11 @@
 
 
     // Réactivité
-    $: css = formatStyleArgs($backgroundType, $backgroundColor, $backgroundImage, $listBgImgs)
+    $: css = formatStyleArgs($backgroundType, $backgroundColor, $backgroundImage, $listBgImgs,
+        $bgRepeat, $bgSizeKeyword, $bgWidthValue, $bgWidthUnit, $bgHeightValueEnabled,
+        $bgHeightValue, $bgHeightUnit, $bgPositionKeywordX, $bgPositionKeywordY,
+        $bgShiftFlagX, $bgShiftFlagY, $bgShiftValueX, $bgShiftValueY,
+        $bgShiftUnitX, $bgShiftUnitY)
 
 
 
@@ -30,17 +39,16 @@
 
     // Fonctions
     const formatStyleArgs = () => {
+        // Liste des propriétés CSS sous forme de tableau/objet
         let props = []
         
         // Ajout des propriétés
         switch ($backgroundType) {
             case "color":
-                props["--bg-color"] = $backgroundColor;
+                props['--bg-color'] = $backgroundColor
                 break;
             case "image":
-                const bg = BG_MNG.findById($backgroundImage)
-                const url = bg != null ? bg.url : ""
-                props["--bg-image-url"] = 'url("' + url + '")';
+                formatBgImage(props)
                 break;
         }
 
@@ -49,6 +57,28 @@
         Object.keys(props).forEach(key => 
             data = data + key + ': ' + props[key] + '; ')
         return data
+    }
+    const formatBgImage = props => {
+        // Initialisation
+        const CSS = new BackgroundImageStyle() // Traducteur Paramètres => CSS
+        const bg = BG_MNG.findById($backgroundImage) // Récupérer l'image d'arrière plan
+        const url = bg != null ? bg.url : "" // Récupérer l'url
+
+        // Attribution des propriétés CSS
+        props['--bg-image-url'] = 'url("' + url + '")'
+        props['--bg-position'] = CSS.formatPosition(
+            $bgPositionKeywordX, $bgPositionKeywordY,
+            $bgShiftFlagX, $bgShiftFlagY,
+            $bgShiftValueX, $bgShiftValueY,
+            $bgShiftUnitX, $bgShiftUnitY
+        )
+        props['--bg-size'] = CSS.formatSize(
+            $bgSizeKeyword, $bgWidthValue, $bgWidthUnit,
+            $bgHeightValueEnabled, $bgHeightValue, $bgHeightUnit
+        )
+        props['--bg-repeat'] = $bgRepeat
+        props['--bg-color'] = $backgroundColor
+
     }
 </script>
 
@@ -64,7 +94,10 @@
 <style lang="scss">
     .vw-wallpaper {
         --bg-color: red;
-        --bg-image-url: "";
+        --bg-image-url: '';
+        --bg-position: center center;
+        --bg-repeat: repeat;
+        --bg-size: cover;
 
         &:not(.neutral) {
             // Arrière plan en couleur
@@ -74,12 +107,11 @@
 
             // Arrière plan en image
             &.bgImage {
-                background-image: var(--bg-image-url);
-
-                // TODO: Params
-                background-position: center;
-                background-size: cover;
-                background-attachment: fixed;
+                background: var(--bg-image-url) var(--bg-color);
+                background-position: var(--bg-position);
+                background-repeat: var(--bg-repeat);
+                background-size: var(--bg-size);
+                //background-attachment: fixed;
             }
         }
     }

@@ -4,10 +4,10 @@
      * Ouvrir la popup
      * @type {boolean}
      */
-    export let open = false // Flag pour afficher la popup
+    export let open = false
     
     /**
-     * La icône choisie
+     * L'icône choisie
      * @type {string}
      */
     export let value = ""
@@ -28,7 +28,7 @@
     
 
     // Propriétés internes
-    const dispatch = createEventDispatcher() // Pour créer des events
+    const dispatch = createEventDispatcher()
     let sortMenu = [
         { id: 0, text: "Nom (A-Z)", sort: {on: "name", order: "asc"} },
         { id: 1, text: "Nom (Z-A)", sort: {on: "name", order: "desc"} },
