@@ -4,11 +4,13 @@
         from '../../Stores/settings'
     import { Breadcrumb, BreadcrumbItem, DataTable, Button, Breakpoint,
         OverflowMenu, OverflowMenuItem, Row }
-        from "carbon-components-svelte";
+        from 'carbon-components-svelte'
     import { pageName, pageIcon }
         from '../../Stores/header'
     import Icofont
         from '../../UI/Icofont.svelte'
+    import { fade }
+        from 'svelte/transition'
 
 
 
@@ -83,7 +85,8 @@
 
 <Breakpoint bind:size />
 
-<main id="prefs-quick_settings" class="prefs-section">
+<main id="prefs-quick_settings" class="prefs-section"
+    in:fade={{duration: 200}}>
     <h2>{TITLE_PAGE}</h2>
     {#if BREADCRUMBS.length > 0}
         <Breadcrumb noTrailingSlash>

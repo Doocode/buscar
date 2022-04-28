@@ -51,7 +51,7 @@
 
             <!-- Les réglages du mode de contraste -->
             {#if $contrastMode == "browser"}
-                <div transition:slide>
+                <div transition:slide|local>
                     <TileGroup
                         legend="Ambiance claire"
                         on:select={e => onSelectBrowserAmbiance(false, e)}
@@ -92,7 +92,7 @@
                     </TileGroup>
                 </div>
             {:else if $contrastMode == "custom"}
-                <div transition:slide>
+                <div transition:slide|local>
                     <TileGroup
                         legend="Liste des ambiances"
                         on:select={onSelectCustomAmbiance}
@@ -113,7 +113,7 @@
                     </TileGroup>
                 </div>
             {:else if $contrastMode == "planning"}
-                <div transition:slide>
+                <div transition:slide|local>
                     <!--p>Progress ambiances</p>
                     <p>Ambiance actuel</p>
                     <br/><br/-->

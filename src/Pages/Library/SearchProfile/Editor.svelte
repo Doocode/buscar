@@ -45,6 +45,8 @@
         from '../../../UI/Icofont.svelte'
     import { listIcons }
         from '../../../Stores/icofont'
+    import { slide }
+        from 'svelte/transition'
 
 
 
@@ -97,7 +99,7 @@
 
 <Breakpoint bind:size />
 
-<main class="sp-editor">
+<main class="sp-editor" transition:slide|local>
 
     <TextInput
         labelText="Nom du profil de recherche"

@@ -27,6 +27,8 @@
         from '../../../UI/Icofont.svelte'
     import SearchEnginesBubbles
         from '../../../UI/SearchEnginesBubbles.svelte'
+    import { slide }
+        from 'svelte/transition'
 
 
 
@@ -35,7 +37,7 @@
         .filter(item => searchEnginesIds.indexOf(parseInt(item.id)) > -1)
 </script>
 
-<main class="sp-preview">
+<main class="sp-preview" transition:slide|local>
     <div class="ident">
         <div class="title">
             <Icofont {icon} size="24" />

@@ -32,9 +32,11 @@
         from 'carbon-components-svelte'
     import Icofont
         from '../../../UI/Icofont.svelte'
+    import { slide }
+        from 'svelte/transition'
 </script>
 
-<main class="bgModal-preview">
+<main class="bgModal-preview" transition:slide|local>
     <StructuredList>
 
         <StructuredListBody>

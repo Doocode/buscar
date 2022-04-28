@@ -35,6 +35,8 @@
         from 'svelte'
     import Icofont
         from '../../../UI/Icofont.svelte'
+    import { slide }
+        from 'svelte/transition'
 
 
 
@@ -93,7 +95,7 @@
     }
 </script>
 
-<main class="se-editor">
+<main class="bg-editor" transition:slide|local>
     <Breakpoint bind:size />
 
     <TextInput
@@ -117,19 +119,19 @@
         bind:selected={radioType}
         style="margin-bottom: 1rem">
         <RadioButton value="pc">
-            <div slot="labelText">
+            <div slot="labelText" class="label">
                 <Icofont icon="screen" size="16" />
                 <span class="text">Fond pour PC</span>
             </div>
         </RadioButton>
         <RadioButton value="smartphone">
-            <div slot="labelText">
+            <div slot="labelText" class="label">
                 <Icofont icon="smartphone" size="16" />
                 <span class="text">Fond pour smartphone</span>
             </div>
         </RadioButton>
         <RadioButton value="both">
-            <div slot="labelText">
+            <div slot="labelText" class="label">
                 <Icofont icon="image" size="16" />
                 <span class="text">Fond pour PC et smartphone</span>
             </div>
@@ -138,4 +140,12 @@
 </main>
 
 <style lang="scss">
+    main.bg-editor {
+        .label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--cds-spacing-03);
+        }
+    }
 </style>

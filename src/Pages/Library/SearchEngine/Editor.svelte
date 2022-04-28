@@ -45,6 +45,8 @@
         from '../../../Stores/search'
     import { onMount }
         from 'svelte'
+    import { slide }
+        from 'svelte/transition'
 
 
 
@@ -128,7 +130,7 @@
     onMount(initData)
 </script>
 
-<main class="se-editor">
+<main class="se-editor" transition:slide|local>
     <Breakpoint bind:size />
 
     {#if size == "sm"}

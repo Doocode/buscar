@@ -46,13 +46,15 @@
 
     // Imports
     import { Tag, OutboundLink }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
     import { SearchEngine }
-        from "../../../Classes/SearchEngine"
+        from '../../../Classes/SearchEngine'
     import Icofont
-        from "../../../UI/Icofont.svelte"
+        from '../../../UI/Icofont.svelte'
     import SearchBox
-        from "../../../UI/SearchBox.svelte"
+        from '../../../UI/SearchBox.svelte'
+    import { slide }
+        from 'svelte/transition'
 
 
 
@@ -89,7 +91,7 @@
     // TODO: Ajouter le support des alias depuis la popup modifier (tester la nouvelle valeur de l'alias)
 </script>
 
-<main class="se-preview">
+<main class="se-preview" transition:slide|local>
     <img src="{icon}" alt="Icône de {name}" />
     <div class="details">
         <p class="name">{name}</p>

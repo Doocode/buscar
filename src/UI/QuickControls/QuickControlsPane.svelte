@@ -68,10 +68,10 @@
     }
 </script>
 
-<main>
+<main transition:slide>
     <OutClick on:outclick={close} >
         {#if currentPage == ROUTES.home}
-            <div class="controls-pane" transition:slide>
+            <div class="controls-pane" transition:slide|local>
                 <ControlsPage
                     title="Réglages rapides" icon="settings"
                     backButtonVisible="false"
@@ -129,7 +129,7 @@
                 </ControlsPage>
             </div>
         {:else}
-            <div class="controls-pages" transition:slide>
+            <div class="controls-pages" transition:slide|local>
                 {#if currentPage == ROUTES.ambiances}
                     <ContrastPage on:close={close} on:backRequest={goHome} />
                 {/if}

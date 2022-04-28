@@ -3,21 +3,21 @@
     import { Modal, DataTable, Button, Tooltip, Search,
         OverflowMenu, OverflowMenuItem, Tag, InlineNotification,
         Breakpoint, ContentSwitcher, Switch }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
     import { listSearchEngines } 
         from '../../Stores/search'
     import { pageName, pageIcon }
         from '../../Stores/header'
     import Icofont
-        from "../../UI/Icofont.svelte"
+        from '../../UI/Icofont.svelte'
     import SearchEngineEditor
-        from "./SearchEngine/Editor.svelte"
+        from './SearchEngine/Editor.svelte'
     import SearchEnginePreview
-        from "./SearchEngine/Preview.svelte"
+        from './SearchEngine/Preview.svelte'
     import SearchEnginesManager
-        from "../../Classes/SearchEnginesManager"
+        from '../../Classes/SearchEnginesManager'
     import { onDestroy }
-        from "svelte"
+        from 'svelte'
 
 
 

@@ -27,6 +27,8 @@
         from '../../Classes/SearchEnginesManager'
     import { onDestroy }
         from 'svelte'
+    import { fade, slide }
+        from 'svelte/transition'
 
 
 
@@ -78,7 +80,7 @@
 
 
     // Lifecycle
-    onDestroy(() => SE_MANAGER.destroy)
+    onDestroy(() => SE_MANAGER.destroy())
 
 
 
@@ -123,7 +125,7 @@
         // Retourner les conditions
         return enoughCharacters && !alreadyUsed && !containsForbiddenCharacters
     }
-    const openAliasEditor = (id) => { // id depuis generateAliasRows()
+    const openAliasEditor = id => { // id depuis generateAliasRows()
         // Ne pas ouvrir la popup si l'id est invalide
         if (id <= -1 && ii >= table_alias_rows.length)
             return
@@ -147,7 +149,7 @@
             modalAliasEditor = false
         }
     }
-    const toggleAliasPrefix = (id) => {
+    const toggleAliasPrefix = id => {
         // Basculer les états des préfixes
         switch (id) {
             case 0: enableAliasAddSearchEngine.set(!$enableAliasAddSearchEngine); break
@@ -177,7 +179,9 @@
 
 <Breakpoint bind:size />
 
-<main id="prefs-search" class="prefs-section">
+<main id="prefs-search" class="prefs-section"
+    in:fade={{duration: 200}}
+>
     <h2>{TITLE_PAGE}</h2>
     {#if BREADCRUMBS.length > 0}
         <Breadcrumb noTrailingSlash>
@@ -205,51 +209,55 @@
 
     <br/><br/>
     {#if $actionWhenOpeningSearchPage == "searchProfile"}
-        <div><legend class="bx--label">Le profil de recherche par défaut</legend></div>
-        <ClickableTile
-            class="btnStartup" id="btnSearchProfile"
-            on:click={(e) => (modalSearchProfiles = true)}
-            title="Définir le profil de recherche par défaut"
-        >
-            <div class="data">
-                <div class="ident">
-                    <Icofont icon="{selectedStartupSearchProfile.icon}" size="18" />
-                    <p class="name">{selectedStartupSearchProfile.name}</p>
+        <div transition:slide|local>
+            <div><legend class="bx--label">Le profil de recherche par défaut</legend></div>
+            <ClickableTile
+                class="btnStartup" id="btnSearchProfile"
+                on:click={(e) => (modalSearchProfiles = true)}
+                title="Définir le profil de recherche par défaut"
+            >
+                <div class="data">
+                    <div class="ident">
+                        <Icofont icon="{selectedStartupSearchProfile.icon}" size="18" />
+                        <p class="name">{selectedStartupSearchProfile.name}</p>
+                    </div>
+                    {#if selectedStartupSearchProfile.searchEngines.length > 0}
+                        <SearchEnginesBubbles bubbleSize="30px"
+                            searchEngines={selectedStartupSearchProfile.searchEngines} />
+                    {:else}
+                        <p class="placeholder">(Aucun moteur de recherche)</p>
+                    {/if}
                 </div>
-                {#if selectedStartupSearchProfile.searchEngines.length > 0}
-                    <SearchEnginesBubbles bubbleSize="30px"
-                        searchEngines={selectedStartupSearchProfile.searchEngines} />
-                {:else}
-                    <p class="placeholder">(Aucun moteur de recherche)</p>
-                {/if}
-            </div>
-            <div class="menu">
-                <Icofont icon="settings" size="18" />
-            </div>
-        </ClickableTile>
+                <div class="menu">
+                    <Icofont icon="settings" size="18" />
+                </div>
+            </ClickableTile>
+        </div>
     {:else if $actionWhenOpeningSearchPage == "searchEngines"}
-        <div><legend class="bx--label">Les moteurs de recherche par défaut</legend></div>
-        <ClickableTile
-            class="btnStartup" id="btnSearchEngine"
-            on:click={e => modalSearchEngines = true}
-            title="Définir les moteurs de recherche par défaut"
-        >
-            <div class="data">
-                <div class="ident">
-                    <Icofont icon="search" size="18" />
-                    <p class="name">{selectedStartupSearchEngines.length} item(s)</p>
+        <div transition:slide|local>
+            <div><legend class="bx--label">Les moteurs de recherche par défaut</legend></div>
+            <ClickableTile
+                class="btnStartup" id="btnSearchEngine"
+                on:click={e => modalSearchEngines = true}
+                title="Définir les moteurs de recherche par défaut"
+            >
+                <div class="data">
+                    <div class="ident">
+                        <Icofont icon="search" size="18" />
+                        <p class="name">{selectedStartupSearchEngines.length} item(s)</p>
+                    </div>
+                    {#if selectedStartupSearchEngines.length > 0}
+                        <SearchEnginesBubbles bubbleSize="30px"
+                            searchEngines={selectedStartupSearchEngines} />
+                    {:else}
+                        <p class="placeholder">(Aucun moteur de recherche)</p>
+                    {/if}
                 </div>
-                {#if selectedStartupSearchEngines.length > 0}
-                    <SearchEnginesBubbles bubbleSize="30px"
-                        searchEngines={selectedStartupSearchEngines} />
-                {:else}
-                    <p class="placeholder">(Aucun moteur de recherche)</p>
-                {/if}
-            </div>
-            <div class="menu">
-                <Icofont icon="settings" size="18" />
-            </div>
-        </ClickableTile>
+                <div class="menu">
+                    <Icofont icon="settings" size="18" />
+                </div>
+            </ClickableTile>
+        </div>
     {/if}
 
 
@@ -266,46 +274,48 @@
     </Grid>
 
     {#if $enableSearchEngineAlias}
-        <br/><br/>
-        <DataTable headers={tableAliasHead} rows={table_alias_rows} >
-            <svelte:fragment slot="cell" let:cell let:row >
-                {#if cell.key === "prefix"}
-                    <div class="cell-prefix">
-                        {cell.value}
-                    </div>
-                {:else if cell.key === "enabled"}
-                    <div class="cell-status"
-                        class:positive={cell.value}
-                        class:negative={!cell.value}
-                    >
-                        {#if cell.value}
-                            <Icofont size="16" icon="check" />
-                            <span>Activé</span>
-                        {:else}
-                            <Icofont size="16" icon="disable" />
-                            <span>Désactivé</span>
-                        {/if}
-                    </div>
-                {:else if cell.key === "overflow"}
-                    <OverflowMenu flipped style="width: auto;">
-                        <div slot="menu" class="menu-button">
-                            <Icofont icon="settings" size="16" />
-                            {#if size != "sm"}
-                                <span class="label">Options</span>
+        <div transition:slide|local>
+            <br/><br/>
+            <DataTable headers={tableAliasHead} rows={table_alias_rows} >
+                <svelte:fragment slot="cell" let:cell let:row >
+                    {#if cell.key === "prefix"}
+                        <div class="cell-prefix">
+                            {cell.value}
+                        </div>
+                    {:else if cell.key === "enabled"}
+                        <div class="cell-status"
+                            class:positive={cell.value}
+                            class:negative={!cell.value}
+                        >
+                            {#if cell.value}
+                                <Icofont size="16" icon="check" />
+                                <span>Activé</span>
+                            {:else}
+                                <Icofont size="16" icon="disable" />
+                                <span>Désactivé</span>
                             {/if}
                         </div>
-                        <OverflowMenuItem text="Modifier" on:click={() => {openAliasEditor(row.id)}} />
-                        {#if row.enabled}
-                            <OverflowMenuItem danger text="Désactiver" on:click={() => {toggleAliasPrefix(row.id)}} />
-                        {:else}
-                            <OverflowMenuItem text="Activer" on:click={() => {toggleAliasPrefix(row.id)}} />
-                        {/if}
-                    </OverflowMenu>
-                {:else}
-                    {cell.value}
-                {/if}
-            </svelte:fragment>
-        </DataTable>
+                    {:else if cell.key === "overflow"}
+                        <OverflowMenu flipped style="width: auto;">
+                            <div slot="menu" class="menu-button">
+                                <Icofont icon="settings" size="16" />
+                                {#if size != "sm"}
+                                    <span class="label">Options</span>
+                                {/if}
+                            </div>
+                            <OverflowMenuItem text="Modifier" on:click={() => {openAliasEditor(row.id)}} />
+                            {#if row.enabled}
+                                <OverflowMenuItem danger text="Désactiver" on:click={() => {toggleAliasPrefix(row.id)}} />
+                            {:else}
+                                <OverflowMenuItem text="Activer" on:click={() => {toggleAliasPrefix(row.id)}} />
+                            {/if}
+                        </OverflowMenu>
+                    {:else}
+                        {cell.value}
+                    {/if}
+                </svelte:fragment>
+            </DataTable>
+        </div>
     {/if}
 
 
@@ -331,8 +341,8 @@
         bind:checked={$enableSelectSearchEnginesLimit}
         labelText="Limiter la sélection de plusieurs moteurs de recherche en simultané" />
     {#if $enableSelectSearchEnginesLimit}
-        <br/>
-        <div class="indent" style="max-width: 420px;">
+        <div class="indent" transition:slide|local style="max-width: 420px;">
+            <br/>
             <NumberInput
                 min={1} max={15} allowEmpty="false"
                 bind:value={$selectSearchEnginesLimitValue}
