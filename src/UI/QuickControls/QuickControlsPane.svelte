@@ -2,22 +2,24 @@
     // Imports
     import { allowHeaderBackButton, compactSearchBox, enableSearchEngineAlias,
         enableSelectSearchEnginesLimit, selectSearchEnginesLimitValue,
-        contrastMode, listQuickControls, customAmbiance, ambiances }
-        from "../../Stores/settings"
+        contrastMode, listQuickControls, customAmbiance, ambiances, backgroundType }
+        from '../../Stores/settings'
     import { Link }
-        from "carbon-components-svelte"
+        from 'carbon-components-svelte'
     import QuickTile
-        from "./QuickTile.svelte"
+        from './QuickTile.svelte'
     import QuickToggle
-        from "./QuickToggle.svelte"
+        from './QuickToggle.svelte'
     import { createEventDispatcher }
         from 'svelte'
     import Icofont
-        from "../Icofont.svelte"
+        from '../Icofont.svelte'
+    import BackgroundPage
+        from './Pages/BackgroundPage.svelte'
     import ContrastPage
-        from "./Pages/ContrastPage.svelte"
+        from './Pages/ContrastPage.svelte'
     import ControlsPage
-        from "./ControlsPage.svelte"
+        from './ControlsPage.svelte'
     import OutClick
         from 'svelte-outclick'
 	import { slide }
@@ -29,6 +31,7 @@
     const ROUTES = {
         home: "",
         ambiances: "ambiances",
+        background: "background",
     }
     const dispatch = createEventDispatcher()
     let currentPage = ROUTES.home
@@ -37,6 +40,7 @@
 
     // Réactivité
     $: currentContrastPref = parseCurrentContrastMode($contrastMode)
+    $: currentBackgroundPref = parseCurrentBackgroundMode($backgroundType)
 
 
 
@@ -47,15 +51,10 @@
             .sort((a, b) => a.position - b.position) // Trié les tuiles selon leurs positions
             .filter(a => a.visible) // Filtrer les tuiles visibles
     }
-    const close = () => {
-        dispatch('close')
-    }
-    const goHome = () => {
-        currentPage = ROUTES.home
-    }
-    const displayAmbiances = () => {
-        currentPage = ROUTES.ambiances
-    }
+    const close = () => dispatch('close')
+    const goHome = () => currentPage = ROUTES.home
+    const displayAmbiances = () => currentPage = ROUTES.ambiances
+    const displayBackground = () => currentPage = ROUTES.background
     const parseCurrentContrastMode = () => {
         switch($contrastMode) {
             case "browser":
@@ -64,6 +63,20 @@
                 return {icon: "clock", name: "Planifié"}
             case "custom":
                 return $ambiances.filter(a => a.value == $customAmbiance)[0]
+            default:
+                return {icon: "warning", name: "(Non reconnu)"}
+        }
+    }
+    const parseCurrentBackgroundMode = () => {
+        switch($backgroundType) {
+            case "neutral":
+                return {icon: "check", name: "Basique"}
+            case "color":
+                return {icon: "palette", name: "Couleur"}
+            case "image":
+                return {icon: "folder_open", name: "Image"}
+            default:
+                return {icon: "warning", name: "(Non reconnu)"}
         }
     }
 </script>
@@ -85,6 +98,14 @@
                                     <div class="value">
                                         <Icofont icon={currentContrastPref.icon} size="14" />
                                         <p class="label">{currentContrastPref.name}</p>
+                                    </div>
+                                </QuickTile>
+                            {:else if tile.value == 'backgroundSelector'}
+                                <QuickTile on:click={displayBackground}
+                                    name="Fond d'écran" icon="image">
+                                    <div class="value">
+                                        <Icofont icon={currentBackgroundPref.icon} size="14" />
+                                        <p class="label">{currentBackgroundPref.name}</p>
                                     </div>
                                 </QuickTile>
                             {:else if tile.value == 'compactSearchBar'}
@@ -132,6 +153,8 @@
             <div class="controls-pages" transition:slide|local>
                 {#if currentPage == ROUTES.ambiances}
                     <ContrastPage on:close={close} on:backRequest={goHome} />
+                {:else if currentPage == ROUTES.background}
+                    <BackgroundPage on:close={close} on:backRequest={goHome} />
                 {/if}
             </div>
         {/if}

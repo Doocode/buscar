@@ -578,6 +578,7 @@
             gap: var(--cds-spacing-02);
         }
 
+        // Sélecteur de couleur
         .color-view {
             --value: #00aaff;
 
@@ -590,6 +591,7 @@
             input {display: none;}
         }
 
+        // Sélecteur d'image
         .image-view {
             max-width: 300px;
             max-height: 400px;

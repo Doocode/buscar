@@ -108,16 +108,19 @@ export const selectSearchEnginesLimitValue = writable(5)
 
 // RÉGLAGES RAPIDES
 // - Liste des réglages rapides
+let idControl = 1
 export const listQuickControls = createQuickControlsList([
-    { id: 1, position: 1, visible: true, icon: "palette",
+    { id: idControl++, position: idControl-1, visible: true, icon: "palette",
     longName: "Sélecteur d'ambiances", value:'ambianceSelector' },
-    { id: 2, position: 2, visible: true, icon: "search",
+    { id: idControl++, position: idControl-1, visible: true, icon: "image",
+    longName: "Sélecteur de fond d'écran", value:'backgroundSelector' },
+    { id: idControl++, position: idControl-1, visible: true, icon: "search",
     longName: "Largeur de la barre de recherche", value:'compactSearchBar' },
-    { id: 3, position: 3, visible: true, icon: "compass",
+    { id: idControl++, position: idControl-1, visible: true, icon: "compass",
     longName: "Alias des moteurs de recherche", value:'searchEnginesAlias' },
-    { id: 4, position: 4, visible: true, icon: "circles",
+    { id: idControl++, position: idControl-1, visible: true, icon: "circles",
     longName: "Limiter la sélection des moteurs", value:'limitSelectSearchEngines' },
-    { id: 5, position: 5, visible: true, icon: "arrow_left",
+    { id: idControl++, position: idControl-1, visible: true, icon: "arrow_left",
     longName: "Afficher le bouton Retour", value:'backButton' },
 ])
 // Store spécial pour les contrôles rapides
