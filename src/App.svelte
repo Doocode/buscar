@@ -39,6 +39,8 @@
 	}
 	let routes = { // Routes de l'app
 		'/': Search,
+		'/search/:section/:id': Search,
+		'/search': Search,
 		'/library/': Library,
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,
@@ -49,7 +51,7 @@
 		'/preferences/interface/background-image': BackgroundImage,
 		'/preferences/:section': Preferences,
 		'/preferences/:section/*': Preferences,
-		
+
 		// Aide
 		'/help': wrap({
 			component: Help,
@@ -105,7 +107,7 @@
 		:global(.bx--number input[type="number"]) {
 			margin: 0;
 		}
-				
+
 		// Bouton menu
 		:global(.bx--overflow-menu div.label) {
 			display: inline-flex;

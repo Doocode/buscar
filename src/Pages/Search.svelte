@@ -1,6 +1,12 @@
 <script>
     // Exports
     /**
+     * Les paramètres depuis le routeur (svelte-spa-router)
+     * @type {object}
+     */
+    export let params = {}
+
+    /**
      * La hauteur du composant ("extend" pour plein écran - "fit" pour compact)
      * @type {"expand" | "fit"}
      */
@@ -288,6 +294,20 @@
     const onPageMount = () => {
         // Charger les paramètres par défaut
         loadPreferences()
+
+        // Vérifier si des paramètres ont été transmises
+        if (Object.keys(params).length == 2) {
+            const sectionExists = typeof (params.section) !== 'undefined'
+            const idExists = typeof (params.section) !== 'undefined'
+            if (sectionExists && idExists) {
+                switch (params.section) {
+                    case 'search-engine':
+                        return selectSearchEngineByIds([parseInt(params.id)])
+                    case 'search-profile':
+                        return selectSearchProfileById(parseInt(params.id))
+                }
+            }
+        }
     }
 
 
