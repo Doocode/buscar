@@ -291,7 +291,7 @@
                 on:click={() => openForm('size')} >
                 <div class="label"
                     class:checked={size.length > 0}>
-                    <Icofont icon="expand" />
+                    <Icofont icon="crop_free" />
                     <span class="text">Taille</span>
                 </div>
             </Button>
@@ -300,7 +300,7 @@
                 on:click={() => openForm('position')} >
                 <div class="label"
                     class:checked={position.length > 0}>
-                    <Icofont icon="pin" />
+                    <Icofont icon="target" />
                     <span class="text">Position</span>
                 </div>
             </Button>
@@ -330,7 +330,7 @@
             on:close={() => restoreBackup('position')}
         >
             <div slot="heading" class="label">
-                <Icofont icon="pin" size="20" />
+                <Icofont icon="target" size="20" />
                 <span class="text">Position</span>
             </div>
             <!-- Utilisation du 'if' pour forcer la mise à jour de la vue-->
@@ -353,7 +353,7 @@
             on:close={() => restoreBackup('size')}
         >
             <div slot="heading" class="label">
-                <Icofont icon="expand" size="20" />
+                <Icofont icon="crop_free" size="20" />
                 <span class="text">Taille</span>
             </div>
             <!-- Utilisation du 'if' pour forcer la mise à jour de la vue-->
@@ -456,6 +456,7 @@
             .label {
                 flex-flow: column;
                 align-items: center;
+                text-align: center;
             }
 
             // Icônes

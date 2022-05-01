@@ -23,7 +23,7 @@
 
     // MAJ du header
     pageName.set("Moteurs de recherche")
-    pageIcon.set("circles")
+    pageIcon.set("search")
 
 
 
@@ -344,7 +344,7 @@
 
             <OverflowMenu flipped style="width: auto; height: auto;">
                 <div slot="menu" class="menu-button">
-                    <Icofont icon="select_all" size="22" />
+                    <Icofont icon="cursor_select" size="22" />
                     {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
                         {#if idSelectedItems.length > 0}
                             <span class="label">Sélection ({idSelectedItems.length})</span>
@@ -406,7 +406,7 @@
                     on:click={selectAll}
                 >
                     <div class="label">
-                        <Icofont icon="select_all" size="18" />
+                        <Icofont icon="checkbox" size="18" />
                         <span class="text">Tout sélectionner</span>
                     </div>
                 </OverflowMenuItem>
@@ -416,7 +416,7 @@
                     on:click={clearSelection}
                 >
                     <div class="label">
-                        <Icofont icon="disable" size="18" />
+                        <Icofont icon="square" size="18" />
                         <span class="text">Ne rien sélectionner</span>
                     </div>
                 </OverflowMenuItem>
@@ -426,7 +426,7 @@
                     on:click={invertSelection}
                 >
                     <div class="label">
-                        <Icofont icon="select_invert" size="18" />
+                        <Icofont icon="checkbox_indeterminate" size="18" />
                         <span class="text">Inverser la sélection</span>
                     </div>
                 </OverflowMenuItem>

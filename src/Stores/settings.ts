@@ -118,7 +118,7 @@ export const listQuickControls = createQuickControlsList([
     longName: "Largeur de la barre de recherche", value:'compactSearchBar' },
     { id: idControl++, position: idControl-1, visible: true, icon: "compass",
     longName: "Alias des moteurs de recherche", value:'searchEnginesAlias' },
-    { id: idControl++, position: idControl-1, visible: true, icon: "circles",
+    { id: idControl++, position: idControl-1, visible: true, icon: "cursor_select",
     longName: "Limiter la sélection des moteurs", value:'limitSelectSearchEngines' },
     { id: idControl++, position: idControl-1, visible: true, icon: "arrow_left",
     longName: "Afficher le bouton Retour", value:'backButton' },

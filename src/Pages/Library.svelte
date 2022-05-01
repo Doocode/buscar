@@ -11,11 +11,11 @@
 
 <main id="librairyPage">
     <Link href="/#/library/search-engines" size="lg">
-        <Icofont icon="circles" />
+        <Icofont icon="search" />
         <span class="label">Moteurs de recherche</span>
     </Link>
     <Link href="/#/library/search-profiles" size="lg">
-        <Icofont icon="search" />
+        <Icofont icon="search_group" />
         <span class="label">Profils de recherche</span>
     </Link>
     <Link href="/#/library/background-images" size="lg">

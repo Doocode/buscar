@@ -98,6 +98,7 @@
         --bg-position: center center;
         --bg-repeat: repeat;
         --bg-size: cover;
+        transition: all .3s;
 
         &:not(.neutral) {
             // Arrière plan en couleur
@@ -111,7 +112,7 @@
                 background-position: var(--bg-position);
                 background-repeat: var(--bg-repeat);
                 background-size: var(--bg-size);
-                //background-attachment: fixed;
+                background-attachment: fixed;
             }
         }
     }

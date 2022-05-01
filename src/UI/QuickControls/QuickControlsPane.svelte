@@ -122,7 +122,7 @@
                                     bind:checked={$enableSearchEngineAlias} />
                             {:else if tile.value == 'limitSelectSearchEngines'}
                                 <QuickToggle
-                                    name="Sélection des moteurs de recherche" icon="circles"
+                                    name="Sélection des moteurs de recherche" icon="cursor_select"
                                     positiveText="Limité à {$selectSearchEnginesLimitValue}"
                                     negativeText="Sans limite"
                                     bind:checked={$enableSelectSearchEnginesLimit} />

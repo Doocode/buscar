@@ -358,11 +358,11 @@
 
     <div class="bottomToolbar" class:bgMask={enableBgMask}>
         <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchEngines = true}>
-            <Icofont icon="circles" />
+            <Icofont icon="search" />
             <span class="text">Moteurs de recherche</span>
         </Button>
         <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchProfile = true}>
-            <Icofont icon="search" />
+            <Icofont icon="search_group" />
             <span class="text">Profils de recherche</span>
         </Button>
 

@@ -3,7 +3,7 @@
 // Source : https://blog.logrocket.com/building-a-pwa-with-svelte/
 
 // Update cache names any time any of the cached files change.
-const CACHE_NAME = 'static-cache-2022_02_08-v1';
+const CACHE_NAME = 'static-cache-2022_04_30-v1';
 
 // Add list of files to cache here.
 const FILES_TO_CACHE = [

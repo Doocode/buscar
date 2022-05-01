@@ -238,7 +238,7 @@
                 
                 <OverflowMenu flipped>
                     <div slot="menu" class="menu-button">
-                        <Icofont icon="selection" size="20" />
+                        <Icofont icon="cursor_select" size="22" />
                         {#if ["sm"].indexOf(size) < 0}
                             <span class="label">Sélectionner</span>
                             <Icofont icon="dropdown" size="14" />
@@ -247,26 +247,38 @@
     
                     <OverflowMenuItem on:click={selectAll} >
                         <div class="label">
-                            <Icofont icon="select_all" size="16" />
+                            <Icofont icon="checkbox" size="20" />
                             <span class="text">Tout</span>
                         </div>
                     </OverflowMenuItem>
                     <OverflowMenuItem on:click={unselectAll} >
                         <div class="label">
-                            <Icofont icon="squares" size="16" />
+                            <Icofont icon="square" size="20" />
                             <span class="text">Aucun</span>
                         </div>
                     </OverflowMenuItem>
                     <OverflowMenuItem on:click={toggleSelection} >
                         <div class="label">
-                            <Icofont icon="select_invert" size="16" />
+                            <Icofont icon="checkbox_indeterminate" size="20" />
                             <span class="text">Inverser</span>
                         </div>
                     </OverflowMenuItem>
                     {#if $multiSelectionSearchEngines }
-                        <OverflowMenuItem text="Sélection simple" on:click={() => {multiSelectionSearchEngines.set(!$multiSelectionSearchEngines)}} />
+                        <OverflowMenuItem
+                            on:click={() => {multiSelectionSearchEngines.set(!$multiSelectionSearchEngines)}}>
+                            <div class="label">
+                                <Icofont icon="radiobox" size="20" />
+                                <span class="text">Sélection simple</span>
+                            </div>
+                        </OverflowMenuItem>
                     {:else}
-                        <OverflowMenuItem text="Sélection multiple" on:click={() => {multiSelectionSearchEngines.set(!$multiSelectionSearchEngines)}} />
+                        <OverflowMenuItem
+                            on:click={() => {multiSelectionSearchEngines.set(!$multiSelectionSearchEngines)}}>
+                            <div class="label">
+                                <Icofont icon="checkbox" size="20" />
+                                <span class="text">Sélection multiple</span>
+                            </div>
+                        </OverflowMenuItem>
                     {/if}
                 </OverflowMenu>
             </div>

@@ -33,7 +33,7 @@
 
     // MAJ du header
     pageName.set("Profils de recherche")
-    pageIcon.set("search")
+    pageIcon.set("search_group")
 
 
 
@@ -398,7 +398,7 @@
 
             <OverflowMenu flipped style="width: auto; height: auto;">
                 <div slot="menu" class="menu-button">
-                    <Icofont icon="select_all" size="22" />
+                    <Icofont icon="cursor_select" size="22" />
                     {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
                         {#if idSelectedItems.length > 0}
                             <span class="label">Sélection ({idSelectedItems.length})</span>
@@ -450,7 +450,7 @@
                     on:click={selectAll}
                 >
                     <div class="label">
-                        <Icofont icon="select_all" size="18" />
+                        <Icofont icon="checkbox" size="18" />
                         <span class="text">Tout sélectionner</span>
                     </div>
                 </OverflowMenuItem>
@@ -460,7 +460,7 @@
                     on:click={clearSelection}
                 >
                     <div class="label">
-                        <Icofont icon="disable" size="18" />
+                        <Icofont icon="square" size="18" />
                         <span class="text">Ne rien sélectionner</span>
                     </div>
                 </OverflowMenuItem>
@@ -470,7 +470,7 @@
                     on:click={invertSelection}
                 >
                     <div class="label">
-                        <Icofont icon="select_invert" size="18" />
+                        <Icofont icon="checkbox_indeterminate" size="18" />
                         <span class="text">Inverser la sélection</span>
                     </div>
                 </OverflowMenuItem>
@@ -567,7 +567,7 @@
                             <Icofont icon="pencil" size="18" />
                         </Button>
                         <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
-                            <Icofont icon="circles" size="18" />
+                            <Icofont icon="search" size="18" />
                         </Button>
                     {:else}
                         <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
@@ -578,7 +578,7 @@
                             <Icofont icon="pencil" size="18" />
                         </Button>
                         <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
-                            <Icofont icon="circles" size="18" />
+                            <Icofont icon="search" size="18" />
                         </Button>
                     {/if}
                     <OverflowMenu flipped>
@@ -597,7 +597,7 @@
                             </OverflowMenuItem>
                             <OverflowMenuItem on:click={() => editSearchEnginesForSearchProfile(row.id)} >
                                 <div class="label">
-                                    <Icofont icon="circles" size="16" />
+                                    <Icofont icon="search" size="16" />
                                     <span class="text">Gérer les moteurs de recherche</span>
                                 </div>
                             </OverflowMenuItem>

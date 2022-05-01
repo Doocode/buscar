@@ -82,7 +82,7 @@
         {#if canGoHome && $allowHeaderHomeButton}
             <span>
                 <Button kind="ghost" class="btn-home" title="Page d'accueil" on:click={() => push('/')}>
-                    <Icofont icon="home" size="20" />
+                    <Icofont icon="house" size="20" />
                 </Button>
             </span>
         {/if}
@@ -122,7 +122,6 @@
                 </Button>
 
                 <div class="appIdent">
-                    <Icofont icon="search" size="50" />
                     <img src="/assets/pwa-icons/icon-128x128.png" alt="Logo de l'application" />
                     <p class="title">{appname}</p>
                 </div>
@@ -130,7 +129,7 @@
 
             <div class="links" on:click="{toggleLeftMenu}" >
                 <Link href="/#/" size="lg">
-                    <Icofont icon="home" />
+                    <Icofont icon="house" />
                     <span class="label">Accueil</span>
                 </Link>
                 <!--Link href="/#/bookmarks" size="lg">
@@ -149,11 +148,11 @@
                     <span class="label">Bibliothèque</span>
                 </Link-->
                 <Link href="/#/library/search-engines" size="lg">
-                    <Icofont icon="circles" />
+                    <Icofont icon="search" />
                     <span class="label">Moteurs de recherche</span>
                 </Link>
                 <Link href="/#/library/search-profiles" size="lg">
-                    <Icofont icon="search" />
+                    <Icofont icon="search_group" />
                     <span class="label">Profils de recherche</span>
                 </Link>
                 <Link href="/#/library/background-images" size="lg">
