@@ -1,17 +1,26 @@
 <script>
-    // Imports
-    import { maxDisplayBubble } from '../Stores/settings'
-    import { createEventDispatcher } from 'svelte';
-
-    // Propriétés externes
+    // Exports
     export let searchEngines = [] // Liste des moteurs de recherche
     export let bubbleSize = "40px" // Taille des bulles
     export let fontSize = "12px" // Taille de la police
     export let clickable = false // Modifie le curseur et ajoute un effet au survol
     export let collapse = false // Affichage compact
 
-    // Propriétés internes
-    const dispatch = createEventDispatcher(); // Pour créer des events
+
+
+    // Imports
+    import { maxDisplayBubble }
+        from '../Stores/settings'
+    import { createEventDispatcher }
+        from 'svelte'
+
+
+
+    // Propriétés
+    const dispatch = createEventDispatcher()
+
+
+
 
     // Méthodes
     function onClick() {

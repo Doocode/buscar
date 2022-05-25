@@ -25,7 +25,7 @@
 
 
     // Propriétés
-    const dispatch = createEventDispatcher() // Pour créer des events
+    const dispatch = createEventDispatcher()
 
 
 

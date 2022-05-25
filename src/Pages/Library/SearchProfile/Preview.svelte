@@ -1,13 +1,13 @@
 <script>
     // Exports
     /**
-     * Le nom du moteur de recherche
+     * Le nom du profil de recherche
      * @type {string}
      */
     export let name = "(Sans nom)"
     
     /**
-     * L'adresse URL de l'icône du moteur de recherche
+     * L'icône du profil de recherche
      * @type {string}
      */
     export let icon = ""

@@ -28,7 +28,7 @@
 
 
     // Propriétés internes
-    const dispatch = createEventDispatcher(); // Pour créer des events
+    const dispatch = createEventDispatcher();
     let searchEngines = []
 
 

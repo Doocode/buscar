@@ -1,19 +1,19 @@
 <script>
     // Exports
     /**
-     * L'identifiant du moteur de recherche
+     * L'identifiant du profil de recherche
      * @type {number}
      */
     export let id = 0
     
     /**
-     * Le nom du moteur de recherche
+     * Le nom du profil de recherche
      * @type {string}
      */
     export let name = "(Sans nom)"
     
     /**
-     * L'adresse URL de l'icône du moteur de recherche
+     * L'icône du profil de recherche
      * @type {string}
      */
     export let icon = ""
@@ -56,7 +56,7 @@
     let errorIconMessage = ""
     let errorOrderPresentationMessage = ""
     let errorSearchEnginesMessage = ""
-    const dispatch = createEventDispatcher() // Pour créer des events
+    const dispatch = createEventDispatcher()
 
 
 

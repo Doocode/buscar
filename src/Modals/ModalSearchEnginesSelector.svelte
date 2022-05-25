@@ -23,7 +23,7 @@
     
 
     // Propriétés internes
-    const dispatch = createEventDispatcher() // Pour créer des events
+    const dispatch = createEventDispatcher() // Sert à créer des events
     let searchEngines = [] // Liste des moteurs de recherche
     let sortMenu = [
         { id: 0, text: "Nom (A-Z)", sort: {on: "name", order: "asc"} },

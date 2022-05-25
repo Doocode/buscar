@@ -500,10 +500,10 @@
                     </OverflowMenuItem>
                 {/if}
                 {#if zebra}
-                    <OverflowMenuItem text={'Désactiver "Zebra"'}
+                    <OverflowMenuItem text={'Désactiver les rayures'}
                         on:click={() => {zebra=!zebra}} />
                 {:else}
-                    <OverflowMenuItem text={'Activer "Zebra"'}
+                    <OverflowMenuItem text={'Activer les rayures'}
                         on:click={() => {zebra=!zebra}} />
                 {/if}
                 {#if size != "sm"}
