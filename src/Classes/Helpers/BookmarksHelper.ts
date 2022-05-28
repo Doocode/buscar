@@ -1,6 +1,7 @@
 import { BookmarkTypes } from "../Bookmarks/BookmarkType"
 
 class BookmarksHelper {
+    //buildChain(bookmarks: Array<BookmarkItem>) {
     buildChain(bookmarks, limit) {
         // Construire la chaine
         let chain = []
