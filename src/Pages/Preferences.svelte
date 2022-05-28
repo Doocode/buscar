@@ -27,6 +27,8 @@
         from './Preferences/Search.svelte'
     import QuickSettings
         from './Preferences/QuickSettings.svelte'
+    import SpeedDial
+        from './Preferences/SpeedDial.svelte'
 
 
 
@@ -36,12 +38,14 @@
         '/search':          Search,
         '/interface':       Display,
         '/interface/:section/:part': Display,
+        '/speed-dial':      SpeedDial,
         '/quick-settings':  QuickSettings,
         '/':                Display,
     }
     let pages = [
         {name: "Apparence", path: "interface", icon: "screen"},
         {name: "Recherche", path: "search", icon: "search"},
+        {name: "Accès rapide", path: "speed-dial", icon: "apps"},
         {type: "separator"},
         {name: "Réglages rapides", path: "quick-settings", icon: "settings"},
     ]
