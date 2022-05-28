@@ -16,6 +16,7 @@
 	// - Pages
 	import Header from './UI/Header.svelte'
 	import Search from './Pages/Search.svelte'
+	import SpeedDial from './Pages/SpeedDial.svelte'
 	import Library from './Pages/Library.svelte'
 	import SearchEnginesManager from './Pages/Library/SearchEnginesManager.svelte'
 	import SearchProfilesManager from './Pages/Library/SearchProfilesManager.svelte'
@@ -41,6 +42,8 @@
 		'/': Search,
 		'/search/:section/:id': Search,
 		'/search': Search,
+
+		'/speeddial': SpeedDial,
 		'/library/': Library,
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,

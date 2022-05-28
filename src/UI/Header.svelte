@@ -132,11 +132,15 @@
                     <Icofont icon="house" />
                     <span class="label">Accueil</span>
                 </Link>
-                <!--Link href="/#/bookmarks" size="lg">
-                    <Icofont icon="squares" />
-                    <span class="label">Favoris</span>
+                <Link href="/#/search" size="lg">
+                    <Icofont icon="search" />
+                    <span class="label">Recherche</span>
                 </Link>
-                <Link href="/#/network" size="lg">
+                <Link href="/#/speeddial" size="lg">
+                    <Icofont icon="apps" />
+                    <span class="label">Accès rapide</span>
+                </Link>
+                <!--Link href="/#/network" size="lg">
                     <Icofont icon="compass" />
                     <span class="label">Réseau</span>
                 </Link-->
