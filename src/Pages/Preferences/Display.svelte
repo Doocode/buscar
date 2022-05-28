@@ -1,4 +1,13 @@
 <script>
+    // Exports
+    /**
+     * Les paramètres depuis le routeur (svelte-spa-router)
+     * @type {object}
+     */
+    export let params = {}
+
+
+
     // Imports
     import { contrastMode, customAmbiance, defaultLightMode, defaultDarkMode,
         ambiances, planningAmbiances, allowHeaderBackButton, compactSearchBox,
@@ -22,6 +31,7 @@
         from 'svelte/transition'
     import { push }
         from 'svelte-spa-router'
+import { onMount } from 'svelte';
 
 
 
@@ -221,6 +231,21 @@
         backgroundImage.set(e.detail.value)
         modalBgImageSelect = false
     }
+
+
+
+    // Lifecycle
+    onMount(() => {
+        const keys = Object.keys(params)
+        if (keys.length > 1 && keys.includes('section')) {
+            switch (params.section) {
+                case 'background-image':
+                    if (keys.includes('part') && params.part == 'selector')
+                        modalBgImageSelect = true
+                    break
+            }
+        }
+    })
 </script>
 
 <main id="prefs-display" class="prefs-section"
@@ -364,7 +389,7 @@
                     <p class="label">Choisir une image</p>
                 </Button>
                 <Button kind="tertiary" class="format"
-                    on:click={() => push('/preferences/interface/background-image')} >
+                    href="/#/preferences/interface/background-image/settings" >
                     <Icofont icon="settings" size="18" />
                     <p class="label">Réglages <!--et filtres--> sur l'image</p>
                 </Button>

@@ -35,6 +35,7 @@
     const ROUTES = {
         '/search':          Search,
         '/interface':       Display,
+        '/interface/:section/:part': Display,
         '/quick-settings':  QuickSettings,
         '/':                Display,
     }

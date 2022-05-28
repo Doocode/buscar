@@ -48,7 +48,7 @@
 
 		// Préférences
 		'/preferences': Preferences,
-		'/preferences/interface/background-image': BackgroundImage,
+		'/preferences/interface/background-image/settings': BackgroundImage,
 		'/preferences/:section': Preferences,
 		'/preferences/:section/*': Preferences,
 
