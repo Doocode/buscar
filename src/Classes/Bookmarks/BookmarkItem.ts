@@ -38,7 +38,7 @@ export default class BookmarkItem {
     get type(): BookmarkType {
         return this._type
     }
-    get data(): string {
+    get data(): any {
         return this._data
     }
     get previousId(): number {

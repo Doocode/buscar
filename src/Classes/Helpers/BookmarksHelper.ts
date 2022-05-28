@@ -1,8 +1,10 @@
+import type BookmarkItem from "../Bookmarks/BookmarkItem"
 import { BookmarkTypes } from "../Bookmarks/BookmarkType"
+import type { SearchEngine } from "../SearchEngine"
 
 class BookmarksHelper {
     //buildChain(bookmarks: Array<BookmarkItem>) {
-    buildChain(bookmarks, limit) {
+    buildChain(bookmarks: Array<BookmarkItem>, limit: number) {
         // Construire la chaine
         let chain = []
         
@@ -21,7 +23,7 @@ class BookmarksHelper {
     }
 
     // Rechercher les données utiles
-    refreshDataFromStores(bookmarks, listSearchEngines, listSearchProfiles) {
+    refreshDataFromStores(bookmarks: Array<BookmarkItem>, listSearchEngines: Array<SearchEngine>, listSearchProfiles) {
         return bookmarks.map(bk => {
             let results = []
 
