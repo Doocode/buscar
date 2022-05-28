@@ -4,8 +4,6 @@
         from '../../../Stores/settings'
     import { listBgImgs }
         from '../../../Stores/bgImages'
-    import ModalSelectBgImage
-        from '../../../Modals/ModalSelectBgImage.svelte'
     import ControlsPage
         from '../ControlsPage.svelte'
     import { RadioButtonGroup, RadioButton, Button }
@@ -26,8 +24,6 @@
 
     // Propriétés
     let bgColorInput // Couleur sélectionnée
-    let modalBgImageSelect = false // Selecteur d'image
-    let edit_bgImage = ""
 
 
 
@@ -37,10 +33,6 @@
         if (results == null || results.length == 0)
             return null
         return results[0]
-    }
-    const onSelectBgImage = e => {
-        backgroundImage.set(e.detail.value)
-        modalBgImageSelect = false
     }
 </script>
 
@@ -87,18 +79,17 @@
             {:else if $backgroundType == "image"}
 
                 <div transition:slide|local class="block-settings" style="align-items: end;">
-                    <img class="image-view" src={bgUrl}
-                        on:click={() => modalBgImageSelect = true} />
+                    <img class="image-view" src={bgUrl} />
 
                     <div class="actions" style="flex: 1; flex-flow: column; align-items: flex-start;">
                         <Button kind="tertiary" class="format"
-                            on:click={() => modalBgImageSelect = true} >
+                            href="/#/preferences/interface/background-image/selector" >
                             <Icofont icon="folder_close" size="18" />
                             <p class="label">Choisir une image</p>
                         </Button>
 
                         <Button kind="tertiary" class="format"
-                            on:click={() => push('/preferences/interface/background-image')} >
+                            href="/#/preferences/interface/background-image/settings" >
                             <Icofont icon="settings" size="18" />
                             <p class="label">Réglages <!--et filtres--> sur l'image</p>
                         </Button>
@@ -108,11 +99,6 @@
             {/if}
         </div>
     </ControlsPage>
-
-    <ModalSelectBgImage
-        bind:open={modalBgImageSelect}
-        bind:value={edit_bgImage}
-        on:submit={onSelectBgImage} />
 </main>
 
 <style lang="scss">
@@ -165,7 +151,7 @@
             max-height: 200px;
             border-radius: 10px;
             background-color: rgb(127,127,127);
-            cursor: pointer;
+            //cursor: pointer;
         }
     }
 </style>
