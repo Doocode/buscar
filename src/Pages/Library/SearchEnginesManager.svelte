@@ -18,6 +18,10 @@
         from '../../Classes/SearchEnginesManager'
     import { onDestroy }
         from 'svelte'
+    import { listBookmarks }
+        from '../../Stores/bookmarks'
+    import { BookmarkTypes }
+        from '../../Classes/Bookmarks/BookmarkType'
 
 
 
@@ -249,6 +253,11 @@
         // Ferme tous les popups
         closeModals()
     }
+    const addItemToBookmarks = id => {
+        const item = MANAGER.findById(id)
+        listBookmarks.add(item.name, BookmarkTypes.searchEngine, {id: item.id})
+    }
+    const addSelectionToBookmarks = () => idSelectedItems.forEach(id => addItemToBookmarks(id))
     const parseType = (type) => {
         // Affichage du type dans le tableau
         let template = {
@@ -363,6 +372,16 @@
                         <div class="label">
                             <Icofont icon="upload" size="18" />
                             <span class="text">Définir comme sélection au démarrage</span>
+                        </div>
+                    </OverflowMenuItem>
+                    
+                    <OverflowMenuItem
+                        title="Ajouter la sélection dans les marque-pages"
+                        on:click={addSelectionToBookmarks}
+                    >
+                        <div class="label">
+                            <Icofont icon="bookmark" size="18" />
+                            <span class="text">Ajouter la sélection dans les marque-pages</span>
                         </div>
                     </OverflowMenuItem>
 
@@ -571,6 +590,16 @@
                             </OverflowMenuItem>
                         {/if}
                         {#if idSelectedItems.length == 0}
+                            <OverflowMenuItem
+                                title="Ajouter dans les marque-pages"
+                                on:click={() => addItemToBookmarks(row.id)}
+                            >
+                                <div class="label">
+                                    <Icofont icon="bookmark" size="18" />
+                                    <span class="text">Ajouter dans les marque-pages</span>
+                                </div>
+                            </OverflowMenuItem>
+
                             <OverflowMenuItem danger on:click={() => confirmDeleteItem(row.id)} >
                                 <div class="label">
                                     <Icofont icon="bin" size="16" />

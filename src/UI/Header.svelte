@@ -159,9 +159,13 @@
                     <Icofont icon="search_group" />
                     <span class="label">Profils de recherche</span>
                 </Link>
-                <Link href="/#/library/background-images" size="lg">
+                <!--Link href="/#/library/background-images" size="lg">
                     <Icofont icon="image" />
                     <span class="label">Fonds d'écran</span>
+                </Link-->
+                <Link href="/#/library/bookmarks" size="lg">
+                    <Icofont icon="bookmark" />
+                    <span class="label">Marque-pages</span>
                 </Link>
 
                 <span class="blank-space"></span>

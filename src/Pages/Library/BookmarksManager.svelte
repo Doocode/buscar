@@ -1,63 +1,54 @@
 <script>
     // Imports
-    import { Modal, DataTable, Button, OverflowMenu, Breakpoint,
-        OverflowMenuItem, Search, InlineNotification,
-        ContentSwitcher, Switch, Tooltip }
+    import { Modal, DataTable, Button, Tooltip, Search,
+        OverflowMenu, OverflowMenuItem, InlineNotification,
+        Breakpoint, ContentSwitcher, Switch }
         from 'carbon-components-svelte'
-    import { listSearchProfiles }
-        from '../../Stores/search'
     import { pageName, pageIcon }
         from '../../Stores/header'
-    import { multiSelectionSearchEngines }
-        from '../../Stores/settings'
-    import { onDestroy }
-        from 'svelte'
     import Icofont
         from '../../UI/Icofont.svelte'
-    import SearchEnginesBubbles
-        from '../../UI/SearchEnginesBubbles.svelte'
-    import ModalSearchEnginesSelector
-        from '../../Modals/ModalSearchEnginesSelector.svelte'
-    import ModalSelectIcofont
-        from '../../Modals/ModalSelectIcofont.svelte'
-    import SearchEnginesManager
-        from '../../Classes/SearchEnginesManager'
-    import SearchProfilesManager
-        from '../../Classes/SearchProfilesManager'
-    import SearchProfileEditor
-        from './SearchProfile/Editor.svelte'
-    import SearchProfilePreview
-        from './SearchProfile/Preview.svelte'
     import { listBookmarks }
         from '../../Stores/bookmarks'
     import { BookmarkTypes }
         from '../../Classes/Bookmarks/BookmarkType'
+    import BookmarkIcon
+        from '../../UI/SpeedDial/BookmarkIcon.svelte'
+    import BookmarkPreview
+        from '../../Forms/Bookmarks/BookmarkPreview.svelte'
+    import BookmarkEditor
+        from '../../Forms/Bookmarks/BookmarkEditor.svelte'
+    import { push }
+        from 'svelte-spa-router'
 
 
 
     // MAJ du header
-    pageName.set("Profils de recherche")
-    pageIcon.set("search_group")
+    pageName.set("Marque-pages")
+    pageIcon.set("bookmark")
 
 
 
     // Propriétés
-    const SE_MANAGER = new SearchEnginesManager
-    const SP_MANAGER = new SearchProfilesManager
-    let size
-    let tableColumns = []
-    let idSelectedItems = [] // Les profils de recherche sélectionnés (id)
+    let size // La largeur de l'écran
+    let tableColumns = [] // Les colonnes de la vue DataTable
+    let idSelectedItems = [] // Les éléments sélectionnés (id)
     let listMessages = [] // Liste des notifications
     let contentIndex = 0 // Index pour le ContentSwitcher (Editeur/Aperçu)
     let zebra = false
     let extendedView = true
     let searchEnabled = true
     let searchValue = ""
-    let sp_id = -1
-    let sp_name = ""
-    let sp_icon = ""
-    let sp_searchEnginesIds = []
-    let sp_orderPresentation = 0
+    let bk_id = -1
+    let bk_name = ""
+    let bk_type = null
+    let bk_data = {}
+    let bk_previousId = null
+    let bk_url = null
+    let bk_icon = null
+    let bk_iconType = null
+    let bk_iconBgColor = null
+    let bk_iconImageFormat = null
 
 
 
@@ -66,37 +57,28 @@
     let modalPreviewItem = false
     let modalEditItem = false
     let modalDeleteItem = false
-    let modalSearchEngines = false
-    let modalIcons = false
-
-
-
-    // Lifecycle
-    onDestroy(() => {
-        // Unsubscriptions
-        SE_MANAGER.destroy()
-        SP_MANAGER.destroy()
-    })
+    let modalErrorValues = false
+    let editorContainsErrors = false
 
 
 
     // Réactivité
-    $: doResponsive(size)
-    $: tableData = formatTableData($listSearchProfiles, searchValue, searchEnabled)
-    $: contentSwitcherDisabled = isFormValid(sp_name, sp_icon, sp_searchEnginesIds, sp_orderPresentation) != true
+    $: doResponsive(size, idSelectedItems)
+    $: tableData = formatTableData($listBookmarks, searchValue, searchEnabled)
+    $: contentSwitcherDisabled = editorContainsErrors
 
 
 
     // Méthodes
     const formatTableData = () => {
         // Formatage des données
-        let data = $listSearchProfiles.map(item => {
+        let data = $listBookmarks.map(item => {
             return {
                 id: item.id,
                 name: item.name,
-                icon: item.icon,
-                searchEnginesIds: item.searchEnginesIds,
-                orderPresentation: item.orderPresentation,
+                type: item.type,
+                data: item.data,
+                previousId: item.previousId,
             }
         })
 
@@ -109,9 +91,9 @@
             // Filtres
             data = data.filter(item => {
                 const searchName = containSearch(item.name)
-                const searchIcon = containSearch(item.icon)
-                // TODO: Chercher dans les moteurs aussi
-                return searchName || searchIcon
+                const searchIcon = item.type == BookmarkTypes.website && containSearch(item.data.icon)
+                const searchType = containSearch(item.type.name)
+                return searchName || searchIcon || searchType
             })
         }
 
@@ -123,158 +105,189 @@
             searchValue = ""
     }
     const closeModals = () => {
-        // Fermer les popups
-        modalPreviewItem = false
-        modalDeleteItem = false
-        modalIcons = false
-        // Si une des popup d'edition est ouverte
-        if (modalAddItem || modalEditItem) {
-            // Et que celle des moteurs est ouverte
-            if (modalSearchEngines)
-                return modalSearchEngines = false
-        }
+        // Fermer la popup
         modalAddItem = false
+        modalPreviewItem = false
         modalEditItem = false
-        modalSearchEngines = false
+        modalDeleteItem = false
 
         // Vider le formulaire
-        clearForm()
+        bk_id = -1
+        bk_name = ""
+        bk_type = null
+        bk_data = {}
+        bk_previousId = null
+        bk_url = null
+        bk_icon = null
+        bk_iconType = null
+        bk_iconBgColor = null
+        bk_iconImageFormat = null
+        contentIndex = 0
     }
-    const clearForm = () => {
-        // Vider le formulaire
-        sp_id = -1
-        sp_name = "(Sans nom)"
-        sp_icon = ""
-        sp_searchEnginesIds = []
-        sp_orderPresentation = 0
-    }
-    const validateForm = () => {
-        if (sp_name.length < 1)
-            return "Vous devez donner un nom au profil de recherche"
-        if (sp_icon.length < 1)
-            return "Vous devez attribuer une icône au profil de recherche"
-        /*if (sp_searchEnginesIds.length < 1)
-            return "Vous devez sélectionner au moins un moteur de recherche"*/
-        /*if (sp_orderPresentation < 1)
-            return "Vous ne pouvez pas entrer de nombre inferieur à 1"*/
-        // TODO: Valider positionNumber
+    const newBookmark = () => {
+        // Préremplir le formulaire
+        bk_id = -1
+        bk_name = ""
+        bk_type = BookmarkTypes.website
+        bk_data = {}
+        bk_previousId = null
+        bk_url = ""
+        bk_icon = ""
+        bk_iconType = "image"
+        bk_iconBgColor = '#123abc'
+        bk_iconImageFormat = "medium"
+        contentIndex = 0
 
-        // Les données saisies sont correctes
-        return true
-    }
-    const isFormValid = () => {
-        if (sp_name.length < 1)
-            return false
-        if (sp_icon.length < 1)
-            return false
-        /*if (sp_searchEnginesIds.length < 1)
-            return "Vous devez sélectionner au moins un moteur de recherche"*/
-        /*if (sp_orderPresentation < 1)
-            return "Vous ne pouvez pas entrer de nombre inferieur à 1"*/
-        // TODO: Valider positionNumber
-
-        // Les données saisies sont correctes => true
-        return true
+        // Afficher le formulaire
+        modalAddItem = true
     }
     const createItem = () => {
-        // Vérifier que les données du formulaire sont corrects
-        const validate = validateForm()
-        if (validate != true)
-            return alert(validate)
+        // Vérifier si les données du formulaire sont corrects
+        if (editorContainsErrors) {
+            modalErrorValues = true
+            return
+        }
 
-        // Ajouter le profil de recherche dans le Store
-        listSearchProfiles.add(sp_name, sp_icon, sp_searchEnginesIds, sp_orderPresentation)
+        // Mise en forme des données supplémentaires
+        bk_data = {
+            url: bk_url,
+            icon: bk_icon,
+            iconType: bk_iconType,
+            iconBgColor: bk_iconBgColor,
+            iconImageFormat: bk_iconImageFormat,
+        }
+
+        // Ajouter le marque-page dans le Store
+        listBookmarks.add(bk_name, bk_type, bk_data)
 
         // Fermer la popup et vider le formulaire
         closeModals()
     }
+    const findBookmarkById = id => {
+        const results = $listBookmarks.filter(item => item.id == parseInt(id))
+        return results.length > 0 ? results[0] : null
+    }
     const displayDetails = id => {
-        // Rechercher le moteur de recherche
-        const item = SP_MANAGER.findById(id)
+        // Rechercher le marque-page
+        const item = findBookmarkById(id)
 
-        // Avorter si le moteur de recherche n'existe pas
+        // Avorter si le marque-page n'existe pas
         if (item == null)
-            return alert("Le moteur de recherche n'existe pas")
+            return alert("Le marque-page n'existe pas")
 
         // Récupération et attribution des champs
-        sp_id = item.id
-        sp_name = item.name
-        sp_icon = item.icon
-        sp_searchEnginesIds = item.searchEnginesIds
-        sp_orderPresentation = item.orderPresentation
+        bk_id = item.id
+        bk_name = item.name
+        bk_type = item.type
+        bk_data = item.data
+        bk_previousId = item.previousId
+        if (item.type == BookmarkTypes.website) {
+            bk_url = item.data.url
+            bk_icon = item.data.icon
+            bk_iconType = item.data.iconType
+            bk_iconBgColor = item.data.iconBgColor
+            bk_iconImageFormat = item.data.iconImageFormat
+        }
 
         // Afficher la popup de détails
         modalPreviewItem = true
     }
     const editItem = id => {
-        // Retrouver le moteur de recherche
-        const item = SP_MANAGER.findById(id)
+        // Retrouver le marque-page
+        const item = findBookmarkById(id)
 
         // Si l'item n'a pas été retrouvé
         if (item == null)
             return alert("L'item n'existe pas")
 
         // Remplir le formulaire
-        sp_id = item.id
-        sp_name = item.name
-        sp_icon = item.icon
-        sp_searchEnginesIds = item.searchEnginesIds
-        sp_orderPresentation = item.orderPresentation
+        bk_id = item.id
+        bk_name = item.name
+        bk_type = item.type
+        bk_data = item.data
+        bk_previousId = item.previousId
+        if (item.type == BookmarkTypes.website) {
+            bk_url = item.data.url
+            bk_icon = item.data.icon
+            bk_iconType = item.data.iconType
+            bk_iconBgColor = item.data.iconBgColor
+            bk_iconImageFormat = item.data.iconImageFormat
+        }
 
         // Ouvrir la popup
+        contentIndex = 0
         modalEditItem = true
     }
-    const updateItem = e => {
-        // Vérifie que les données du formulaire sont corrects
-        const validate = validateForm()
-        if (validate != true)
-            return alert(validate)
+    const updateItem = () => {
+        // Vérifier si les données du formulaire sont corrects
+        if (editorContainsErrors) {
+            modalErrorValues = true
+            return
+        }
+
+        if (bk_type == BookmarkTypes.website) {
+            bk_data = {
+                url: bk_url,
+                icon: bk_icon,
+                iconType: bk_iconType,
+                iconBgColor: bk_iconBgColor,
+                iconImageFormat: bk_iconImageFormat,
+            }
+        }
 
         // Mettre à jour la liste
-        SP_MANAGER.updateById(sp_id, sp_name, sp_icon, sp_searchEnginesIds, sp_orderPresentation)
+        listBookmarks.updateById(bk_id, bk_name, bk_type, bk_data, bk_previousId)
 
         // Fermer les popups
         closeModals()
     }
     const duplicateItem = id => {
-        // Retrouver le moteur de recherche
-        const item = SP_MANAGER.findById(id)
+        // Retrouver le marque-page
+        const item = findBookmarkById(id)
 
         // Si l'item n'a pas été retrouvé
         if (item == null)
             return alert("L'item n'existe pas")
 
         // Remplir le formulaire
-        sp_name = item.name + " (2)"
-        sp_icon = item.icon
-        sp_searchEnginesIds = item.searchEnginesIds
-        sp_orderPresentation = item.orderPresentation
+        bk_id = -1
+        bk_name = item.name + ' (2)'
+        bk_type = item.type
+        bk_data = item.data
+        bk_previousId = item.previousId
+        if (item.type == BookmarkTypes.website) {
+            bk_url = item.data.url
+            bk_icon = item.data.icon
+            bk_iconType = item.data.iconType
+            bk_iconBgColor = item.data.iconBgColor
+            bk_iconImageFormat = item.data.iconImageFormat
+        }
 
         // Ouvrir la popup
         modalAddItem = true
     }
     const confirmDeleteItem = id => {
         if (typeof(id) !== "undefined" && !isNaN(id)) {
-            // Retrouver le moteur de recherche
-            const item = SP_MANAGER.findById(id)
+            // Retrouver le marque-page
+            const item = findBookmarkById(id)
 
             // Si l'item n'a pas été retrouvé
             if (item == null)
                 return alert("L'item n'existe pas")
 
             // Enregistrer l'id du moteur
-            sp_id = parseInt(id)
+            bk_id = id
         }
 
         // Ouvrir la popup
         modalDeleteItem = true
     }
-    const deleteSelectedItem = () => {
+    const deleteSelectedItems = () => {
         // Suppression des élements sélectionnés
-        if (sp_id > 0)
-            SP_MANAGER.deleteById(sp_id)
+        if (bk_id > 0)
+            listBookmarks.deleteById(bk_id)
         else {
-            idSelectedItems.forEach(id => SP_MANAGER.deleteById(id))
+            idSelectedItems.forEach(id => listBookmarks.deleteById(id))
 
             // Vider la liste des items sélectionnés (car les items n'existent plus)
             idSelectedItems = []
@@ -283,68 +296,60 @@
         // Ferme tous les popups
         closeModals()
     }
-    const editSearchEnginesForSearchProfile = id => {
-        // Fermer les popups
-        closeModals()
-
-        // Retrouver le moteur de recherche
-        const item = SP_MANAGER.findById(id)
-
-        // Si l'item n'a pas été retrouvé
-        if (item == null)
-            return alert("L'item n'existe pas")
-
-        // Activer la selection multiple de moteur de recherche
-        if (item.searchEnginesIds.length > 1)
-            multiSelectionSearchEngines.set(true)
-
-        // Remplir le formulaire : pour MAJ dans la base
-        sp_id = item.id
-        sp_name = item.name
-        sp_icon = item.icon
-        sp_searchEnginesIds = item.searchEnginesIds
-        sp_orderPresentation = item.orderPresentation
-
-        // Ouvrir la popup
-        modalSearchEngines = true
+    const scanUrlForIcons = async url => {
     }
-    const saveSearchEnginesForSearchProfile = e => {
-        // Récupérer les id des moteurs sélectionnés
-        sp_searchEnginesIds = e.detail.selectedIds
+    const openBookmark = e => {
+        switch (e.type) {
+            case BookmarkTypes.directory:
+                break
+            case BookmarkTypes.website:
+                window.open(e.data.url)
+                break
+            case BookmarkTypes.searchEngine:
+                push('/search/search-engine/' + e.data.id)
+                break
+            case BookmarkTypes.searchProfile:
+                push('/search/search-profile/' + e.data.id)
+                break
+        }
+    }
+    const parseType = type => {
+        // Affichage du type dans le tableau
+        let template = {
+            icon: "warning",
+            text: "(inconnu)"
+        }
 
-        // Mettre à jour le profil de recherche
-        updateItem()
-    }
-    const addItemToBookmarks = id => {
-        const item = SP_MANAGER.findById(id)
-        listBookmarks.add(item.name, BookmarkTypes.searchProfile, {id: item.id})
-    }
-    const addSelectionToBookmarks = () => idSelectedItems.forEach(id => addItemToBookmarks(id))
-    const findSearchEnginesByIds = listIds => SE_MANAGER.findByListIds(listIds)
-    const onSubmitIcon = e => {
-        modalIcons = false
-        sp_icon = e.detail.value
+        // Déterminer le type
+        switch (type) {
+            case BookmarkTypes.directory:
+                template.icon = 'folder_close'
+                template.text = 'Dossier'
+                break
+            case BookmarkTypes.website:
+                template.icon = 'web'
+                template.text = 'Site web'
+                break
+            case BookmarkTypes.searchEngine:
+                template.icon = 'search'
+                template.text = 'Moteur de recherche'
+                break
+            case BookmarkTypes.searchProfile:
+                template.icon = 'search_group'
+                template.text = 'Profil de recherche'
+                break
+        }
+
+        return template
     }
     const doResponsive = () => {
-        // Affichage responsive
-        tableColumns = [{ key: "name", value: "Profil de recherche" }]
-        if (['max', 'xlg', 'lg'].indexOf(size) > -1)
-            tableColumns.push({ key: "searchEnginesIds", value: "Moteurs de recherche" })
-        if (['max', 'xlg', 'lg', 'mg'].indexOf(size) > -1)
-            tableColumns.push({ key: "orderPresentation", value: "Ordre d'affichage" })
-        tableColumns.push({ key: "overflow", empty: true })
-    }
-    const defineAsStartup = id => {
-        const item = SP_MANAGER.findById(id)
-
-        if (item != null) {
-            SP_MANAGER.setItemAsStartup(id)
-            listMessages.push({
-                kind: 'success', title: 'Mise à jour réussie',
-                subtitle: "Le profil de recherche \""+item.name+"\" a été défini comme profil de recherche de démarrage"
-            })
-            listMessages = listMessages
+        // Liste des colonnes visibles
+        tableColumns = [{ key: "name", value: "Marque-page" }]
+        if (['md', 'lg', 'xlg', 'max'].indexOf(size) > -1) {
+            tableColumns.push({ key: "type", value: "Type" })
         }
+        //if (idSelectedItems.length == 0)
+            tableColumns.push({ key: "overflow", empty: true })
     }
     const selectItem = id => {
         if (isItemSelected(id))
@@ -355,12 +360,12 @@
     const clearSelection = () => idSelectedItems = []
     const selectAll = () => {
         let listIds = []
-        $listSearchProfiles.forEach(item => listIds.push(parseInt(item.id)))
+        $listBookmarks.forEach(item => listIds.push(parseInt(item.id)))
         idSelectedItems = listIds
     }
     const invertSelection = () => {
         let listIds = []
-        $listSearchProfiles.forEach(item => {
+        $listBookmarks.forEach(item => {
             if (!isItemSelected(item.id))
                 listIds.push(parseInt(item.id))
         })
@@ -380,7 +385,7 @@
     const isItemSelected = id => idSelectedItems.indexOf(parseInt(id)) >= 0
 </script>
 
-<main class="spManager">
+<main class="sdManager">
     <Breakpoint bind:size />
 
     <div class="viewPage" class:extended={extendedView}>
@@ -393,8 +398,10 @@
 
         <!-- Barre d'outils -->
         <div class="toolbar">
-
-            <Button title="Ajouter un profil de recherche" kind="primary" on:click={() => {modalAddItem = true; clearForm()}}>
+            <Button kind="primary"
+                title="Ajouter un marque-page"
+                on:click={newBookmark}
+            >
                 <Icofont icon="plus" size="18" />
                 <span>Nouveau</span>
             </Button>
@@ -402,8 +409,42 @@
             {#if ['md', 'lg', 'xlg', 'max'].indexOf(size) > -1}
                 <div><Search placeholder="Rechercher" bind:value={searchValue} /></div>
             {/if}
-
+    
             <span class="spacer"></span>
+
+            <!--{#if idSelectedItems.length > 0}
+                <OverflowMenu flipped style="width: auto; height: auto;">
+                    <div slot="menu" class="menu-button">
+                        <Icofont icon="search_group" size="22" />
+                        {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
+                            <span class="label">Profils de recherche</span>
+                        {/if}
+                        <Icofont icon="dropdown" size="14" />
+                    </div>
+
+
+
+                    <OverflowMenuItem
+                        title="Créer un profil de recherche à partir de la sélection"
+                        on:click
+                    >
+                        <div class="label">
+                            <Icofont icon="search_group" size="18" />
+                            <span class="text">Nouveau profil de recherche à partir de la sélection</span>
+                        </div>
+                    </OverflowMenuItem>
+
+                    <OverflowMenuItem
+                        title="Ajouter la sélection à un profil de recherche"
+                        on:click
+                    >
+                        <div class="label">
+                            <Icofont icon="plus" size="18" />
+                            <span class="text">Ajouter la sélection à un profil de recherche</span>
+                        </div>
+                    </OverflowMenuItem>
+                </OverflowMenu>
+            {/if}-->
 
             <OverflowMenu flipped style="width: auto; height: auto;">
                 <div slot="menu" class="menu-button">
@@ -419,15 +460,6 @@
                 </div>
 
                 {#if idSelectedItems.length > 0}
-                    <OverflowMenuItem
-                        title="Ajouter la sélection dans les marque-pages"
-                        on:click={addSelectionToBookmarks}
-                    >
-                        <div class="label">
-                            <Icofont icon="bookmark" size="18" />
-                            <span class="text">Ajouter la sélection dans les marque-pages</span>
-                        </div>
-                    </OverflowMenuItem>
 
                     <OverflowMenuItem danger
                         title="Supprimer la sélection"
@@ -441,7 +473,7 @@
                     </OverflowMenuItem>
                 {/if}
 
-                {#if searchValue.length > 0 && $listSearchProfiles.length != tableData.length}
+                {#if searchValue.length > 0 && $listBookmarks.length != tableData.length}
                     <OverflowMenuItem
                         title="Sélectionner uniquement les éléments filtrés"
                         on:click={selectOnlyFilteredItems}
@@ -494,7 +526,7 @@
                     </div>
                 </OverflowMenuItem>
             </OverflowMenu>
-            
+    
             <OverflowMenu flipped style="width: auto; height: auto;">
                 <div slot="menu" class="menu-button">
                     {#if [/*'md',*/ 'lg', 'xlg', 'max'].indexOf(size) > -1}
@@ -535,7 +567,7 @@
                     {/if}
                 {/if}
             </OverflowMenu>
-
+    
         </div>
 
         <!-- Liste des messages -->
@@ -547,65 +579,91 @@
             </div>
         {/if}
 
-        <DataTable sortable selectable={true} {zebra}
+        <DataTable {zebra} sortable
+            selectable={true}
             headers={tableColumns} rows={tableData}
             bind:selectedRowIds={idSelectedItems} >
 
             <svelte:fragment slot="cell-header" let:header>
                 {header.value}
             </svelte:fragment>
-
+    
             <svelte:fragment slot="cell" let:row let:cell>
                 {#if cell.key === "name"}
-                    <div class="name clickable" on:click={() => selectItem(row.id)}>
-                        <Icofont icon="{row.icon}" size="22" />
+                    <div class="name"
+                        on:click={() => selectItem(row.id)}
+                        on:dblclick={() => openBookmark(row)} >
+                        <div style="width: 40px; margin: -.5rem 0;">
+                            {#if row.type == BookmarkTypes.directory}
+                                <BookmarkIcon bookmarkType={row.type} />
+                            {:else if row.type == BookmarkTypes.website}
+                                <BookmarkIcon bookmarkType={row.type}
+                                    name={row.name}
+                                    type={row.data.iconType}
+                                    value={row.data.icon}
+                                    bgColor={row.data.iconBgColor}
+                                    imageSize={row.data.iconImageFormat} />
+                            {:else if row.type == BookmarkTypes.searchEngine}
+                                <BookmarkIcon bookmarkType={row.type}
+                                    name={row.name}
+                                    value={row.data.icon} />
+                            {:else if row.type == BookmarkTypes.searchProfile}
+                                <BookmarkIcon bookmarkType={row.type}
+                                    name={row.name}
+                                    value={row.data.icon}
+                                    searchEnginesIds={row.data.searchEngines} />
+                            {/if}
+                        </div>
                         <span class="text">{row.name}</span>
                     </div>
-                {:else if cell.key === "searchEnginesIds"}
-                    <div class="table-bubbles">
-                        {#if row.searchEnginesIds.length > 0}
-                            <SearchEnginesBubbles bubbleSize="30px" clickable
-                                searchEngines={findSearchEnginesByIds(row.searchEnginesIds)}
-                                on:click={() => editSearchEnginesForSearchProfile(row.id)} />
-                        {:else}
-                            (Aucun)
-                        {/if}
+                {:else if cell.key === "type"}
+                    <div class="type">
+                        <Icofont icon={ parseType(row.type).icon } size="18" />
+                        <span class="text">{ parseType(row.type).text }</span>
                     </div>
-                {:else if cell.key === "orderPresentation"}
-                    <p class="number">
-                        {row.orderPresentation}
-                    </p>
                 {:else if cell.key === "overflow"}
                     {#if size == "sm"}
                         <!-- Ne pas afficher de boutons supplémentaire -->
                     {:else if size == "md"}
-                        <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
-                            <Icofont icon="info" size="18" />
+                        <Button kind="ghost"
+                            title="Ouvrir '{row.name}'"
+                            on:click={() => openBookmark(row)}>
+                            <Icofont icon="folder_open" size="18" />
                         </Button>
-                        <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
+                        <Button kind="ghost"
+                            title="Modifier '{row.name}'"
+                            on:click={() => editItem(row.id)}>
                             <Icofont icon="pencil" size="18" />
                         </Button>
-                        <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
-                            <Icofont icon="search" size="18" />
+                        <Button kind="ghost"
+                            title="Dupliquer '{row.name}'"
+                            on:click={() => duplicateItem(row.id)}>
+                            <Icofont icon="duplicate" size="18" />
                         </Button>
                     {:else}
-                        <Button title="Voir et tester '{row.name}'" kind="ghost" on:click={() => {displayDetails(row.id)}}>
-                            <Icofont icon="info" size="18" />
-                            <span class="text">Détails</span>
+                        <Button kind="ghost"
+                            title="Voir et tester '{row.name}'"
+                            on:click={() => openBookmark(row)}>
+                            <Icofont icon="folder_open" size="18" />
+                            <span class="text">Ouvrir</span>
                         </Button>
-                        <Button title="Modifier '{row.name}'" kind="ghost" on:click={() => {editItem(row.id)}}>
+                        <Button kind="ghost"
+                            title="Modifier '{row.name}'"
+                            on:click={() => editItem(row.id)}>
                             <Icofont icon="pencil" size="18" />
                         </Button>
-                        <Button title="Gérer les moteurs de recherche pour '{row.name}'" kind="ghost" on:click={() => editSearchEnginesForSearchProfile(row.id)} >
-                            <Icofont icon="search" size="18" />
+                        <Button kind="ghost"
+                            title="Dupliquer '{row.name}'"
+                            on:click={() => duplicateItem(row.id)}>
+                            <Icofont icon="duplicate" size="18" />
                         </Button>
                     {/if}
                     <OverflowMenu flipped>
                         {#if size == "sm"}
-                            <OverflowMenuItem on:click={() => displayDetails(row.id)} >
+                            <OverflowMenuItem on:click={() => openBookmark(row)} >
                                 <div class="label">
-                                    <Icofont icon="info" size="16" />
-                                    <span class="text">Détails</span>
+                                    <Icofont icon="folder_open" size="16" />
+                                    <span class="text">Ouvrir</span>
                                 </div>
                             </OverflowMenuItem>
                             <OverflowMenuItem on:click={() => editItem(row.id)} >
@@ -614,35 +672,28 @@
                                     <span class="text">Modifier</span>
                                 </div>
                             </OverflowMenuItem>
-                            <OverflowMenuItem on:click={() => editSearchEnginesForSearchProfile(row.id)} >
+                            <OverflowMenuItem on:click={() => duplicateItem(row.id)} >
                                 <div class="label">
-                                    <Icofont icon="search" size="16" />
-                                    <span class="text">Gérer les moteurs de recherche</span>
+                                    <Icofont icon="duplicate" size="16" />
+                                    <span class="text">Dupliquer</span>
                                 </div>
                             </OverflowMenuItem>
                         {/if}
-                        <OverflowMenuItem on:click={() => defineAsStartup(row.id)} >
+                        {#if row.type == BookmarkTypes.website}
+                            <OverflowMenuItem on:click={() => scanUrlForIcons(row.data.url)} >
+                                <div class="label">
+                                    <Icofont icon="search" size="16" />
+                                    <span class="text">TODO: Rechercher des icônes</span>
+                                </div>
+                            </OverflowMenuItem>
+                        {/if}
+                        <OverflowMenuItem on:click={() => displayDetails(row.id)} >
                             <div class="label">
-                                <Icofont icon="upload" size="16" />
-                                <span class="text">Définir comme sélection au démarrage</span>
-                            </div>
-                        </OverflowMenuItem>
-                        <OverflowMenuItem on:click={() => duplicateItem(row.id)} >
-                            <div class="label">
-                                <Icofont icon="duplicate" size="16" />
-                                <span class="text">Dupliquer</span>
+                                <Icofont icon="info" size="16" />
+                                <span class="text">Détails</span>
                             </div>
                         </OverflowMenuItem>
                         {#if idSelectedItems.length == 0}
-                            <OverflowMenuItem
-                                title="Ajouter dans les marque-pages"
-                                on:click={() => addItemToBookmarks(row.id)}
-                            >
-                                <div class="label">
-                                    <Icofont icon="bookmark" size="18" />
-                                    <span class="text">Ajouter dans les marque-pages</span>
-                                </div>
-                            </OverflowMenuItem>
                             <OverflowMenuItem danger on:click={() => confirmDeleteItem(row.id)} >
                                 <div class="label">
                                     <Icofont icon="bin" size="16" />
@@ -655,17 +706,17 @@
                     {cell.value}
                 {/if}
             </svelte:fragment>
-
+    
         </DataTable>
     </div>
 
     <div class="modals">
         <Modal
             bind:open={modalAddItem}
-            modalHeading="Créer un profil de recherche"
+            bind:primaryButtonDisabled={contentSwitcherDisabled}
+            modalHeading="Créer un marque-page"
             primaryButtonText="Créer"
             secondaryButtonText="Annuler"
-            bind:primaryButtonDisabled={contentSwitcherDisabled}
             on:click:button--secondary={closeModals}
             on:close={closeModals}
             on:submit={createItem}
@@ -684,43 +735,52 @@
             <br/>
 
             {#if contentIndex == 0}
-                <SearchProfileEditor
-                    bind:id={sp_id} bind:name={sp_name} bind:icon={sp_icon}
-                    bind:searchEnginesIds={sp_searchEnginesIds}
-                    bind:orderPresentation={sp_orderPresentation}
-                    on:requestSearchEngines={() => modalSearchEngines = true}
-                    on:requestIcon={() => modalIcons = true} />
+                <BookmarkEditor
+                    bind:id={bk_id}
+                    bind:name={bk_name}
+                    bind:data={bk_data}
+                    bind:type={bk_type}
+                    bind:url={bk_url}
+                    bind:icon={bk_icon}
+                    bind:iconType={bk_iconType}
+                    bind:iconBgColor={bk_iconBgColor}
+                    bind:iconImageFormat={bk_iconImageFormat}
+                    bind:containsErrors={editorContainsErrors}
+                />
             {:else}
-                <SearchProfilePreview
-                    bind:name={sp_name} bind:icon={sp_icon}
-                    bind:searchEnginesIds={sp_searchEnginesIds}
-                    bind:orderPresentation={sp_orderPresentation} />
+                <BookmarkPreview
+                    bind:name={bk_name}
+                    bind:data={bk_data}
+                    bind:type={bk_type}
+                />
+                <br /><br />
             {/if}
         </Modal>
 
         <Modal
             bind:open={modalPreviewItem}
-            modalHeading="Aperçu du profil de recherche"
+            modalHeading="Aperçu du marque-page"
             primaryButtonText="Retour"
             on:click:button--secondary={closeModals}
             on:close={closeModals}
             on:submit={closeModals}
         >
             {#if modalPreviewItem}
-                <SearchProfilePreview
-                    bind:name={sp_name} bind:icon={sp_icon}
-                    bind:searchEnginesIds={sp_searchEnginesIds}
-                    bind:orderPresentation={sp_orderPresentation} />
+                <BookmarkPreview
+                    bind:name={bk_name}
+                    bind:data={bk_data}
+                    bind:type={bk_type}
+                />
             {/if}
             <br /><br />
         </Modal>
 
         <Modal
             bind:open={modalEditItem}
-            modalHeading="Modifier le profil de recherche"
+            bind:primaryButtonDisabled={contentSwitcherDisabled}
+            modalHeading="Modifier le marque-page"
             primaryButtonText="Enregistrer"
             secondaryButtonText="Annuler"
-            bind:primaryButtonDisabled={contentSwitcherDisabled}
             on:click:button--secondary={closeModals}
             on:close={closeModals}
             on:submit={updateItem}
@@ -739,47 +799,75 @@
             <br/>
 
             {#if contentIndex == 0}
-                <SearchProfileEditor
-                    bind:id={sp_id} bind:name={sp_name} bind:icon={sp_icon}
-                    bind:searchEnginesIds={sp_searchEnginesIds}
-                    bind:orderPresentation={sp_orderPresentation}
-                    on:requestSearchEngines={() => modalSearchEngines = true}
-                    on:requestIcon={() => modalIcons = true} />
+                <BookmarkEditor
+                    bind:id={bk_id}
+                    bind:name={bk_name}
+                    bind:data={bk_data}
+                    bind:type={bk_type}
+                    bind:url={bk_url}
+                    bind:icon={bk_icon}
+                    bind:iconType={bk_iconType}
+                    bind:iconBgColor={bk_iconBgColor}
+                    bind:iconImageFormat={bk_iconImageFormat}
+                    bind:containsErrors={editorContainsErrors}
+                />
             {:else}
-                <SearchProfilePreview
-                    bind:name={sp_name} bind:icon={sp_icon}
-                    bind:searchEnginesIds={sp_searchEnginesIds}
-                    bind:orderPresentation={sp_orderPresentation} />
+                <BookmarkPreview
+                    bind:name={bk_name}
+                    bind:data={bk_data}
+                    bind:type={bk_type}
+                />
                 <br /><br />
             {/if}
         </Modal>
 
         <Modal
             bind:open={modalDeleteItem} danger
-            modalHeading="Supprimer {(sp_id > 0 ? [sp_id] : idSelectedItems).length == 1 ? "un profil" : "des profils" } de recherche"
+            modalHeading="Supprimer {(bk_id > 0 ? [bk_id] : idSelectedItems).length == 1 ? "un marque-page" : "des marque-pages" } "
             primaryButtonText="Supprimer"
             secondaryButtonText="Annuler"
             on:click:button--secondary={closeModals}
             on:close={closeModals}
-            on:submit={deleteSelectedItem}
+            on:submit={deleteSelectedItems}
         >
-            {#if idSelectedItems.length == 1 || sp_id > 0}
-                <p>Voulez-vous vraiment supprimer le profil de recherche suivant ?</p>
+            {#if idSelectedItems.length == 1 || bk_id > 0}
+                <p>Voulez-vous vraiment supprimer le marque-page suivant ?</p>
             {:else if idSelectedItems.length > 1}
-                <p>Voulez-vous vraiment supprimer les profils de recherche suivants ?</p>
+                <p>Voulez-vous vraiment supprimer les marque-pages suivants ?</p>
             {/if}
             <br/>
 
-            <div class="list-sp">
-                {#each (sp_id > 0 ? [sp_id] : idSelectedItems) as idItem }
-                    <div class="sp-item">
-                        <Icofont icon={SP_MANAGER.findById(idItem).icon} size="50" />
+            <div class="list-selected">
+                {#each (bk_id > 0 ? [bk_id] : idSelectedItems) as idItem }
+                    <div class="selected-item">
+                        <div class="bx-icon">
+                            {#if findBookmarkById(idItem).type == BookmarkTypes.directory}
+                                <BookmarkIcon bookmarkType={BookmarkTypes.directory} />
+                            {:else if findBookmarkById(idItem).type == BookmarkTypes.website}
+                                <BookmarkIcon bookmarkType={findBookmarkById(idItem).type}
+                                    name={findBookmarkById(idItem).name}
+                                    type={findBookmarkById(idItem).data.iconType}
+                                    value={findBookmarkById(idItem).data.icon}
+                                    bgColor={findBookmarkById(idItem).data.iconBgColor}
+                                    imageSize={findBookmarkById(idItem).data.iconImageFormat} />
+                            {:else if findBookmarkById(idItem).type == BookmarkTypes.searchEngine}
+                                <BookmarkIcon bookmarkType={findBookmarkById(idItem).type}
+                                    name={findBookmarkById(idItem).name}
+                                    value={findBookmarkById(idItem).data.icon} />
+                            {:else if findBookmarkById(idItem).type == BookmarkTypes.searchProfile}
+                                <BookmarkIcon bookmarkType={findBookmarkById(idItem).type}
+                                    name={findBookmarkById(idItem).name}
+                                    value={findBookmarkById(idItem).data.icon}
+                                    searchEnginesIds={findBookmarkById(idItem).data.searchEngines} />
+                            {/if}
+                        </div>
 
                         <div class="text">
-                            <p class="name">{SP_MANAGER.findById(idItem).name}</p>
-                            <p class="count">{SP_MANAGER.findById(idItem).searchEnginesIds.length} {SP_MANAGER.findById(idItem).searchEnginesIds.length > 1 ? "moteurs" : "moteur"} de recherche</p>
-                            <SearchEnginesBubbles fontSize="14px"
-                                searchEngines={findSearchEnginesByIds(SP_MANAGER.findById(idItem).searchEnginesIds)} />
+                            <p class="name">{findBookmarkById(idItem).name}</p>
+                            <p class="type">
+                                <Icofont icon={ parseType(findBookmarkById(idItem).type).icon } size="14" />
+                                <span class="text">{ parseType(findBookmarkById(idItem).type).text }</span>
+                            </p>
                         </div>
                     </div>
                 {/each}
@@ -787,30 +875,27 @@
             <br /><br />
         </Modal>
 
-        <ModalSearchEnginesSelector
-            bind:open={modalSearchEngines}
-            idSelectedSearchEngines={sp_searchEnginesIds}
-            on:submit={saveSearchEnginesForSearchProfile} />
-
-        <ModalSelectIcofont
-            value={sp_icon}
-            bind:open={modalIcons}
-            on:submit={onSubmitIcon}
-            on:open={() => sp_icon = sp_icon} />
+        <Modal
+            bind:open={modalErrorValues} passiveModal
+            modalHeading="Formulaire incorrect"
+            on:close={closeModals}
+        >
+            <p>Pour pouvoir continuer, vous devez correctement remplir le formulaire.</p>
+            <br /><br />
+        </Modal>
     </div>
 </main>
 
 <style lang="scss">
-    main.spManager {
+    main.sdManager {
         // Affichage
         .viewPage {
-            --width: 640px;
             max-width: 100%;
             transition: all .3s;
 
             @media (min-width: 672px) { // width > sm
                 &:not(.extended) {
-                    max-width: var(--width);
+                    max-width: 80%;
                     margin: var(--cds-spacing-09) auto;
 
                     .toolbar {
@@ -842,18 +927,6 @@
                         background: var(--cds-layer-accent);
                     }*/
                 }
-            }
-
-            @media (min-width: 1056px) { // width > md
-                & {--width: 1000px;}
-            }
-
-            @media (min-width: 1312px) { // width > lg
-                & {--width: 1300px;}
-            }
-
-            @media (min-width: 1584px) { // width > xlg
-                & {--width: 1550px;}
             }
         }
 
@@ -914,60 +987,70 @@
                 }
             }
         }
-        // - Bubbles
-        .table-bubbles {
-            display: inline-flex;
-            padding-top: 4px;
-        }
         // - Actions
-        :global(.bx--data-table tbody tr td:last-child) {text-align: right}
-        // - Nom
-        .name {
+        :global(.bx--data-table tbody tr td:last-child) {text-align: right;}
+        // - Nom et type
+        .name, .type {
+            --icon-size: 25px;
+
             display: flex;
             align-items: center;
             gap: 10px;
 
-            &.clickable {
-                cursor: pointer;
-                padding: 10px 0;
+            img {
+                width: var(--icon-size);
+                height: var(--icon-size);
+                border-radius: var(--icon-size);
+                box-shadow: 0 0 0 1px rgba(127,127,127,.5);
             }
         }
-        .number {font-size: 1.2em;}
+        // - Nom
+        .name {
+            cursor: pointer;
+            padding: 10px 0;
+        }
+        // - Type
+        .type {
+            gap: var(--cds-spacing-02);
+            .text {font-size: .9em;}
+        }
 
         // Popups
-
-        // - Liste des profils sélectionnés
-        .list-sp {
-            --icon-size: 35px;
+        // - Liste des items sélectionnés (popup de suppression)
+        .list-selected {
+            --icon-size: 45px;
 
             display: flex;
             flex-flow: column;
             padding: 0 2rem;
 
-            .sp-item {
+            .selected-item {
                 display: flex;
                 justify-content: flex-start;
-                align-items: flex-start;
-                padding: 1rem 0;
+                align-items: center;
+                padding: .5rem 0;
                 gap: 1rem;
+
+                .bx-icon {
+                    width: var(--icon-size);
+                    height: var(--icon-size);
+                }
 
                 .text {
                     flex: 1;
-                    display: flex;
-                    flex-flow: column;
-                    align-items: flex-start;
-                    gap: 3px;
 
                     p {
                         width: 100%;
-                        padding: 0;
                         overflow: hidden;
                         white-space: nowrap;
                         text-overflow: ellipsis;
                     }
 
-                    .name {font-weight: bold}
-                    .count {margin-bottom: 10px}
+                    .name {
+                        font-weight: bold;
+                        padding: 0;
+                        cursor: default;
+                    }
                 }
             }
         }

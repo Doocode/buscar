@@ -21,6 +21,7 @@
 	import SearchEnginesManager from './Pages/Library/SearchEnginesManager.svelte'
 	import SearchProfilesManager from './Pages/Library/SearchProfilesManager.svelte'
 	import BackgroundImagesManager from './Pages/Library/BackgroundImagesManager.svelte'
+	import BookmarksManager from './Pages/Library/BookmarksManager.svelte'
 	import BackgroundImage from './Pages/Preferences/BackgroundImage.svelte'
 	import Preferences from './Pages/Preferences.svelte'
 	import Help from './Pages/Help.svelte'
@@ -48,6 +49,7 @@
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,
 		'/library/background-images': BackgroundImagesManager,
+		'/library/bookmarks': BookmarksManager,
 
 		// Préférences
 		'/preferences': Preferences,

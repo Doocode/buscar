@@ -22,6 +22,10 @@
         <Icofont icon="image" />
         <span class="label">Fonds d'écran</span>
     </Link>
+    <Link href="/#/library/bookmarks" size="lg">
+        <Icofont icon="bookmark" />
+        <span class="label">Marque-pages</span>
+    </Link>
 </main>
 
 <style lang="scss">
