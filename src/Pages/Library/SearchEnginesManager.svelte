@@ -14,14 +14,14 @@
         from './SearchEngine/Editor.svelte'
     import SearchEnginePreview
         from './SearchEngine/Preview.svelte'
-    import SearchEnginesManager
-        from '../../Classes/SearchEnginesManager'
     import { onDestroy }
         from 'svelte'
     import { listBookmarks }
         from '../../Stores/bookmarks'
     import { BookmarkTypes }
         from '../../Classes/Bookmarks/BookmarkType'
+    import SearchEnginesHelper
+        from '../../Classes/Helpers/SearchEngineHelper'
 
 
 
@@ -32,7 +32,7 @@
 
 
     // Propriétés
-    const MANAGER = new SearchEnginesManager
+    const HELPER = new SearchEnginesHelper
     let size // La largeur de l'écran
     let tableColumns = [] // Les colonnes de la vue DataTable
     let idSelectedItems = [] // Les moteurs sélectionnés (id)
@@ -64,10 +64,6 @@
     $: doResponsive(size, idSelectedItems)
     $: tableData = formatTableData($listSearchEngines, searchValue, searchEnabled)
     $: contentSwitcherDisabled = isFormValid(se_name, se_icon, se_query, se_alias) != true
-
-
-
-    onDestroy(() => MANAGER.destroy())
 
 
 
@@ -134,12 +130,13 @@
             return false
         if (se_query.indexOf("%query%") < 1)
             return false
-        if (!MANAGER.isAliasUnique(se_id, se_alias))
+        if (!HELPER.isAliasUnique($listSearchEngines, se_id, se_alias))
             return false
 
         // Les données saisies sont correctes => true
         return true
     }
+    const findById = id => HELPER.findById(id, $listSearchEngines)
     const createItem = () => {
         // Vérifier si les données du formulaire sont corrects
         if (!isFormValid()) {
@@ -155,7 +152,7 @@
     }
     const displayDetails = id => {
         // Rechercher le moteur de recherche
-        const se = MANAGER.findById(id)
+        const se = findById(id)
 
         // Avorter si le moteur de recherche n'existe pas
         if (se == null)
@@ -174,7 +171,7 @@
     }
     const editItem = id => {
         // Retrouver le moteur de recherche
-        const se = MANAGER.findById(id)
+        const se = findById(id)
 
         // Si l'item n'a pas été retrouvé
         if (se == null)
@@ -199,14 +196,22 @@
         }
 
         // Mettre à jour la liste
-        MANAGER.updateById(se_id, se_name, se_alias, se_icon, se_query, se_type)
+        listSearchEngines
+        .updateById(
+            se_id,
+            se_name,
+            se_alias,
+            se_icon,
+            se_query,
+            se_type,
+        )
 
         // Fermer les popups
         closeModals()
     }
     const duplicateItem = id => {
         // Retrouver le moteur de recherche
-        const se = MANAGER.findById(id)
+        const se = findById(id)
 
         // Si l'item n'a pas été retrouvé
         if (se == null)
@@ -226,7 +231,7 @@
     const confirmDeleteItem = id => {
         if (typeof(id) !== "undefined" && !isNaN(id)) {
             // Retrouver le moteur de recherche
-            const se = MANAGER.findById(id)
+            const se = findById(id)
 
             // Si l'item n'a pas été retrouvé
             if (se == null)
@@ -242,9 +247,9 @@
     const deleteSelectedItems = () => {
         // Suppression des élements sélectionnés
         if (se_id > 0)
-            MANAGER.deleteById(se_id)
+            listSearchEngines.deleteById(se_id)
         else {
-            idSelectedItems.forEach(id => MANAGER.deleteById(id))
+            idSelectedItems.forEach(id => listSearchEngines.deleteById(id))
 
             // Vider la liste des items sélectionnés (car les items n'existent plus)
             idSelectedItems = []
@@ -254,7 +259,7 @@
         closeModals()
     }
     const addItemToBookmarks = id => {
-        const item = MANAGER.findById(id)
+        const item = findById(id)
         listBookmarks.add(item.name, BookmarkTypes.searchEngine, {id: item.id})
     }
     const addSelectionToBookmarks = () => idSelectedItems.forEach(id => addItemToBookmarks(id))
@@ -283,7 +288,7 @@
             tableColumns.push({ key: "overflow", empty: true })
     }
     const defineAsStartupItems = () => {
-        MANAGER.setListAsStartup(idSelectedItems)
+        HELPER.setListAsStartupSelection(idSelectedItems)
         listMessages.push({
             kind: 'success', title: 'Mise à jour réussie',
             subtitle: "La sélection a été définie comme moteurs de recherche de démarrage"
@@ -732,12 +737,12 @@
             <div class="list-se">
                 {#each (se_id > 0 ? [se_id] : idSelectedItems) as idItem }
                     <div class="se-item">
-                        <img src="{MANAGER.findById(idItem).icon}"
-                            alt="Logo de {MANAGER.findById(idItem).name}"/>
+                        <img src="{findById(idItem).icon}"
+                            alt="Logo de {findById(idItem).name}"/>
 
                         <div class="text">
-                            <p class="name">{MANAGER.findById(idItem).name}</p>
-                            <p class="query">{MANAGER.findById(idItem).queryUrl}</p>
+                            <p class="name">{findById(idItem).name}</p>
+                            <p class="query">{findById(idItem).queryUrl}</p>
                         </div>
                     </div>
                 {/each}

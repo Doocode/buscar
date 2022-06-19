@@ -41,8 +41,10 @@
     // Imports
     import { TextInput, Breakpoint, Dropdown }
         from "carbon-components-svelte"
-    import { SearchEngineTypes, listSearchEngines } 
+    import { listSearchEngines } 
         from '../../../Stores/search'
+    import { SearchEngineTypes }
+        from '../../../Classes/SearchEngine/SearchEngineType'
     import { onMount }
         from 'svelte'
     import { slide }

@@ -1,36 +1,18 @@
 // Store pour la recherche (et les moteurs de recherche)
 
 // Imports
-import { writable } from 'svelte/store'
-import { SearchEngine, SearchEngineType } from '../Classes/SearchEngine'
+import { writable }
+    from 'svelte/store'
+import SearchEngine
+    from '../Classes/SearchEngine/SearchEngine'
+import { SearchEngineTypes }
+    from '../Classes/SearchEngine/SearchEngineType'
+import { storeSearchEngines }
+    from '../Classes/SearchEngine/StoreSearchEngines'
+
+
 
 // Store personnalisé : https://svelte.dev/tutorial/custom-stores
-// - Liste des moteurs de recherche
-function createSearchEngineList(initial_value) {
-    const { subscribe, set, update } = writable(initial_value);
-
-    return {
-        subscribe,
-        add: (name, alias, icon, query, type) => { // Ajouter un élément
-            // Partir de l'état actuel de la liste pour ajouter à la fin : https://svelte.dev/tutorial/updating-arrays-and-objects
-            update(list => [
-                ...list, 
-                new SearchEngine(parseInt(list.at(-1).id) + 1, name, alias, type, icon, query)
-            ]);
-        },
-        updateByIndex: (index, name, alias, icon, query, type) => { // Mettre à jour un item
-            update(list => {
-                list[index] = new SearchEngine(list[index].id, name, alias, type, icon, query)
-                return list
-            });
-        },
-        deleteById: (id) => { // Supprimer un élément en utilisant son id
-            update(list => list.filter(item => parseInt(item.id) !== parseInt(id)))
-        },
-        reset: () => set(initial_value)
-    };
-}
-
 // - Liste des profils de recherche
 function createSearchProfileList(initial_value) {
     const { subscribe, set, update } = writable(initial_value);
@@ -65,20 +47,6 @@ function createSearchProfileList(initial_value) {
 
 
 
-// Types de moteurs de recherche
-export const SearchEngineTypes = {
-    web: new SearchEngineType(1, "Web", "web"),
-    images: new SearchEngineType(2, "Images", "image"),
-    videos: new SearchEngineType(3, "Videos", "play"),
-    music: new SearchEngineType(4, "Musique", "music"),
-    files: new SearchEngineType(5, "Fichiers", "file"),
-    mails: new SearchEngineType(6, "Mails", "mail"),
-    news: new SearchEngineType(7, "Presse", "blog"),
-    shop: new SearchEngineType(8, "Achats", "shopping"),
-}
-
-
-
 // Profils de recherche
 export const listSearchProfiles = createSearchProfileList([
     {
@@ -104,7 +72,7 @@ export const listSearchProfiles = createSearchProfileList([
 ])
 
 // Moteurs de recherche
-export const listSearchEngines = createSearchEngineList([
+export const listSearchEngines = storeSearchEngines([
     new SearchEngine(1, "Google", "g", SearchEngineTypes.web, 
         "/assets/search-engines/google.png", 
         "https://www.google.fr/search?q=%query%"),

@@ -12,6 +12,7 @@ export default class BookmarkType {
 }
 
 
+
 // Les types de marque-page
 let t_id = 1
 export const BookmarkTypes = {

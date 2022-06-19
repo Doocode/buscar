@@ -1,13 +1,12 @@
 // Imports
 import { writable } from 'svelte/store'
-import BookmarkItem from './BookmarkItem'
-import bookmarksHelper from '../Helpers/BookmarksHelper'
-import type BookmarkType from './BookmarkType'
+import SearchEngine from './SearchEngine'
+import type SearchEngineType from './SearchEngineType'
 
 
 
 // Store spécial pour les marque-pages
-export const storeBookmarks = initial_value => {
+export const storeSearchEngines = initial_value => {
     const { subscribe, set, update } = writable(initial_value)
 
 
@@ -36,23 +35,20 @@ export const storeBookmarks = initial_value => {
 
         // Ajouter un élément
         add: (
-            name: string, 
-            type: BookmarkType,
-            data: any,
-            //previousId?: number
+            name: string,
+            alias: string,
+            icon: string,
+            query: string,
+            type: SearchEngineType,
         ) => {
             update(list => {
                 // Calcul de l'id
                 const results = list.sort((a, b) => a.id - b.id)
                 const id = results.length == 0 ? 1 : results.at(-1).id + 1
 
-                // Calcul de l'id du voisin
-                const chain = bookmarksHelper.buildChain(list, 1000)
-                const previousId = chain.length == 0 ? null : chain.at(-1).id
-
                 // Ajout dans la liste
                 return [...list,
-                    new BookmarkItem(id, name, type, data, previousId)
+                    new SearchEngine(id, name, alias, type, icon, query)
                 ]
             })
         },
@@ -63,9 +59,10 @@ export const storeBookmarks = initial_value => {
         updateById: (
             id: number,
             name: string,
-            type: BookmarkType,
-            data: any,
-            previousId?: number
+            alias: string,
+            icon: string,
+            query: string,
+            type: SearchEngineType,
         ) => {
             update(list => {
                 // Recherche de l'index
@@ -76,8 +73,9 @@ export const storeBookmarks = initial_value => {
                 // Mise à jour des propriétés
                 list[index].name = name
                 list[index].type = type
-                list[index].data = data
-                list[index].prepreviousId =previousId
+                list[index].icon = icon
+                list[index].alias = alias
+                list[index].queryUrl = query
                 return list
             })
         },
@@ -87,21 +85,6 @@ export const storeBookmarks = initial_value => {
         // Supprimer un élément
         deleteById: id => {
             update(list => {
-                // Recherche de l'item à supprimer
-                const itemToDelete = findItemById(list, id)
-                if (itemToDelete == null)
-                    return list
-
-                // Chercher un éventuel voisin de l'item
-                const results = list.filter(
-                    item => parseInt(item.previousId) === parseInt(id)
-                )
-                // Mise à jour des voisins des items
-                if (results.length > 0) {
-                    const index = list.indexOf(results[0])
-                    list[index].previousId = itemToDelete.previousId
-                }
-
                 // Retirer l'item à éliminer
                 return list.filter(item => parseInt(item.id) !== parseInt(id))
             })

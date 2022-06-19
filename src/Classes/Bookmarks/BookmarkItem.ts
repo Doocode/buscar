@@ -13,6 +13,7 @@ export default class BookmarkItem {
     _previousId?: number
     _folderId?: number
     _data: any
+    // TODO: creationDate, lastUpdate : https://date-fns.org/
 
 
 

@@ -7,7 +7,7 @@
         selectSearchEnginesLimitValue, actionWhenOpeningSearchPage,
         startupSearchProfileId, startupSearchEnginesIds } 
         from '../../Stores/settings'
-    import { listSearchProfiles }
+    import { listSearchEngines, listSearchProfiles }
         from '../../Stores/search'
     import { Breadcrumb, BreadcrumbItem, Toggle, Link, DataTable, Modal, Checkbox,
         Grid, Row, Column, TextInput, OverflowMenu, OverflowMenuItem, Breakpoint,
@@ -19,14 +19,12 @@
         from '../../Modals/ModalSearchProfileSelector.svelte'
     import SearchEnginesBubbles
         from '../../UI/SearchEnginesBubbles.svelte'
+    import SearchEnginesHelper
+        from '../../Classes/Helpers/SearchEngineHelper'
     import Icofont
         from '../../UI/Icofont.svelte'
     import { pageName, pageIcon }
         from '../../Stores/header'
-    import SearchEnginesManager
-        from '../../Classes/SearchEnginesManager'
-    import { onDestroy }
-        from 'svelte'
     import { fade, slide }
         from 'svelte/transition'
 
@@ -46,7 +44,7 @@
     $: isAliasValid = checkAlias(currentAliasValue, currentAliasId)
     $: tableAliasHead = filterTableAliasHead(size)
     $: selectedStartupSearchProfile = findSearchProfile($startupSearchProfileId)
-    $: selectedStartupSearchEngines = SE_MANAGER.findByListIds($startupSearchEnginesIds)
+    $: selectedStartupSearchEngines = HELPER_SearchEngines.findByListIds($startupSearchEnginesIds, $listSearchEngines)
 
 
 
@@ -64,10 +62,10 @@
     const FORBIDDEN_CHARACTERS = [' '] // Liste des caractères spéciaux interdits pour les préfixes (alias)
     const RADIO_STARTUP_ACTIONS = [
         {value: "searchProfile", text: "Sélectionner un profil de recherche spécifique"},
-        {value: "searchEngines", text: "Sélectionner des moteurs de recherche spéciques"},
+        {value: "searchEngines", text: "Sélectionner des moteurs de recherche spécifiques"},
         {value: "nothing", text: "Ne rien faire"},
     ]
-    const SE_MANAGER = new SearchEnginesManager()
+    const HELPER_SearchEngines = new SearchEnginesHelper
     let modalSearchProfiles = false // Popup pour choisir un profil de recherche
     let modalSearchEngines = false // Popup pour choisir des moteurs de recherche
     let modalAliasEditor = false // Popup pour modifier le prefixe d'un alias
@@ -76,11 +74,6 @@
     let currentAliasValue = ""
     let invalidAliasMessage = "" // Message d'erreur pour corriger le prefixe des alias
     let size // Taille de l'écran
-
-
-
-    // Lifecycle
-    onDestroy(() => SE_MANAGER.destroy())
 
 
 
@@ -170,7 +163,11 @@
             .filter(item => item.id == $startupSearchProfileId)
 
         // Rechercher les moteurs de recherche
-        results[0].searchEngines = SE_MANAGER.findByListIds(results[0].searchEnginesIds)
+        results[0].searchEngines = HELPER_SearchEngines
+            .findByListIds(
+                results[0].searchEnginesIds,
+                $listSearchEngines
+            )
 
         // Retourner le 1er item (= l'unique resultat)
         return results[0]

@@ -47,8 +47,8 @@
     // Imports
     import { Tag, OutboundLink }
         from 'carbon-components-svelte'
-    import { SearchEngine }
-        from '../../../Classes/SearchEngine'
+    import SearchEngine
+        from '../../../Classes/SearchEngine/SearchEngine'
     import Icofont
         from '../../../UI/Icofont.svelte'
     import SearchBox

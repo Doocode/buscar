@@ -4,7 +4,7 @@
         OverflowMenuItem, Search, InlineNotification,
         ContentSwitcher, Switch, Tooltip }
         from 'carbon-components-svelte'
-    import { listSearchProfiles }
+    import { listSearchEngines, listSearchProfiles }
         from '../../Stores/search'
     import { pageName, pageIcon }
         from '../../Stores/header'
@@ -20,8 +20,6 @@
         from '../../Modals/ModalSearchEnginesSelector.svelte'
     import ModalSelectIcofont
         from '../../Modals/ModalSelectIcofont.svelte'
-    import SearchEnginesManager
-        from '../../Classes/SearchEnginesManager'
     import SearchProfilesManager
         from '../../Classes/SearchProfilesManager'
     import SearchProfileEditor
@@ -32,6 +30,8 @@
         from '../../Stores/bookmarks'
     import { BookmarkTypes }
         from '../../Classes/Bookmarks/BookmarkType'
+    import SearchEnginesHelper
+        from '../../Classes/Helpers/SearchEngineHelper'
 
 
 
@@ -42,7 +42,7 @@
 
 
     // Propriétés
-    const SE_MANAGER = new SearchEnginesManager
+    const SE_HELPER = new SearchEnginesHelper
     const SP_MANAGER = new SearchProfilesManager
     let size
     let tableColumns = []
@@ -74,7 +74,6 @@
     // Lifecycle
     onDestroy(() => {
         // Unsubscriptions
-        SE_MANAGER.destroy()
         SP_MANAGER.destroy()
     })
 
@@ -320,7 +319,7 @@
         listBookmarks.add(item.name, BookmarkTypes.searchProfile, {id: item.id})
     }
     const addSelectionToBookmarks = () => idSelectedItems.forEach(id => addItemToBookmarks(id))
-    const findSearchEnginesByIds = listIds => SE_MANAGER.findByListIds(listIds)
+    const findSearchEnginesByIds = listIds => SE_HELPER.findByListIds(listIds, $listSearchEngines)
     const onSubmitIcon = e => {
         modalIcons = false
         sp_icon = e.detail.value

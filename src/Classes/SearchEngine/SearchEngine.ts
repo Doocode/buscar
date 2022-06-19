@@ -1,20 +1,10 @@
-// Représente le type de moteur de recherche
-export class SearchEngineType {
-    readonly id: number
-    readonly name: string
-    readonly icon: string
-
-    constructor(id: number, name: string, icon: string) {
-        this.id = id
-        this.name = name
-        this.icon = icon
-    }
-}
+import type SearchEngineType
+    from './SearchEngineType'
 
 
 
 // Représente un moteur de recherche
-export class SearchEngine {
+export default class SearchEngine {
     // Propriétés
     _id: number
     _name: string
