@@ -40,6 +40,7 @@ export const storeBookmarks = initial_value => {
             type: BookmarkType,
             data: any,
             //previousId?: number
+            folderId?: number
         ) => {
             update(list => {
                 // Calcul de l'id
@@ -47,12 +48,12 @@ export const storeBookmarks = initial_value => {
                 const id = results.length == 0 ? 1 : results.at(-1).id + 1
 
                 // Calcul de l'id du voisin
-                const chain = bookmarksHelper.buildChain(list, 1000)
+                const chain = bookmarksHelper.buildChain(list, 1000, folderId)
                 const previousId = chain.length == 0 ? null : chain.at(-1).id
 
                 // Ajout dans la liste
                 return [...list,
-                    new BookmarkItem(id, name, type, data, previousId)
+                    new BookmarkItem(id, name, type, data, previousId, folderId)
                 ]
             })
         },

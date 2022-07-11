@@ -5,19 +5,22 @@ import type SearchEngine from '../SearchEngine/SearchEngine'
 
 
 class BookmarksHelper {
-    buildChain(bookmarks: Array<BookmarkItem>, limit: number) {
+    buildChain(bookmarks: Array<BookmarkItem>, limit: number, folderId?: number) {
     //buildChain(bookmarks, limit) {
+        // Callback pour vérifier si l'item fait partie du folder
+        const isInFolder = item => item.folderId == folderId
+    
         // Construire la chaine
         let chain = []
         
         // Recherche du 1er élément
-        let results = bookmarks.filter(item => item.previousId == null || typeof (item.previousId) === 'undefined')
+        let results = bookmarks.filter(item => isInFolder(item) && (item.previousId == null || typeof (item.previousId) === 'undefined'))
         while (results.length > 0 && chain.length < limit) {
             // Ajout de l'élément trouvé
             chain = [...chain, results[0]]
 
             // Recherche de l'élément suivant
-            results = bookmarks.filter(item => item.previousId == results[0].id)
+            results = bookmarks.filter(item => isInFolder(item) && item.previousId == results[0].id)
         }
 
         // Retour de la chaine
@@ -54,6 +57,33 @@ class BookmarksHelper {
             }
             return bk
         })
+    }
+
+
+
+    // Formatter un dossier pour une adresse URL
+    formatFolderForUrl(item: BookmarkItem) {
+        let str = item.id + '/' + item.name.toLowerCase()
+            .replace(/ /g, '-')
+            .replace(/\//g, '-').replace(/\\/g, '-')
+            .replaceAll('\'', '-')
+            .replaceAll('"', '-')
+            .replaceAll('=', '-')
+            .replaceAll('#', '-').replaceAll('%', '-').replaceAll('&', '-').replaceAll('@', '-')
+            .replaceAll(',', '-').replaceAll(';', '-').replaceAll('.', '-').replaceAll(':', '-')
+            .replaceAll('+', '-').replaceAll('*', '-')
+            .replaceAll('(', '-').replaceAll('[', '-').replaceAll('{', '-')
+            .replaceAll(')', '-').replaceAll(']', '-').replaceAll('}', '-')
+            .replaceAll('à', 'a').replaceAll('â', 'a').replaceAll('ä', 'a')
+            .replaceAll('ì', 'i').replaceAll('î', 'i').replaceAll('ï', 'i')
+            .replaceAll('ò', 'o').replaceAll('ô', 'o').replaceAll('ö', 'o')
+            .replaceAll('ù', 'u').replaceAll('û', 'u').replaceAll('ü', 'u')
+            .replaceAll('é', 'e').replaceAll('è', 'e').replaceAll('ê', 'e').replaceAll('ë', 'e')
+
+        while (str.indexOf('--') > -1)
+            str = str.replace('--', '-')
+
+        return str
     }
 }
 

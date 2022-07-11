@@ -10,7 +10,8 @@
     import { fade, slide }
         from 'svelte/transition'
     import { displayTileName, displayTileNameMask, limitLabelTextOverflow,
-        renderSearchEnginesAsLink, renderSearchProfilesAsLink }
+        renderSearchEnginesAsLink, renderSearchProfilesAsLink,
+        renderFolderAsLink }
         from '../../Stores/bookmarks'
 
 
@@ -77,6 +78,8 @@
     {/if}
 
     <h3 class="format">Options</h3>
+    <Checkbox bind:checked={$renderFolderAsLink}
+        labelText="Afficher les dossiers sous la forme de lien" />
     <Checkbox bind:checked={$renderSearchEnginesAsLink}
         labelText="Afficher les moteurs de recherche sous la forme de lien" />
     <Checkbox bind:checked={$renderSearchProfilesAsLink}

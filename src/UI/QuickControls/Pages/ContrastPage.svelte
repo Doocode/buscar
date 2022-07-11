@@ -150,7 +150,7 @@
         .tile-content .label {
             margin: 0;
             margin-top: var(--cds-spacing-03);
-            font-size: 100%;
+            font-size: var(--cds-label-02-font-size);
         }
 
         // Liens

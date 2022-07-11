@@ -140,7 +140,7 @@
 
                     <div class="bottom-links">
                         <Link href="/#/preferences/quick-settings">
-                            <Icofont icon="settings" size="16" />
+                            <Icofont icon="pencil" size="16" />
                             <span class="label">Modifier ce panneau</span>
                         </Link>
                         <Link href="/#/preferences" title="Préférences" style="padding: var(--cds-spacing-04); margin: calc(-1 * var(--cds-spacing-04));">

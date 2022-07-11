@@ -31,6 +31,12 @@
     export let limitLabelTextOverflow = true
 
     /**
+     * Afficher les dossiers comme des liens vers une page web
+     * @type {boolean}
+     */
+    export let renderFolderAsLink = true
+
+    /**
      * Afficher les moteurs de recherche comme des liens vers une page web
      * @type {boolean}
      */
@@ -61,6 +67,8 @@
         from 'svelte'
     import { scale }
         from 'svelte/transition'
+    import bookmarksHelper
+        from '../../Classes/Helpers/BookmarksHelper'
 
 
 
@@ -90,6 +98,7 @@
     const dataForBubbles = listIds => {
         return $listSearchEngines.filter(item => listIds.includes(item.id))
     }
+    const onSelectFolder = e => dispatch('selectFolder', e)
     const onSelectSearchEngine = e => dispatch('selectSearchEngine', e)
     const onSelectSearchProfile = e => dispatch('selectSearchProfile', e)
     const calcTileSize = () => tileLogoSize = parseInt(gridWidth / gridColumns) - 2 * 16 // Remove tile padding : 2 * 1rem (1rem = 16px)
@@ -114,21 +123,39 @@
         <div in:scale={tileTransition(i)} title={child.name}>
             {#if child.type == BookmarkTypes.directory}
                 <!-- Type répertoire -->
-                <ClickableTile>
-                    <div class="sd-tile t-folder">
-                        <div class="logo square center-ctn">
-                            <Icofont icon="folder_close" size={folderIconSize} />
-                        </div>
-                        <!--BookmarkIcon bookmarkType={child.type} /-->
-
-                        {#if labelVisible}
-                            <div class="label">
-                                <Icofont icon="folder_close" />
-                                <span class="text">{child.name}</span>
+                {#if renderFolderAsLink}
+                    <ClickableTile href={'/#/speeddial/'+bookmarksHelper.formatFolderForUrl(child)}>
+                        <div class="sd-tile t-folder">
+                            <div class="logo square center-ctn">
+                                <Icofont icon="folder_close" size={folderIconSize} />
                             </div>
-                        {/if}
-                    </div>
-                </ClickableTile>
+                            <!--BookmarkIcon bookmarkType={child.type} /-->
+
+                            {#if labelVisible}
+                                <div class="label">
+                                    <Icofont icon="folder_close" />
+                                    <span class="text">{child.name}</span>
+                                </div>
+                            {/if}
+                        </div>
+                    </ClickableTile>
+                {:else}
+                    <ClickableTile on:click={() => onSelectFolder(child)}>
+                        <div class="sd-tile t-folder">
+                            <div class="logo square center-ctn">
+                                <Icofont icon="folder_close" size={folderIconSize} />
+                            </div>
+                            <!--BookmarkIcon bookmarkType={child.type} /-->
+
+                            {#if labelVisible}
+                                <div class="label">
+                                    <Icofont icon="folder_close" />
+                                    <span class="text">{child.name}</span>
+                                </div>
+                            {/if}
+                        </div>
+                    </ClickableTile>
+                {/if}
             {:else if child.type == BookmarkTypes.website}
                 <!-- Type site web -->
                 <ClickableTile href={child.data.url}>
@@ -279,6 +306,12 @@
         gap: 0;
 
         &.labelVisible {gap: var(--cds-spacing-05) 0;}
+        /*@media (min-width: 672px) { // width > sm
+            &.labelVisible {gap: var(--cds-spacing-05);}
+        }
+        @media (max-width: 672px) { // width == sm
+            &.labelVisible {gap: var(--cds-spacing-05) 0;}
+        }*/
 
         &.ncol-2  {grid-template-columns: 1fr 1fr;}
         &.ncol-3  {grid-template-columns: 1fr 1fr 1fr;}
@@ -387,6 +420,16 @@
                     gap: var(--sp-icon-gap);
                 }
             }
+
+            // Type dossier
+            /*&.t-search_pf,
+            &.t-folder {
+                .logo {
+                    background: var(--cds-background-inverse);
+                    border: 1px solid var(--cds-ui-03);
+                    color: var(--cds-background);
+                }
+            }*/
         }
 
         // Afficher un masque sur le libellé des tuiles

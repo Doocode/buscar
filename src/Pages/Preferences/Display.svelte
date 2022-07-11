@@ -563,6 +563,7 @@ import { onMount } from 'svelte';
             :global(.bx--tile--selectable .text) {
                 display: block;
                 margin-top: var(--cds-spacing-03);
+                font-size: var(--cds-label-02-font-size);
             }
         }
 

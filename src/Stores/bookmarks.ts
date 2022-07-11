@@ -13,6 +13,9 @@ import { storeBookmarks }
 
 
 // Options sur la page d'accès rapide
+// - Afficher les dossiers clickable en tant que lien
+export const renderFolderAsLink = writable(true);
+
 // - Afficher les moteurs de recherche clickable en tant que lien
 export const renderSearchEnginesAsLink = writable(true);
 

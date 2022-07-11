@@ -1,6 +1,12 @@
 <script>
     // Exports
     /**
+     * Les paramètres depuis le routeur (svelte-spa-router)
+     * @type {object}
+     */
+    export let params = {}
+
+    /**
      * La hauteur du composant ('extend' pour plein écran - 'fit' pour compact)
      * @type {'expand' | 'fit'}
      */
@@ -24,13 +30,14 @@
     import { pageName, pageIcon, transparentHeader }
         from '../Stores/header'
     import { listBookmarks, displayTileName, displayTileNameMask, 
-        renderSearchEnginesAsLink, renderSearchProfilesAsLink }
+        renderSearchEnginesAsLink, renderSearchProfilesAsLink,
+        renderFolderAsLink }
         from '../Stores/bookmarks'
     import Icofont
         from '../UI/Icofont.svelte'
     import SpeedialGrid
         from '../UI/SpeedDial/SpeedDialGrid.svelte'
-    import { push }
+    import { location, pop, push }
         from 'svelte-spa-router'
     import bookmarksHelper
         from '../Classes/Helpers/BookmarksHelper'
@@ -45,8 +52,10 @@
     let innerHeight // Hauteur de la fenêtre
     let breakpoint // Largeur de la fenêtre
     let folderName = "(Sans nom)"
-    let displayHeading = false
-    let displayToolbar = false
+    let currentFolderId = null
+    let parentFolder = null
+    let displayHeading = true
+    let displayToolbar = true
 
 
 
@@ -54,17 +63,7 @@
     $: gridColumns = countColumnsToDisplay(breakpoint)
     $: refreshBookmarks = bookmarksHelper
         .refreshDataFromStores($listBookmarks, $listSearchEngines, $listSearchProfiles)
-    $: bookmarkChain = bookmarksHelper.buildChain(refreshBookmarks, 300)
-
-
-
-    // Lifecycle
-    onMount(() => {
-        // MAJ du header
-        pageName.set("Accès rapide")
-        pageIcon.set("apps")
-        transparentHeader.set(true)
-    })
+    $: bookmarkChain = bookmarksHelper.buildChain(refreshBookmarks, 300, currentFolderId)
 
 
 
@@ -80,6 +79,7 @@
         }
         return 3
     }
+    const onSelectFolder = e => push('/speeddial/' + bookmarksHelper.formatFolderForUrl(e.detail))
     const onSelectSearchEngine = e => {
         push('/search/search-engine/'+e.detail.data.id)
     }
@@ -113,6 +113,51 @@
             return bk
         })
     }
+    const goToParent = () => {
+        if (parentFolder == null)
+            push('/speeddial/')
+        else
+            push('/speeddial/' + bookmarksHelper.formatFolderForUrl(parentFolder))
+    }
+    const onPageMount = () => {
+        // MAJ du header
+        pageName.set("Accès rapide")
+        pageIcon.set("apps")
+        transparentHeader.set(true)
+
+        // Vérifier si des paramètres ont été transmises
+        if (Object.keys(params).length >= 1) {
+            // Dossier à afficher
+            const folderIdExists = typeof (params.folderId) !== 'undefined'
+            const isValidId = !isNaN(params.folderId)
+
+            // Si le paramètre sur le dossier est valide
+            if (folderIdExists && isValidId) {
+                // Retrouver l'item du dossier
+                const results = $listBookmarks.filter(item => item.id == parseInt(params.folderId))
+                if (results.length > 0) {
+                    // Charger le dossier demandé
+                    const currentFolder = results[0]
+                    currentFolderId = currentFolder.id
+                    if (currentFolder.name.length > 0)
+                        folderName = currentFolder.name
+
+                    // Rechercher le dossier parent
+                    if (currentFolder.folderId != null) {
+                        const searchParent = $listBookmarks
+                            .filter(item => item.id == currentFolder.folderId)
+                        if (searchParent.length > 0)
+                            parentFolder = searchParent[0]
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    // Lifecycle
+    onMount(onPageMount)
 </script>
 
 <svelte:window bind:innerHeight={innerHeight} />
@@ -135,25 +180,35 @@
 
     <div class="page-content"
         class:compact-page={['sm'].includes(breakpoint)}>
+        <!-- Breadcrumbs -->
 
         <!-- Heading -->
         {#if displayHeading}
             <h2>{folderName}</h2>
         {/if}
 
+        <!--Button on:click={fetchPageData}>Test</Button-->
+
         <!-- Toolbar -->
         {#if displayToolbar}
             <div class="toolbar">
                 <div class="left">
-                    <Button kind="ghost" title="Retour">
-                        <Icofont icon="arrow_left" />
-                    </Button>
-                    <Button kind="ghost" title="Suivant">
+                    {#if currentFolderId != null}
+                        <Button kind="ghost" title="Retour" on:click={pop}>
+                            <Icofont icon="arrow_left" />
+                        </Button>
+                    {/if}
+                    <!--Button kind="ghost" title="Suivant">
                         <Icofont icon="arrow_right" />
-                    </Button>
+                    </Button-->
+                    {#if !(parentFolder == null && currentFolderId == null)}
+                        <Button kind="ghost" title="Dossier parent" on:click={goToParent}>
+                            <Icofont icon="arrow_up" />
+                        </Button>
+                    {/if}
                 </div>
 
-                <div class="right">
+                <div class="right" style="display: none">
                     <Button kind="ghost" title="Rechercher">
                         <Icofont icon="search" />
                     </Button>
@@ -168,13 +223,22 @@
         {/if}
 
         <!-- ExplorerItems -->
-        <SpeedialGrid items={bookmarkChain} {gridColumns}
-            renderSearchEnginesAsLink={$renderSearchEnginesAsLink}
-            renderSearchProfilesAsLink={$renderSearchProfilesAsLink}
-            labelVisible={$displayTileName}
-            labelMask={$displayTileNameMask}
-            on:selectSearchEngine={onSelectSearchEngine}
-            on:selectSearchProfile={onSelectSearchProfile} />
+        {#if bookmarkChain.length > 0}
+            <SpeedialGrid items={bookmarkChain} {gridColumns}
+                renderFolderAsLink={$renderFolderAsLink}
+                renderSearchEnginesAsLink={$renderSearchEnginesAsLink}
+                renderSearchProfilesAsLink={$renderSearchProfilesAsLink}
+                labelVisible={$displayTileName}
+                labelMask={$displayTileNameMask}
+                on:selectFolder={onSelectFolder}
+                on:selectSearchEngine={onSelectSearchEngine}
+                on:selectSearchProfile={onSelectSearchProfile} />
+        {:else}
+            <div class="empty-placeholder">
+                <Icofont icon="folder_open" size="64"/>
+                <p>Ce répertoire est vide</p>
+            </div>
+        {/if}
     </div>
 </main>
 
@@ -182,6 +246,8 @@
     main#speedialPage {
         padding: 0;
         transition: all .3s;
+        /*background: rgba(0,0,0,.3);
+        backdrop-filter: blur(50px);*/
 
         // Hauteur de la page
         &.fit, &.expand {
@@ -219,14 +285,14 @@
         // Contenu de la page
         .page-content:not(.compact-page) {
             width: 80%;
-            margin: auto;
+            margin: 0 auto;
         }
 
         // Titre
         h2 {
             margin: 0 var(--cds-spacing-04);
             margin-bottom: var(--cds-spacing-05);
-            font-size: 1.8em;
+            //font-size: 1.8em;
         }
 
         // Barre d'outils
@@ -248,6 +314,19 @@
                 :global(.icofont) {
                     font-size: 20px;
                 }
+            }
+        }
+
+        // Dossier vide
+        .empty-placeholder {
+            padding: 1rem;
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            flex-flow: column;
+
+            :global(.icofont) {
+
             }
         }
     }
