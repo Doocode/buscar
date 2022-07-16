@@ -11,7 +11,7 @@
     // Imports
     import { Breakpoint }
         from 'carbon-components-svelte'
-    import { push, pop, replace, link }
+    import { push }
         from 'svelte-spa-router'
     import { pageName, pageIcon }
         from '../Stores/header'

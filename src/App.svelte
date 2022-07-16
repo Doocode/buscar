@@ -29,6 +29,7 @@
 	// - Autres
 	import AmbianceLoader from './AmbianceLoader.svelte'
 	import Wallpaper from './UI/Wallpaper.svelte'
+	import Home from './Pages/Home.svelte'
 
 
 
@@ -40,11 +41,13 @@
 		license: license,
 	}
 	let routes = { // Routes de l'app
-		'/': Search,
+		'/': Home,
 		'/search/:section/:id': Search,
 		'/search': Search,
 
 		'/speeddial': SpeedDial,
+		'/speeddial/:folderId/:name': SpeedDial,
+
 		'/library/': Library,
 		'/library/search-engines': SearchEnginesManager,
 		'/library/search-profiles': SearchProfilesManager,

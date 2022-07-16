@@ -125,6 +125,9 @@
         pageIcon.set("apps")
         transparentHeader.set(true)
 
+        if (currentFolderId == null)
+            folderName = "Accès rapide"
+
         // Vérifier si des paramètres ont été transmises
         if (Object.keys(params).length >= 1) {
             // Dossier à afficher
@@ -141,6 +144,8 @@
                     currentFolderId = currentFolder.id
                     if (currentFolder.name.length > 0)
                         folderName = currentFolder.name
+                    else
+                        folderName = "(Sans nom)"
 
                     // Rechercher le dossier parent
                     if (currentFolder.folderId != null) {

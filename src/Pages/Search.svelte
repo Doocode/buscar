@@ -12,6 +12,12 @@
      */
     export let size = "expand"
 
+    /**
+     * Placer sous l'en-tête
+     * @type {boolean}
+     */
+    export let underHeader = true
+
 
 
     // Imports
@@ -339,6 +345,7 @@
 <main id="searchPage"
     class:fit={size == "fit"}
     class:expand={size == "expand"}
+    class:underHeader
     style="--height: {innerHeight}px"
 >
     <nav class="nav-searchProfile" class:bgMask={enableBgMask}>
@@ -377,21 +384,23 @@
     </div>
 
     <div class="bottomToolbar" class:bgMask={enableBgMask}>
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchEngines = true}>
-            <Icofont icon="search" />
-            <span class="text">Moteurs de recherche</span>
-        </Button>
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchProfile = true}>
-            <Icofont icon="search_group" />
-            <span class="text">Profils de recherche</span>
-        </Button>
+        <div class="fixed-width">
+            <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchEngines = true}>
+                <Icofont icon="search" />
+                <span class="text">Moteurs de recherche</span>
+            </Button>
+            <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalSelectSearchProfile = true}>
+                <Icofont icon="search_group" />
+                <span class="text">Profils de recherche</span>
+            </Button>
 
-        <span class="spacer"></span>
+            <span class="spacer"></span>
 
-        <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalResetSelection = true}>
-            <Icofont icon="bin" />
-            <span class="text">Réinitialiser</span>
-        </Button>
+            <Button kind="ghost" style="display: flex; gap: 5px;" on:click={() => modalResetSelection = true}>
+                <Icofont icon="bin" />
+                <span class="text">Réinitialiser</span>
+            </Button>
+        </div>
     </div>
 </main>
 
@@ -492,7 +501,8 @@
             justify-content: space-between;
             gap: 10px;
         }
-        &.fit {min-height: 300px;}
+        //&.fit {min-height: 500px;}
+        &.fit {min-height: 400px;}
         &.expand {
             --height: 300px;
             height: var(--height);
@@ -530,6 +540,11 @@
         position: static;
         padding: 10px;
 
+        .fixed-width {
+            display: flex;
+            width: 100%;
+        }
+
         .spacer {flex: 1;}
         :global(.bx--btn) {
             border-radius: 10px;
@@ -547,9 +562,9 @@
     .bgMask {
         background-color: var(--mask-bg-color);
 
-        @supports (backdrop-filter: blur(20px)) {
+        /*@supports (backdrop-filter: blur(20px)) {
             backdrop-filter: blur(20px);
-        }
+        }*/
 
         :global(.bx--btn) {
             border-radius: 10px;
@@ -557,6 +572,8 @@
         }
 
         &.nav-searchProfile {
+            background: linear-gradient(to bottom, var(--mask-bg-color), transparent);
+
             // Lien
             :global(.bx--link) {
                 color: var(--cds-text-01);
@@ -589,6 +606,10 @@
                 opacity: 1;
             }
         }
+
+        &.bottomToolbar {
+            background: linear-gradient(to top, var(--mask-bg-color), transparent);
+        }
     }
 
     // Barre de recherche
@@ -615,6 +636,10 @@
             // En plein écran
             &.expand {
                 height: calc(var(--height));
+            }
+
+            // Placé sous le header
+            &.underHeader {
                 margin-top: -52px; // 52px = hauteur du header
 
                 .nav-searchProfile {
@@ -629,6 +654,14 @@
 
             :global(.icofont) {font-size: 22px;}
             :global(.text) {display: none;}
+        }
+    }
+
+    @media (min-width: 672px) {
+        main#searchPage .bottomToolbar .fixed-width {
+            width: 80%;
+            width: calc(80% + 2rem);
+            margin: 0 auto;
         }
     }
 </style>
