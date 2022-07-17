@@ -43,6 +43,20 @@ export const BackgroundImageTypes = {
 // Liste des icônes
 let bgId = 1
 export const listBgImgs = storeBgImgList([
+    // https://www.jpl.nasa.gov/images?page=833&sortBy=score
+    new BackgroundImage(bgId++, "Carina Nebula by James Webb Space Telescope",
+        "https://www.nasa.gov/sites/default/files/thumbnails/image/main_image_star-forming_region_carina_nircam_final-5mb.jpg", [
+        BackgroundImageTypes.pc
+    ]),
+    new BackgroundImage(bgId++, "Enchanted View of Jezero Rocks",
+        "https://d2pn8kiwq2w21t.cloudfront.net/original_images/jpegPIA25325.jpg", [
+        BackgroundImageTypes.pc
+    ]),
+    new BackgroundImage(bgId++, "Curiosity: The Next Mars Rover (Artist's Concept)",
+        "https://d2pn8kiwq2w21t.cloudfront.net/original_images/jpegPIA14156.jpg", [
+        BackgroundImageTypes.pc
+    ]),
+
     new BackgroundImage(bgId++, "Poisson dans l'eau",
         "https://www.doocode.xyz/res/img/backgrounds/DCG6.png", [
         BackgroundImageTypes.pc
