@@ -263,7 +263,7 @@
 
 <main id="bgimgSettings" {style} >
 
-    <div class="header-mask">
+    <div class="header-mask" in:slide|local>
         {#if !isModalOpen}
             <div class="toolbar" transition:slide|local>
                 <Button kind="primary" class="format" on:click={saveChanges}>

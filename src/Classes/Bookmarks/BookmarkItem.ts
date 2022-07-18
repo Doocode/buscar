@@ -18,7 +18,14 @@ export default class BookmarkItem {
 
 
     // Constructeur
-    constructor(id: number, name: string, type: BookmarkType, data: any, previousId?: number, folderId?: number) {
+    constructor(
+        id: number,
+        name: string,
+        type: BookmarkType,
+        data: any,
+        previousId?: number,
+        folderId?: number,
+    ) {
         this._id = id
         this._name = name
         this._type = type

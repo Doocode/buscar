@@ -15,7 +15,7 @@
         from '../../Stores/settings'
     import { Breadcrumb, BreadcrumbItem, Toggle, Grid, Row, Column, Button,
         TileGroup, RadioTile, RadioButtonGroup, RadioButton, Modal, NumberInput,
-        ExpandableTile }
+        ExpandableTile, Link }
         from 'carbon-components-svelte'
     import { pageName, pageIcon }
         from '../../Stores/header'
@@ -31,7 +31,8 @@
         from 'svelte/transition'
     import { push }
         from 'svelte-spa-router'
-import { onMount } from 'svelte';
+    import { onMount }
+        from 'svelte'
 
 
 
@@ -362,7 +363,7 @@ import { onMount } from 'svelte';
     </RadioButtonGroup>
     <br/>
 
-    {#if $backgroundType == "color"}
+    {#if $backgroundType == "color" || $backgroundType == "image"}
         <div transition:slide|local style="display: flex; flex-flow: wrap; align-items: center; gap: var(--cds-spacing-02);">
             <div class="color-view" style="--value: {$backgroundColor}"
                 on:click={() => bgColorInput.click()} >
@@ -378,8 +379,9 @@ import { onMount } from 'svelte';
                 </Button>
             </div>
         </div>
-    {:else if $backgroundType == "image"}
-        <div transition:slide|local style="display: flex; flex-flow: wrap; align-items: end; gap: var(--cds-spacing-02);">
+    {/if}
+    {#if $backgroundType == "image"}
+        <div transition:slide|local style="display: flex; flex-flow: wrap; align-items: end; gap: var(--cds-spacing-02); margin-top: 1rem">
             <img class="image-view" src={bgUrl}
                 on:click={() => modalBgImageSelect = true} />
             <div class="actions" style="flex: 1; flex-flow: column; align-items: flex-start;">
@@ -394,6 +396,16 @@ import { onMount } from 'svelte';
                     <p class="label">Réglages <!--et filtres--> sur l'image</p>
                 </Button>
             </div>
+        </div>
+
+        <div transition:slide|local>
+            <br/><br/><!--br/-->
+            <h5>Liens utiles</h5>
+            <br/>
+            <Link href="/#/library/background-images">
+                <Icofont icon="arrow_right" />
+                <span class="label">Ajouter ou supprimer des images d'arrière plan</span>
+            </Link>
         </div>
     {/if}
 
@@ -544,6 +556,13 @@ import { onMount } from 'svelte';
     @import './Preferences.scss';
 
     #prefs-display {
+        // Liens "Voir aussi"
+        :global(.bx--link) {
+            display: inline-flex;
+            gap: var(--cds-spacing-03);
+            align-items: center;
+        }
+
         // Sélecteur d'ambiance
         .ambianceTiles {
             // - Grille

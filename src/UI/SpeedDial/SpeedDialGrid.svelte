@@ -81,7 +81,7 @@
 
     // Réactivité
     $: calcTileSize(gridWidth, gridColumns, items)
-    $: folderIconSize = tileLogoSize * .7
+    $: folderIconSize = tileLogoSize * .65
     $: fontIconSize = tileLogoSize * .3
 
     $: searchProfileIconSize = tileLogoSize * .50

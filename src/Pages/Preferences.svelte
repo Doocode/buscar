@@ -212,6 +212,10 @@
         .router-section {
             flex: 1;
         }
+
+        :global(br) {
+            margin: .3rem;
+        }
     }
 
     @media (max-width: 672px) { // width < md
